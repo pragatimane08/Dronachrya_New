@@ -95,7 +95,6 @@ const EnquiryCard = ({
   );
 };
 
-
 const AllEnquiriesPage = () => {
   const [enquiries, setEnquiries] = useState([]);
   const navigate = useNavigate();
