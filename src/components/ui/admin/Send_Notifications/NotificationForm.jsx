@@ -1,9 +1,10 @@
-// src/components/ui/admin/dashbaord/NotificationForm.jsx
+// src/components/ui/admin/dashboard/NotificationForm.jsx
 import React, { useState } from "react";
 import { notificationRepository } from "../../../../api/repository/admin/notificationApi";
 
 const NotificationForm = ({ onClose, onSuccess }) => {
-  const [mode, setMode] = useState("single"); // 'single' | 'bulk'
+  const [mode, setMode] = useState("single");
+  const [loading, setLoading] = useState(false);
   const [payload, setPayload] = useState({
     user_id: "",
     role: "student",
@@ -12,38 +13,60 @@ const NotificationForm = ({ onClose, onSuccess }) => {
     content: "",
     filter: { class: "" },
   });
-  const [loading, setLoading] = useState(false);
 
-  const handleChange = (name, value) => {
-    setPayload((prev) => ({ ...prev, [name]: value }));
+  const handleChange = (key, value) => {
+    setPayload((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleFilterChange = (key, value) => {
+    setPayload((prev) => ({
+      ...prev,
+      filter: { ...prev.filter, [key]: value },
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (mode === "single" && !payload.user_id) {
+      alert("User ID is required for single notifications.");
+      return;
+    }
+
+    if (!payload.template_name || !payload.content) {
+      alert("Template name and message content are required.");
+      return;
+    }
+
+    setLoading(true);
     try {
-      setLoading(true);
       if (mode === "single") {
-        await notificationRepository.sendSingle({
-          user_id: payload.user_id,
-          type: payload.type,
-          template_name: payload.template_name,
-          content: { message: payload.content },
-        });
-      } else {
-    await notificationRepository.sendBulk({
-  role: payload.role,
+     await notificationRepository.sendSingle({
+  user_id: payload.user_id,
   type: payload.type,
   template_name: payload.template_name,
   content: { message: payload.content },
-  filter:
-    payload.role === "tutor" && payload.filter?.class
-      ? { classes: payload.filter.class }
-      : {}, // `classes` used for tutors
+  formatted: true
 });
+      } else {
+        const isTutor = payload.role === "tutor";
+        const filter = isTutor && payload.filter.class
+          ? { classes: [payload.filter.class] }
+          : {};
+
+        await notificationRepository.sendBulk({
+          role: payload.role,
+          type: payload.type,
+          template_name: payload.template_name,
+          content: { message: payload.content },
+          filter,
+        });
       }
+
       onSuccess?.();
     } catch (err) {
-      console.error("Failed to send notification", err);
+      console.error("❌ Failed to send notification:", err);
+      alert("Failed to send notification. Check console for details.");
     } finally {
       setLoading(false);
     }
@@ -60,7 +83,7 @@ const NotificationForm = ({ onClose, onSuccess }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          {/* Mode Selector */}
+          {/* Mode */}
           <div>
             <label className="block text-sm font-medium mb-1">Mode</label>
             <select
@@ -73,19 +96,19 @@ const NotificationForm = ({ onClose, onSuccess }) => {
             </select>
           </div>
 
-          {/* User ID or Role */}
+          {/* Single User ID or Bulk Filters */}
           {mode === "single" ? (
-          <div>
-            <label className="block text-sm font-medium mb-1">User ID</label>
-            <input
-              type="number"
-              className="w-full border rounded px-3 py-2"
-              value={payload.user_id}
-              onChange={(e) => handleChange("user_id", e.target.value)}
-              placeholder="Enter user_id"
-              required
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">User ID</label>
+              <input
+                type="text"
+                className="w-full border rounded px-3 py-2"
+                value={payload.user_id}
+                onChange={(e) => handleChange("user_id", e.target.value)}
+                placeholder="Enter User ID"
+                required
+              />
+            </div>
           ) : (
             <>
               <div>
@@ -100,23 +123,17 @@ const NotificationForm = ({ onClose, onSuccess }) => {
                 </select>
               </div>
 
-              <div>
-           <label className="block text-sm font-medium mb-1">
-  {payload.role === "tutor" ? "Classes (e.g. 11)" : "Class (e.g. 10)"}
-</label>
-
-                <input
-                  className="w-full border rounded px-3 py-2"
-                  value={payload.filter.class}
-                  onChange={(e) =>
-                    setPayload((prev) => ({
-                      ...prev,
-                      filter: { ...prev.filter, class: e.target.value },
-                    }))
-                  }
-                  placeholder="e.g. Class 10"
-                />
-              </div>
+              {payload.role === "tutor" && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">Class</label>
+                  <input
+                    className="w-full border rounded px-3 py-2"
+                    value={payload.filter.class}
+                    onChange={(e) => handleFilterChange("class", e.target.value)}
+                    placeholder="e.g. 11"
+                  />
+                </div>
+              )}
             </>
           )}
 
@@ -146,7 +163,7 @@ const NotificationForm = ({ onClose, onSuccess }) => {
             />
           </div>
 
-          {/* Content */}
+          {/* Message Content */}
           <div>
             <label className="block text-sm font-medium mb-1">Message</label>
             <textarea
@@ -159,7 +176,7 @@ const NotificationForm = ({ onClose, onSuccess }) => {
             />
           </div>
 
-          {/* Buttons */}
+          {/* Action Buttons */}
           <div className="flex justify-end space-x-2 pt-2">
             <button
               type="button"
