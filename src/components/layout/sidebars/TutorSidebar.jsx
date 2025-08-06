@@ -20,6 +20,10 @@ const menuItems = [
   { icon: <FiCheckSquare />, label: "Messages", route: "/message_tutor" },
   { icon: <FiMail />, label: "Enquiries", route: "/view_all_enquires" }, // ✅ Updated icon
   { icon: <FiUsers />, label: "Student", route: "/Student_Filter" },
+  { icon: <FiUsers />, label: "Invoice", route: "/tutor_invoice" },
+    { icon: <FiUsers />, label: "Refral", route: "/refer_tutor" },
+  
+
   { icon: <FiSettings />, label: "Account", hasSubmenu: true },
   { icon: <FiHelpCircle />, label: "Help Center", route: "/help-center" },
 ];
@@ -126,9 +130,8 @@ const TutorSidebar = ({ isOpen, toggleSidebar }) => {
 
   return (
     <div
-      className={`bg-[#2c3e91] h-full rounded-r-2xl pt-4 pb-2 px-2 text-white flex flex-col items-center shadow-lg transition-all duration-300 ${
-        isOpen ? "w-64" : "w-20"
-      }`}
+      className={`bg-[#2c3e91] h-full rounded-r-2xl pt-4 pb-2 px-2 text-white flex flex-col items-center shadow-lg transition-all duration-300 ${isOpen ? "w-64" : "w-20"
+        }`}
     >
       {/* Toggle */}
       <div className="w-full flex justify-end pr-2 mb-4">
@@ -149,11 +152,10 @@ const TutorSidebar = ({ isOpen, toggleSidebar }) => {
             </h2>
             <div className="flex gap-1 mt-1">
               <span
-                className={`px-2 py-0.5 rounded text-xs md:text-sm ${
-                  tutorData.profileStatus === "approved"
+                className={`px-2 py-0.5 rounded text-xs md:text-sm ${tutorData.profileStatus === "approved"
                     ? "bg-green-500 text-white"
                     : "bg-yellow-500 text-gray-800"
-                }`}
+                  }`}
               >
                 {tutorData.profileStatus}
               </span>
@@ -190,14 +192,12 @@ const TutorSidebar = ({ isOpen, toggleSidebar }) => {
           <div key={index}>
             <div
               onClick={() => handleMenuClick(index)}
-              className={`flex items-center ${
-                isOpen ? "justify-start" : "justify-center"
-              } gap-3 px-4 py-2 rounded-md cursor-pointer transition-all duration-200 ${
-                activeIndex === index &&
-                (!item.hasSubmenu || (item.hasSubmenu && openSubmenu))
+              className={`flex items-center ${isOpen ? "justify-start" : "justify-center"
+                } gap-3 px-4 py-2 rounded-md cursor-pointer transition-all duration-200 ${activeIndex === index &&
+                  (!item.hasSubmenu || (item.hasSubmenu && openSubmenu))
                   ? "bg-white text-[#2c3e91] font-semibold"
                   : "text-white hover:bg-white hover:text-[#2c3e91]"
-              }`}
+                }`}
             >
               <span className="text-lg">{item.icon}</span>
               {isOpen && <span>{item.label}</span>}
@@ -212,11 +212,10 @@ const TutorSidebar = ({ isOpen, toggleSidebar }) => {
                     <div
                       key={subIndex}
                       onClick={() => handleSubmenuClick(sub)}
-                      className={`flex items-center gap-2 px-2 py-1 rounded-md cursor-pointer transition-all ${
-                        activeSubItem === sub.label
+                      className={`flex items-center gap-2 px-2 py-1 rounded-md cursor-pointer transition-all ${activeSubItem === sub.label
                           ? "bg-white text-[#2c3e91] font-semibold"
                           : "text-white hover:bg-white hover:text-[#2c3e91]"
-                      }`}
+                        }`}
                     >
                       <span>{sub.icon}</span>
                       <span>{sub.label}</span>

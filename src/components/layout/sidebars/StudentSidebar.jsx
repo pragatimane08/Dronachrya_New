@@ -17,6 +17,8 @@ const menuItems = [
   { icon: <FiCalendar />, label: "My Classes", route: "/student_classes" },
   { icon: <FiMessageCircle />, label: "Message", route: "/student_message_dashboard" },
   { icon: <FiUser />, label: "Account", hasSubmenu: true },
+  { icon: <FiMessageCircle />, label: "Invoice", route: "/student_invoice" },
+   { icon: <FiMessageCircle />, label: "Referal", route: "/student_referal" },
   { icon: <FiHelpCircle />, label: "Help Center", route: "/help-center" },
 ];
 

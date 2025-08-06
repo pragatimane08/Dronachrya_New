@@ -141,6 +141,12 @@ export const apiUrl = {
   analytics: {
     summary: "/analytics/summary",
   },
+
+  invoices: {
+  student: "/invoices/my",
+  downloadPDF: (paymentId) => `/invoices/${paymentId}/pdf`,
+},
+
 };
 
 export const apiUtl = {

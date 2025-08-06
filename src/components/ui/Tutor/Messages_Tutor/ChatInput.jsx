@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+
 const ChatInput = ({ enquiryId, onSend }) => {
   const [text, setText] = useState('');
 
