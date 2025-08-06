@@ -10,7 +10,8 @@ const AdminInvoicesPage = () => {
           Manage Invoices
         </h1>
         <p className="text-gray-600 mb-6 text-left">
-          Welcome back! Here's what's happening with your tutoring business.
+          {/* Welcome back! Here's what's happening with your tutoring business. */}
+          View and manage all system invoices
         </p>
         <AdminInvoices />
       </div>
