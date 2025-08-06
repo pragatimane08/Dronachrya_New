@@ -1,5 +1,4 @@
-// src/App.jsx
-
+// src/components/ui/Tutor/ReferralDashboard.jsx
 import React, { useState } from 'react';
 import {
   TextField,
@@ -11,35 +10,31 @@ import {
 } from '@mui/material';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { generateReferralCode } from '../../../../api/repository/referral_tutor.controller'; // adjust path as needed
+import { generateReferralCode } from '../../../../api/repository/referral_tutor.controller';
 
 const ReferralCodeCard = () => {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
   const handleGenerate = async () => {
     setLoading(true);
-    setError('');
+    setMessage('');
+    setCode('');
 
     try {
       const result = await generateReferralCode();
 
       if (result?.code) {
         setCode(result.code);
+        setMessage(result.message || 'Referral code ready.');
 
-        toast.success(
-          code
-            ? 'Referral code already exists.'
-            : 'Referral code generated successfully!'
-        );
+        toast.success(result.message || 'Referral code generated.');
       } else {
-        setError('Referral code not found in response.');
-        toast.error('Referral code not found in response.');
+        toast.error('Referral code not found.');
       }
     } catch (err) {
       console.error(err);
-      setError('Failed to fetch referral code.');
       toast.error('Failed to generate referral code.');
     } finally {
       setLoading(false);
@@ -50,16 +45,20 @@ const ReferralCodeCard = () => {
     <Paper
       elevation={3}
       sx={{
-        maxWidth: 450,
+        maxWidth: 500,
         mx: 'auto',
         mt: 6,
         p: 4,
-        border: '1px solid #ccc',
         borderRadius: '12px',
+        border: '1px solid #ddd',
       }}
     >
       <Typography variant="h5" align="center" gutterBottom>
-        Tutor Referral Code
+        Generate Your Tutor Referral Code
+      </Typography>
+
+      <Typography variant="body2" align="center" color="textSecondary" gutterBottom>
+        Use this code to invite other tutors or students and earn rewards.
       </Typography>
 
       <TextField
@@ -69,13 +68,8 @@ const ReferralCodeCard = () => {
         value={code}
         InputProps={{ readOnly: true }}
         margin="normal"
+        sx={{ mt: 2 }}
       />
-
-      {error && (
-        <Typography variant="body2" color="error" gutterBottom>
-          {error}
-        </Typography>
-      )}
 
       <Button
         variant="contained"
@@ -85,18 +79,18 @@ const ReferralCodeCard = () => {
         disabled={loading}
         sx={{ mt: 2 }}
       >
-        {loading ? <CircularProgress size={24} /> : 'Generate Referral Code'}
+        {loading ? <CircularProgress size={24} /> : code ? 'Regenerate Code' : 'Generate Referral Code'}
       </Button>
 
       {code && (
         <Typography
-          variant="body1"
+          variant="body2"
           color="success.main"
           align="center"
           mt={3}
           fontWeight={500}
         >
-          You can now refer this code to any student or tutor!
+          {message || 'You can now share this code!'}
         </Typography>
       )}
     </Paper>
@@ -106,9 +100,7 @@ const ReferralCodeCard = () => {
 const ReferralDashboard = () => {
   return (
     <>
-      {/* Replace this with your actual route setup if needed */}
       <ReferralCodeCard />
-
       <ToastContainer position="top-right" autoClose={3000} />
     </>
   );

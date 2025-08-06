@@ -10,6 +10,7 @@ import {
   FiHome,
   FiMessageSquare,
   FiBookOpen,
+  FiArrowRight
 } from "react-icons/fi";
 
 // ✅ EnquiryCard component
@@ -36,7 +37,7 @@ const EnquiryCard = ({
   }, [location]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 w-full max-w-[320px] shadow-sm hover:shadow-md transition-all">
+    <div className="bg-white border border-gray-200 rounded-xl p-5 w-full shadow-sm hover:shadow-md transition-all">
       <div className="flex items-start gap-3 mb-4">
         <div className="bg-teal-100 text-teal-600 p-2 rounded-full mt-1">
           <FiUser size={18} />
@@ -134,22 +135,45 @@ const EnquiryList = () => {
     fetchEnquiries();
   }, []);
 
-  const handleRespond = (enquiry) => {
-  navigate(
-    `/message_tutor?id=${enquiry.id}&sender=${enquiry.sender_id}&receiver=${enquiry.receiver_id}`
-  );
-};
+  const handleRespond = async (enquiry) => {
+    try {
+      if (localStorage.getItem("role")?.toLowerCase() === "tutor") {
+        await enquiryRepository.updateStatus(enquiry.id, {
+          status: "accepted",
+          response_message: "Enquiry accepted",
+        });
+        toast.success("Enquiry accepted successfully");
+      }
+
+     navigate(
+  `/message_tutor?id=${enquiry.id}&sender=${enquiry.sender_id}&receiver=${enquiry.receiver_id}`
+);
+
+    } catch (error) {
+      console.error("Error accepting enquiry:", error);
+      toast.error("Failed to accept enquiry");
+    }
+  };
 
   return (
     <section className="bg-gray-50 py-10">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
+        {/* Header with View All button */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <h2 className="text-2xl font-semibold text-gray-800">
             {localStorage.getItem("role")?.toLowerCase() === "tutor"
               ? "Student Enquiries"
               : "Your Tutor Enquiries"}
           </h2>
+          <button
+            onClick={() => navigate("/view_all_enquires")}
+            className="flex items-center gap-2 text-teal-600 hover:text-teal-700 text-sm font-medium border border-teal-600 px-4 py-2 rounded-lg hover:bg-teal-50 transition"
+          >
+            View All <FiArrowRight size={16} />
+          </button>
         </div>
+
+        {/* Enquiries Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {enquiries.map((enquiry) => (
             <EnquiryCard
@@ -164,4 +188,4 @@ const EnquiryList = () => {
   );
 };
 
-export default EnquiryList;
+export default EnquiryList; 

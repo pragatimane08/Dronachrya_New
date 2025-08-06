@@ -35,6 +35,7 @@ import My_Classes_Tutor from "./Pages/tutor/My_Classes_Tutor";
 import Message_Tutor from "./Pages/tutor/Message_Tutor";
 import My_Plan_Tutor from "./Pages/tutor/My_Plan_Tutor";
 import Tutor_message from "./components/ui/Tutor/Messages_Tutor/Message";
+import Tutor_Invoice from "./Pages/tutor/Tutor_Invoice";
 //import Earning_Coins from "./Pages/tutor/Earning_Coins";
 import MyClasses_tutor_main from "./components/ui/Tutor/MyClasses_Tutor/MyClasses_tutor_main";
 import AddClassForm_Tutor from "./components/ui/Tutor/MyClasses_Tutor/AddClassForm_tutor";
@@ -76,7 +77,7 @@ import BookMark from "./components/ui/Student/Bookmark/Bookmark";
 import MyPlanUpgrader_Student from "./components/ui/Student/account/Billing_History/MyPlan_Student";
 import EnquiryForm_Student from "./components/ui/Student/dashbaord/EnquiryForm_Student";
 import Upgrade_Plan_Student from "./components/ui/Student/account/Billing_History/Upgrade_Plan";
-
+import Student_invoice from "./Pages/student/Student_invoice";
 {/* Student Classes */ }
 import MyClasses_Student from "./components/ui/Student/MyClasses_Student/MyClasses_student";
 import AddClassForm_Student from "./components/ui/Student/MyClasses_Student/AddClassForm_student";
@@ -144,7 +145,7 @@ const App = () => {
                     <Route path="/bookmark" element={<BookMark />} />
                     <Route path="/my_bookmark_student_folder" element={<My_Bookmark_Student_Folder />} />
                     <Route path="/message_stud" element={<Message_Student />} />
-
+                    <Route path="/student_invoice" element={<Student_invoice />} />
                     <Route path="/my_classes_student" element={<MyClasses_Student />} />
                     <Route path="/whole_profile_student" element={<Whole_Profile_student />} />
                     <Route path="/add_class-form_student" element={<AddClassForm_Student />} />
@@ -161,6 +162,8 @@ const App = () => {
                     <Route path="/tutor-profile-show" element={<Profile_show />} />
                     <Route path="/my_plan_tutor" element={<My_Plan_Tutor />} />
                     <Route path="/tutor_message" element={<Tutor_message />} />
+                     <Route path="/tutor_invoice" element={<Tutor_Invoice />} />
+                    
                     {/* <Route path="/earning_coins" element={<Earning_Coins />} /> */}
                     <Route path="/my_classes_tutor" element={<MyClasses_tutor_main />} />
                     <Route path="/add-class-form-tutor" element={<AddClassForm_Tutor />} />
