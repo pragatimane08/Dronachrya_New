@@ -119,7 +119,8 @@ axiosInstance.interceptors.response.use(
       !excludedRoutes.some((route) => requestUrl?.includes(route));
 
     if (shouldRedirect) {
-      localStorage.removeItem("authToken");
+  localStorage.setItem("authToken", response.data.token);
+
       localStorage.removeItem("user");
       localStorage.removeItem("role");
       localStorage.removeItem("user_id");

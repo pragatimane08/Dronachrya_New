@@ -16,13 +16,8 @@ const DashboardCard = ({ icon, title, value, bgColor }) => {
   );
 };
 
-// Main component with dashboard cards
-const AdminCard = ({
-  totalStudents = 0,
-  totalTutors = 0,
-  totalEnquiries = 0,
-  totalSubscriptions = 0
-}) => {
+// Main component with dashboard cards using props
+const AdminCard = ({ totalStudents = 0, totalTutors = 0, totalEnquiries = 0, totalSubscriptions = 0 }) => {
   return (
     <div className="p-1 sm:p-4 grid gap-4 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-4">
       <DashboardCard
