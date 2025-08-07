@@ -22,23 +22,30 @@ const AddClassForm_Tutor = () => {
   const tutor_id = localStorage.getItem("user_id");
 
   useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        const res = await apiClient.get("/users?role=student");
-        const studentList =
-          res.data?.data?.map((student) => ({
-            id: student.id,
-            name: student.name || student.email || student.mobile_number,
-          })) || [];
-        setStudents(studentList);
-      } catch (err) {
-        console.error("Failed to fetch students:", err);
-        toast.error("Unable to fetch students");
-      }
-    };
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    navigate("/login");
+    return;
+  }
 
-    fetchStudents();
-  }, []);
+  const fetchStudents = async () => {
+    try {
+      const res = await apiClient.get("/users?role=student");
+      const studentList =
+        res.data?.data?.map((student) => ({
+          id: student.id,
+          name: student.name || student.email || student.mobile_number,
+        })) || [];
+      setStudents(studentList);
+    } catch (err) {
+      console.error("Failed to fetch students:", err);
+      toast.error("Unable to fetch students");
+    }
+  };
+
+  fetchStudents();
+}, []);
+
 
   const handleChange = (e) => {
     setFormData((prev) => ({

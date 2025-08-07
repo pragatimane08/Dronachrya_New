@@ -18,7 +18,7 @@ const ChatWindow = ({ contact, onSendMessage }) => {
           {contact.name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
         </div>
         <div>
-          <p className="text-sm font-semibold">{contact.name}</p>
+         <p className="text-sm font-semibold">{contact.tutorName}</p>
           <p className="text-xs text-green-500">Online</p>
         </div>
       </div>
