@@ -143,7 +143,13 @@ export const apiUrl = {
     classesChart: '/analytics/classes/chart',
     enquiriesChart: '/analytics/enquiries/chart',
     usersChart: '/analytics/users/chart'
-  }
+  },
+
+  invoices: {
+  student: "/invoices/my",
+  downloadPDF: (paymentId) => `/invoices/${paymentId}/pdf`,
+}
+
 };
 
 export const apiUtl = {
