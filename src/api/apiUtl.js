@@ -150,6 +150,7 @@ export const apiUrl = {
   downloadPDF: (paymentId) => `/invoices/${paymentId}/pdf`,
 }
 
+
 };
 
 export const apiUtl = {
