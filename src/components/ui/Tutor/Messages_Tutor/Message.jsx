@@ -1,106 +1,68 @@
-import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react"; // ✅ Added useRef
+import { useSearchParams, useNavigate } from "react-router-dom";
 import ChatSidebar from "./ChatSidebar";
 import ChatWindow from "./ChatWindow";
 import { enquiryRepository } from "../../../../api/repository/enquiry.repository";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "react-toastify"; // ✅ Add this if not already
 
 const Message = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const enquiryIdParam = searchParams.get("id");
   const senderParam = searchParams.get("sender");
   const receiverParam = searchParams.get("receiver");
 
   const [contacts, setContacts] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const currentUserId = JSON.parse(localStorage.getItem("user"))?.id;
 
-  // ⏱ Auto-refresh messages every 10s
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (selectedContact) fetchMessages(selectedContact);
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [selectedContact]);
+  const hasLoadedOnce = useRef(false); // ✅ Track initial load
 
-  // 📦 Load all enquiries and merge into contact list
-  useEffect(() => {
-    const fetchEnquiries = async () => {
-      try {
-        const { data } = await enquiryRepository.getAll();
-        const combined = [...(data.sent || []), ...(data.received || [])];
+  const fetchEnquiries = async () => {
+    try {
+      setIsLoading(true);
+      const res = await enquiryRepository.getAll();
+      const allEnquiries = res?.data?.enquiries || [];
 
-        const contactMap = new Map();
+      const uniqueMap = new Map();
 
-        combined.forEach((item) => {
-          const pairKey = [item.sender_id, item.receiver_id].sort().join("-");
-          if (!contactMap.has(pairKey)) {
-            const name =
-              item.Receiver?.Student?.name ||
-              item.Receiver?.Tutor?.name ||
-              item.Sender?.Student?.name ||
-              item.Sender?.Tutor?.name ||
-              item.Receiver?.email ||
-              item.Sender?.email ||
-              "Unknown";
+      allEnquiries.forEach((enquiry) => {
+        const isSender = enquiry.sender?.id === currentUserId;
+        const otherUser = isSender ? enquiry.receiver : enquiry.sender;
 
-            contactMap.set(pairKey, {
-              id: item.id,
-              name,
-              lastMessage: item.description || "",
-              createdAt: item.created_at,
-              senderId: item.sender_id,
-              receiverId: item.receiver_id,
-              messages: [],
-            });
-          }
-        });
+        const key = [enquiry.sender?.id, enquiry.receiver?.id]
+          .filter((id) => id !== currentUserId)
+          .join("-");
 
-        const contactList = Array.from(contactMap.values());
-        setContacts(contactList);
-      } catch (error) {
-        console.error("❌ Failed to fetch enquiries:", error);
-      }
-    };
-
-    fetchEnquiries();
-  }, []);
-
-  // 🎯 Auto-select contact from URL (id + sender/receiver)
-  useEffect(() => {
-    if (!contacts.length || selectedContact) return;
-
-    let matched = contacts.find((c) => c.id?.toString() === enquiryIdParam);
-
-    if (!matched && senderParam && receiverParam) {
-      matched = contacts.find((c) => {
-        const matchForward =
-          c.senderId?.toString() === senderParam &&
-          c.receiverId?.toString() === receiverParam;
-
-        const matchReverse =
-          c.senderId?.toString() === receiverParam &&
-          c.receiverId?.toString() === senderParam;
-
-        return matchForward || matchReverse;
+        if (!uniqueMap.has(key) && otherUser?.id !== currentUserId) {
+          uniqueMap.set(key, {
+            id: enquiry.id,
+            senderId: enquiry.sender?.id,
+            receiverId: enquiry.receiver?.id,
+            displayName: otherUser?.name || "Unknown",
+            messages: [],
+            lastMessage: "",
+            createdAt: enquiry.created_at,
+            isUnread: false,
+          });
+        }
       });
-    }
 
-    if (!matched && contacts.length > 0) {
-      matched = contacts[0];
+      setContacts([...uniqueMap.values()]);
+    } catch (error) {
+      console.error("❌ Failed to fetch enquiries:", error);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    if (matched) {
-      setSelectedContact(matched);
-    }
-  }, [contacts, enquiryIdParam, senderParam, receiverParam, selectedContact]);
-
-  // 📨 Fetch messages for selected contact
   const fetchMessages = async (contact) => {
     try {
       const { data } = await enquiryRepository.getMessages(contact.id);
-
       const formatted = data.map((msg) => ({
+        id: msg.id,
         from: msg.sender_id === currentUserId ? "me" : "user",
         text: msg.content,
         time: formatDistanceToNow(new Date(msg.created_at), { addSuffix: true }),
@@ -117,58 +79,125 @@ const Message = () => {
                 messages: formatted,
                 lastMessage: lastMsg?.text || "",
                 createdAt: lastMsg?.createdAt || c.createdAt,
+                isUnread: false,
               }
             : c
         )
       );
 
       setSelectedContact((prev) =>
-        prev && prev.id === contact.id ? { ...prev, messages: formatted } : prev
+        prev && prev.id === contact.id
+          ? {
+              ...prev,
+              messages: formatted,
+              lastMessage: lastMsg?.text || "",
+              isUnread: false,
+            }
+          : prev
       );
+
+      // ✅ Show success toast only once
+      if (!hasLoadedOnce.current) {
+        toast.success("Class loaded successfully");
+        hasLoadedOnce.current = true;
+      }
     } catch (error) {
       console.error("❌ Failed to fetch messages:", error);
     }
   };
 
-  // ⏬ Fetch only if not already loaded
   useEffect(() => {
-    if (selectedContact && selectedContact.messages.length === 0) {
-      fetchMessages(selectedContact);
-    }
+    const interval = setInterval(() => {
+      if (selectedContact) fetchMessages(selectedContact);
+    }, 10000);
+    return () => clearInterval(interval);
   }, [selectedContact]);
 
-  // 🎯 Manual select handler (from sidebar)
+  useEffect(() => {
+    fetchEnquiries();
+  }, []);
+
+  useEffect(() => {
+    if (!contacts.length || selectedContact || isLoading) return;
+
+    let matched = contacts.find((c) => c.id?.toString() === enquiryIdParam);
+
+    if (!matched && senderParam && receiverParam) {
+      matched = contacts.find((c) => {
+        const matchForward =
+          c.senderId?.toString() === senderParam &&
+          c.receiverId?.toString() === receiverParam;
+        const matchReverse =
+          c.senderId?.toString() === receiverParam &&
+          c.receiverId?.toString() === senderParam;
+        return matchForward || matchReverse;
+      });
+    }
+
+    if (!matched && contacts.length > 0) matched = contacts[0];
+
+    if (matched) {
+      setSelectedContact(matched);
+      fetchMessages(matched);
+      navigate(
+        `?id=${matched.id}&sender=${matched.senderId}&receiver=${matched.receiverId}`,
+        { replace: true }
+      );
+    }
+  }, [contacts, enquiryIdParam, senderParam, receiverParam, selectedContact, isLoading]);
+
   const handleSelect = (contact) => {
     setSelectedContact(contact);
     fetchMessages(contact);
+    navigate(`?id=${contact.id}&sender=${contact.senderId}&receiver=${contact.receiverId}`);
   };
 
-  // 📨 Send message
   const handleSendMessage = async (messageText) => {
     if (!selectedContact || !messageText.trim()) return;
 
+    const tempMessage = {
+      id: Date.now(),
+      from: "me",
+      text: messageText,
+      time: "Just now",
+      createdAt: new Date().toISOString(),
+    };
+
+    setSelectedContact((prev) => ({
+      ...prev,
+      messages: [...prev.messages, tempMessage],
+    }));
+
     try {
-      await enquiryRepository.sendMessage(selectedContact.id, {
-        content: messageText,
-      });
+      await enquiryRepository.sendMessage(selectedContact.id, { content: messageText });
       fetchMessages(selectedContact);
     } catch (error) {
       console.error("❌ Failed to send message:", error);
+      setSelectedContact((prev) => ({
+        ...prev,
+        messages: prev.messages.filter((m) => m.id !== tempMessage.id),
+      }));
     }
   };
 
   return (
-    <div className="flex h-[calc(100vh-80px)] bg-gray-100">
+    <div className="flex h-[calc(100vh-80px)] bg-white border shadow-md mx-4 my-4 rounded-lg overflow-hidden">
       <ChatSidebar
         contacts={contacts}
-        onSearch={() => {}}
         onSelect={handleSelect}
         selectedContact={selectedContact}
+        isLoading={isLoading}
       />
       <div className="flex-1">
-        {!selectedContact ? (
+        {isLoading ? (
+          <div className="flex h-full items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : !selectedContact ? (
           <div className="flex h-full items-center justify-center text-gray-500 text-lg">
-            Select a conversation to start chatting.
+            {contacts.length === 0
+              ? "No conversations found"
+              : "Select a conversation to start chatting"}
           </div>
         ) : (
           <ChatWindow contact={selectedContact} onSendMessage={handleSendMessage} />

@@ -83,16 +83,16 @@ const SendNotification = () => {
   return (
       <div className="p-6 max-w-7xl mx-auto">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">Notifications</h1>
+        <div className="flex flex-col md:flex-row justify-between items-end md:items-center mb-8">
+          {/* <div> */}
+            {/* <h1 className="text-3xl font-bold text-gray-800">Notifications</h1>
             <p className="text-gray-600 mt-2">
               Manage and send notifications to users
-            </p>
-          </div>
+            </p> */}
+          {/* </div> */}
           <button
             onClick={handleOpenForm}
-            className="mt-4 md:mt-0 flex items-center bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+            className="mt-4 md:mt-0 flex items-end bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
           >
             <FiPlus className="mr-2" />
             Send New Notification

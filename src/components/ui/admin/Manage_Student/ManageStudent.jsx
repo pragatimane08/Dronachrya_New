@@ -236,12 +236,12 @@ const ManageStudent = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="w-full mx-auto">
         {/* Header */}
-        <div className="p-6 pb-0">
+        {/* <div className="p-6 pb-0">
           <h1 className="text-2xl font-bold text-gray-800">Manage Students</h1>
           <p className="text-gray-600 mt-1">
             Welcome back! Here's what's happening with your tutoring business.
           </p>
-        </div>
+        </div> */}
 
         {/* Search and Filters */}
         <div className="bg-white p-6">
