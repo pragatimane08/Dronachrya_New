@@ -11,28 +11,56 @@ const MyPlanTutor = () => {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchBillingHistory = async () => {
-      setLoadingHistory(true);
-      setError("");
+  // useEffect(() => {
+  //   const fetchBillingHistory = async () => {
+  //     setLoadingHistory(true);
+  //     setError("");
 
-      try {
-        const response = await apiClient.get("/billing/history"); // ✅ Changed
-        const historyArray = Array.isArray(response.data)
-          ? response.data
-          : [response.data];
-        setBillingHistory(historyArray);
-      } catch (err) {
+  //     try {
+  //       const response = await apiClient.get("/billing/history"); // ✅ Changed
+  //       const historyArray = Array.isArray(response.data)
+  //         ? response.data
+  //         : [response.data];
+  //       setBillingHistory(historyArray);
+  //     } catch (err) {
+  //       console.error(err);
+  //       setError("Failed to load billing history.");
+  //       toast.error("Error fetching billing history");
+  //     } finally {
+  //       setLoadingHistory(false);
+  //     }
+  //   };
+
+  //   fetchBillingHistory();
+  // }, []);
+
+  useEffect(() => {
+  const fetchBillingHistory = async () => {
+    setLoadingHistory(true);
+    setError("");
+
+    try {
+      const response = await apiClient.get("/billing/history");
+      const historyArray = Array.isArray(response.data)
+        ? response.data
+        : [response.data];
+      setBillingHistory(historyArray);
+    } catch (err) {
+      if (err.response?.status === 404) {
+        // No billing history for this tutor
+        setBillingHistory([]);
+      } else {
         console.error(err);
         setError("Failed to load billing history.");
         toast.error("Error fetching billing history");
-      } finally {
-        setLoadingHistory(false);
       }
-    };
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
-    fetchBillingHistory();
-  }, []);
+  fetchBillingHistory();
+}, []);
 
   const handleUpgrade = () => {
     toast.success("Redirecting to upgrade plans...");

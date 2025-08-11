@@ -8,6 +8,7 @@ const MyPlans = () => {
   const [billingHistory, setBillingHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [error, setError] = useState("");
+  const [userRole, setUserRole] = useState(""); // store role
 
   const navigate = useNavigate();
 
@@ -15,16 +16,31 @@ const MyPlans = () => {
     const fetchBillingHistory = async () => {
       setLoadingHistory(true);
       setError("");
+
+      // Safe token decoding
+      const token = localStorage.getItem("token");
+      let tokenData = {};
+      if (token && token.includes(".")) {
+        try {
+          tokenData = JSON.parse(atob(token.split(".")[1]));
+        } catch (e) {
+          console.warn("Invalid token format", e);
+        }
+      }
+      setUserRole(tokenData?.role || "");
+
       try {
         const response = await apiClient.get("/billing/history");
-        const historyArray = Array.isArray(response.data)
-          ? response.data
-          : [response.data];
+        const historyArray = Array.isArray(response.data) ? response.data : [];
         setBillingHistory(historyArray);
       } catch (err) {
-        console.error(err);
-        setError("Failed to load billing history.");
-        toast.error("Error fetching billing history");
+        if (err.response?.status === 404) {
+          setBillingHistory([]); // No active plan
+        } else {
+          console.error(err);
+          setError("Failed to load billing history.");
+          toast.error("Error fetching billing history");
+        }
       } finally {
         setLoadingHistory(false);
       }
@@ -33,9 +49,19 @@ const MyPlans = () => {
     fetchBillingHistory();
   }, []);
 
+
   const handleUpgrade = () => {
     toast.success("Redirecting to upgrade plans...");
     navigate("/upgrader_plan_student"); // Adjust route if needed
+  };
+
+  const renderEmptyMessage = () => {
+    if (userRole.toLowerCase() === "tutor") {
+      return "You have not purchased any tutor plan yet.";
+    } else if (userRole.toLowerCase() === "student") {
+      return "You have not subscribed to any plan yet.";
+    }
+    return "No billing history found.";
   };
 
   return (
@@ -53,7 +79,9 @@ const MyPlans = () => {
         ) : error ? (
           <p className="text-sm text-center text-red-500">{error}</p>
         ) : billingHistory.length === 0 ? (
-          <p className="text-sm text-center text-gray-600">No billing history found.</p>
+          <p className="text-sm text-center text-gray-600">
+            {renderEmptyMessage()}
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white rounded-lg overflow-hidden text-sm text-gray-700">
@@ -90,14 +118,16 @@ const MyPlans = () => {
         )}
 
         {/* Upgrade Button */}
-        <div className="flex justify-center mt-6">
-          <button
-            onClick={handleUpgrade}
-            className="bg-[#35BAA3] text-white px-6 py-2 rounded-md text-sm hover:brightness-110"
-          >
-            Upgrade Now
-          </button>
-        </div>
+        {userRole.toLowerCase() === "student" && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={handleUpgrade}
+              className="bg-[#35BAA3] text-white px-6 py-2 rounded-md text-sm hover:brightness-110"
+            >
+              Upgrade Now
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

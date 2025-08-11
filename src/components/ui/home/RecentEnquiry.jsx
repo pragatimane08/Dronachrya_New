@@ -4,19 +4,19 @@ import tutor1 from "../../../assets/img/enquiry5.png";
 
 const enquiries = [
   {
-    name: "Manisha Raina",
+    name: "Bharat Shaha",
     role: "Tutor",
     image: tutor1,
     specialty: "Mathematics & Physics",
   },
   {
-    name: "Bharat Shaha",
+    name: "Manisha Raina ",
     role: "Student",
     image: "https://randomuser.me/api/portraits/women/65.jpg",
     specialty: "Computer Science",
   },
   {
-    name: "Nllam Desai",
+    name: "Joy",
     role: "Tutor",
     image: "https://randomuser.me/api/portraits/men/85.jpg",
     specialty: "Chemistry & Biology",

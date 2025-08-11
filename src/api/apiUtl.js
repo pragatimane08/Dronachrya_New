@@ -95,7 +95,7 @@
 
 // src/api/apiUrl.js-after admin
 export const apiUrl = {
-  baseUrl: "http://192.168.1.19:3000/api", // ✅ Use your backend IP and port
+  baseUrl: "http://15.206.81.98:3000/api", // ✅ Use your backend IP and port
 
   auth: {
     login: "/auth/login",
@@ -154,5 +154,5 @@ export const apiUrl = {
 };
 
 export const apiUtl = {
-  baseUrl: "http://192.168.1.19:3000/api",
+  baseUrl: "http://15.206.81.98:3000/api",
 };
