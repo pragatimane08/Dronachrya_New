@@ -26,6 +26,8 @@ const ChatInput = ({ enquiryId, onSend }) => {
     }
   };
 
+
+  
   return (
     <div className="flex items-center px-4 py-3 border-t bg-white">
       {/* Emoji Icon */}
