@@ -1,3 +1,4 @@
+
 // // src/api/apiclient.js
 // import axios from "axios";
 // import { apiUrl } from "./apiUtl";
@@ -45,14 +46,16 @@
 //       !excludedRoutes.some((route) => requestUrl?.includes(route));
 
 //     if (shouldRedirect) {
-//       // ❌ Don’t set token from undefined response
-//       localStorage.removeItem("authToken");
-//       localStorage.removeItem("user");
-//       localStorage.removeItem("role");
-//       localStorage.removeItem("user_id");
+//       const token =
+//         localStorage.getItem("authToken") ||
+//         sessionStorage.getItem("authToken");
 
-//       // 🔁 Redirect to login
-//       window.location.href = "/login";
+//       if (token) {
+//         // ✅ Only clear if user actually had a token
+//         localStorage.clear();
+//         sessionStorage.clear();
+//         window.location.href = "/login";
+//       }
 //     }
 
 //     // 🔎 Better error logging
@@ -77,9 +80,9 @@
 
 // export default axiosInstance;
 
-// src/api/apiclient.js
 import axios from "axios";
 import { apiUrl } from "./apiUtl";
+import { getToken, clearToken } from "./session";
 
 // ✅ Create Axios instance
 const axiosInstance = axios.create({
@@ -90,11 +93,10 @@ const axiosInstance = axios.create({
   },
 });
 
-// 🔐 Attach JWT token from localStorage or sessionStorage
+// 🔐 Attach JWT token
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token =
-      localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+    const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -112,6 +114,7 @@ axiosInstance.interceptors.response.use(
 
     const excludedRoutes = [
       "/auth/signup",
+      "/auth/login",
       "/auth/verify-otp",
       "/profile/student",
       "/profile/tutor",
@@ -124,19 +127,12 @@ axiosInstance.interceptors.response.use(
       !excludedRoutes.some((route) => requestUrl?.includes(route));
 
     if (shouldRedirect) {
-      const token =
-        localStorage.getItem("authToken") ||
-        sessionStorage.getItem("authToken");
-
-      if (token) {
-        // ✅ Only clear if user actually had a token
-        localStorage.clear();
-        sessionStorage.clear();
+      if (getToken()) {
+        clearToken();
         window.location.href = "/login";
       }
     }
 
-    // 🔎 Better error logging
     if (error.response) {
       console.error("API Error:", error.response.data);
     } else {
