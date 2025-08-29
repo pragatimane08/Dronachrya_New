@@ -30,7 +30,9 @@ const Whole_Profile_tutor = () => {
           .join(", ");
 
         setProfile({
-          photo: data?.profile_photo ? `${data.profile_photo}?t=${Date.now()}` : "/default/photo.jpg",
+          photo: data?.profile_photo
+            ? `${data.profile_photo}?t=${Date.now()}`
+            : "/default/photo.jpg",
           name: data.name || "",
           email: data.User?.email || "",
           mobile: data.User?.mobile_number || "",
@@ -51,11 +53,13 @@ const Whole_Profile_tutor = () => {
           degree_status: data.degree_status || "",
           documents: data.documents || {},
         });
+
         toast.success("Profile loaded successfully");
       } catch {
         toast.error("Failed to load profile");
       }
     };
+
     fetchProfile();
   }, []);
 
@@ -66,19 +70,51 @@ const Whole_Profile_tutor = () => {
 
   const handleChange = (e) => setTempValue(e.target.value);
 
+  const handleProfileUpdate = async (updatedProfile) => {
+  try {
+    const response = await apiClient.put("/profile/tutor", updatedProfile);
+
+    if (response.data?.profile) {
+      // ✅ Sync sidebar immediately
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          profile: response.data.profile,
+          role: "tutor",
+        })
+      );
+      window.dispatchEvent(new Event("storageUpdate"));
+    }
+
+    alert("Profile updated successfully!");
+  } catch (err) {
+    console.error("Update failed:", err);
+    alert("Failed to update profile");
+  }
+};
+
   const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Show instant preview
     const reader = new FileReader();
     reader.onloadend = () => setPhotoPreview(reader.result);
     reader.readAsDataURL(file);
 
     try {
       const res = await uploadProfilePhoto(file);
-      if (!res.profile_photo) return toast.error("Server did not return profile photo path");
+      if (!res.profile_photo) {
+        toast.error("Server did not return profile photo path");
+        return;
+      }
 
-      const photoUrlWithTimestamp = `${res.profile_photo}?t=${Date.now()}`;
+      const baseUrl = "http://localhost:3000";
+      const photoUrl = res.profile_photo.startsWith("http")
+        ? res.profile_photo
+        : `${baseUrl}${res.profile_photo}`;
+      const photoUrlWithTimestamp = `${photoUrl}?t=${Date.now()}`;
+
       setPhotoPreview(photoUrlWithTimestamp);
       setProfile((prev) => ({ ...prev, photo: photoUrlWithTimestamp }));
       toast.success("Profile photo updated successfully");
@@ -89,8 +125,10 @@ const Whole_Profile_tutor = () => {
 
   const handleSave = async (field) => {
     try {
-      if (field === "email" && !validateEmail(tempValue)) return toast.error("Invalid email");
-      if (field === "mobile" && !validateMobile(tempValue)) return toast.error("Invalid mobile number");
+      if (field === "email" && !validateEmail(tempValue))
+        return toast.error("Invalid email");
+      if (field === "mobile" && !validateMobile(tempValue))
+        return toast.error("Invalid mobile number");
 
       if (["email", "mobile"].includes(field)) {
         const fieldToSend = field === "mobile" ? "mobile_number" : field;
@@ -107,9 +145,12 @@ const Whole_Profile_tutor = () => {
           payload = { languages };
         } else {
           const isArray = ["subjects", "classes", "degrees"].includes(field);
-          const actualField = field === "total_experience_years" ? "experience" : field;
+          const actualField =
+            field === "total_experience_years" ? "experience" : field;
           payload = {
-            [actualField]: isArray ? tempValue.split(",").map((v) => v.trim()) : tempValue,
+            [actualField]: isArray
+              ? tempValue.split(",").map((v) => v.trim())
+              : tempValue,
           };
         }
         await updateTutorProfile(payload);
@@ -142,11 +183,15 @@ const Whole_Profile_tutor = () => {
 
   const handleDocumentUpload = async (e) => {
     const files = Array.from(e.target.files);
-    const formattedFiles = files.map((file, index) => ({ field: `document_${index}`, file }));
+    const formattedFiles = files.map((file, index) => ({
+      field: `document_${index}`,
+      file,
+    }));
+
     try {
       await uploadTutorDocuments(formattedFiles);
       toast.success("Documents uploaded successfully");
-    } catch (err) {
+    } catch {
       toast.error("Failed to upload documents");
     }
   };
@@ -177,39 +222,66 @@ const Whole_Profile_tutor = () => {
       <div className="bg-teal-100 p-4 rounded-lg mb-6 flex flex-col md:flex-row justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="relative w-20 h-20 rounded-full overflow-hidden border bg-white">
-            <img src={photoPreview || profile.photo || "/default/photo.jpg"} alt="Profile" className="w-full h-full object-cover" />
+            <img
+              src={photoPreview || profile.photo || "/default/photo.jpg"}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
             <label className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-              <input type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={handlePhotoChange}
+              />
               <span className="text-white text-xs text-center">Change</span>
             </label>
           </div>
           <div>
             <h3 className="text-lg font-semibold">{profile.name}</h3>
-            <p className="text-gray-600">{profile.location}, {profile.country}</p>
-            <p className="text-xs text-gray-500 capitalize">Status: {profile.profile_status}</p>
+            <p className="text-gray-600">
+              {profile.location}, {profile.country}
+            </p>
+            <p className="text-xs text-gray-500 capitalize">
+              Status: {profile.profile_status}
+            </p>
           </div>
         </div>
       </div>
 
       <div className="bg-white p-4 rounded shadow mb-6">
         <h4 className="text-sm font-semibold mb-2">Upload Documents (Aadhar / PAN)</h4>
-        <input type="file" multiple onChange={handleDocumentUpload} accept="image/*,.pdf" className="block w-full border px-3 py-2 rounded" />
-        <p className="text-xs text-gray-500 mt-1">Accepted: PDF, JPG, PNG (Aadhar or PAN)</p>
+        <input
+          type="file"
+          multiple
+          onChange={handleDocumentUpload}
+          accept="image/*,.pdf"
+          className="block w-full border px-3 py-2 rounded"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          Accepted: PDF, JPG, PNG (Aadhar or PAN)
+        </p>
       </div>
 
       {profile.documents && Object.keys(profile.documents).length > 0 && (
         <div className="bg-white p-4 rounded shadow mb-6">
           <h4 className="text-sm font-semibold mb-2">Uploaded Documents</h4>
           <ul className="space-y-2">
-            {Object.entries(profile.documents).map(([type, doc]) => (
-              doc?.url && (
-                <li key={type} className="flex items-center justify-between">
-                  <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                    {doc.name || `Document (${type})`}
-                  </a>
-                </li>
-              )
-            ))}
+            {Object.entries(profile.documents).map(
+              ([type, doc]) =>
+                doc?.url && (
+                  <li key={type} className="flex items-center justify-between">
+                    <a
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      {doc.name || `Document (${type})`}
+                    </a>
+                  </li>
+                )
+            )}
           </ul>
         </div>
       )}
@@ -230,7 +302,11 @@ const Whole_Profile_tutor = () => {
                         setIsLocationLoading(true);
                         try {
                           await updateLocation(selected.place_id);
-                          setProfile((prev) => ({ ...prev, location: selected.city, country: "India" }));
+                          setProfile((prev) => ({
+                            ...prev,
+                            location: selected.city,
+                            country: "India",
+                          }));
                           toast.success("Location updated successfully");
                         } catch {
                           toast.error("Failed to update location");
@@ -241,23 +317,42 @@ const Whole_Profile_tutor = () => {
                       }}
                     />
                   ) : (
-                    <input type={type} value={tempValue} onChange={handleChange} className="w-full border px-3 py-2 rounded" />
+                    <input
+                      type={type}
+                      value={tempValue}
+                      onChange={handleChange}
+                      className="w-full border px-3 py-2 rounded"
+                    />
                   )}
                   <div className="mt-2 flex gap-2">
                     <button
                       onClick={() => handleSave(field)}
-                      disabled={(field === "email" && !validateEmail(tempValue)) || (field === "mobile" && !validateMobile(tempValue)) || (field === "location" && isLocationLoading)}
+                      disabled={
+                        (field === "email" && !validateEmail(tempValue)) ||
+                        (field === "mobile" && !validateMobile(tempValue)) ||
+                        (field === "location" && isLocationLoading)
+                      }
                       className="px-4 py-1 bg-green-500 text-white rounded disabled:opacity-50"
                     >
                       {isLocationLoading && field === "location" ? "Saving..." : "Save"}
                     </button>
-                    <button onClick={() => setEditField(null)} className="px-4 py-1 bg-gray-300 text-gray-700 rounded">Cancel</button>
+                    <button
+                      onClick={() => setEditField(null)}
+                      className="px-4 py-1 bg-gray-300 text-gray-700 rounded"
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </div>
               ) : (
                 <div className="flex justify-between items-center">
                   <span>{profile[field] || "Not specified"}</span>
-                  <button onClick={() => handleEdit(field)} className="text-blue-600 text-sm">Edit</button>
+                  <button
+                    onClick={() => handleEdit(field)}
+                    className="text-blue-600 text-sm"
+                  >
+                    Edit
+                  </button>
                 </div>
               )}
             </div>
@@ -272,16 +367,28 @@ const Whole_Profile_tutor = () => {
             <h4 className="text-sm font-medium mb-2">Teaching Modes</h4>
             <div className="space-y-3">
               {["onlineClass", "offlineClass"].map((mode) => (
-                <label key={mode} className="flex items-center justify-between bg-white p-3 rounded border">
+                <label
+                  key={mode}
+                  className="flex items-center justify-between bg-white p-3 rounded border"
+                >
                   <div>
-                    <p className="font-medium">{mode === "onlineClass" ? "Online Classes" : "Offline Classes"}</p>
-                    <p className="text-xs text-gray-500">{mode === "onlineClass" ? "Teach via Zoom/Meet" : "Teach in-person"}</p>
+                    <p className="font-medium">
+                      {mode === "onlineClass" ? "Online Classes" : "Offline Classes"}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {mode === "onlineClass" ? "Teach via Zoom/Meet" : "Teach in-person"}
+                    </p>
                   </div>
-                  <input type="checkbox" checked={profile[mode]} onChange={() => handleClassToggle(mode)} />
+                  <input
+                    type="checkbox"
+                    checked={profile[mode]}
+                    onChange={() => handleClassToggle(mode)}
+                  />
                 </label>
               ))}
             </div>
           </div>
+
           <div>
             <h4 className="text-sm font-medium mb-2">Notifications</h4>
             <label className="flex items-center justify-between bg-white p-3 rounded border">

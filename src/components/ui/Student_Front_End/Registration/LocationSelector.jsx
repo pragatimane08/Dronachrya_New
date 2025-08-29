@@ -5,7 +5,9 @@ import { apiClient } from "../../../../api/apiclient";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyB2fZzo4kGI7K1iOW_o1QkRItwScC4Ma-I";
+// ✅ Import Google Maps API Key from config
+import { GOOGLE_MAPS_API_KEY } from "../../../../api/config/googleMapsConfig";
+import { XMarkIcon } from "@heroicons/react/24/outline"; // ✅ cross icon
 
 const LocationSelector = () => {
   const [placeId, setPlaceId] = useState("");
@@ -42,7 +44,7 @@ const LocationSelector = () => {
       await apiClient.put("/profile/student", { place_id: placeId });
 
       // ✅ Show success toast
-      toast.success("🎉 Location saved successfully!", {
+      toast.success("Location saved successfully!", {
         onClose: () => {
           // ✅ Navigate after toast closes
           navigate("/mode-selection-form", {
@@ -61,10 +63,19 @@ const LocationSelector = () => {
     }
   };
 
+
   return (
     <LoadScriptNext googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="bg-white border rounded-md p-8 w-full max-w-md shadow-md relative z-10">
+          {/* ✅ Close Button */}
+          <button
+            onClick={() => navigate("/")}
+            className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+          >
+            <XMarkIcon className="h-6 w-6" />
+          </button>
+
           <h2 className="text-center text-2xl font-semibold text-blue-900 mb-6">
             Set Your Location
           </h2>
@@ -92,12 +103,21 @@ const LocationSelector = () => {
             </p>
           </div>
 
-          <button
-            onClick={handleSubmit}
-            className="w-full bg-teal-500 hover:bg-teal-600 text-white py-2 rounded-md"
-          >
-            Save & Continue
-          </button>
+          {/* ✅ Back & Save Buttons */}
+          <div className="flex justify-between gap-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex-1 bg-teal-500 hover:bg-teal-600 text-white py-2 rounded-md"
+            >
+              Back
+            </button>
+            <button
+              onClick={handleSubmit}
+              className="flex-1 bg-teal-500 hover:bg-teal-600 text-white py-2 rounded-md"
+            >
+              Save & Continue
+            </button>
+          </div>
         </div>
 
         {/* ✅ Toast Container */}

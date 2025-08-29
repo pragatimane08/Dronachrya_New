@@ -1,6 +1,8 @@
+// // src/api/apiclient.js
 // import axios from "axios";
 // import { apiUrl } from "./apiUtl";
 
+// // ✅ Create Axios instance
 // const axiosInstance = axios.create({
 //   baseURL: apiUrl.baseUrl,
 //   timeout: 60000,
@@ -9,12 +11,11 @@
 //   },
 // });
 
-// // 🔐 Attach token from localStorage/sessionStorage
+// // 🔐 Attach JWT token from localStorage or sessionStorage
 // axiosInstance.interceptors.request.use(
 //   (config) => {
 //     const token =
 //       localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
-//     // ✅ CORRECT
 //     if (token) {
 //       config.headers.Authorization = `Bearer ${token}`;
 //     }
@@ -23,54 +24,58 @@
 //   (error) => Promise.reject(error)
 // );
 
-// // 🔁 Handle 401 with exclusions
+// // 🚫 Auto logout on 401 (except allowed routes)
 // axiosInstance.interceptors.response.use(
 //   (response) => response,
 //   (error) => {
 //     const status = error.response?.status;
 //     const requestUrl = error.config?.url;
 
-//     const exclude401RedirectRoutes = [
-//       "/api/auth/signup",
-//       "/api/auth/verify-otp",
+//     const excludedRoutes = [
+//       "/auth/signup",
+//       "/auth/verify-otp",
 //       "/profile/student",
 //       "/profile/tutor",
 //       "/payments/create-order",
-//       "/subscriptions/status",
-//       "/subscriptions/student",
-//       // "/payments/verify-payment", // ❌ Removed
+//       "/payments/verify-payment",
 //     ];
-
 
 //     const shouldRedirect =
 //       status === 401 &&
-//       !exclude401RedirectRoutes.some((route) =>
-//         requestUrl?.includes(route)
-//       );
+//       !excludedRoutes.some((route) => requestUrl?.includes(route));
 
 //     if (shouldRedirect) {
+//       // ❌ Don’t set token from undefined response
 //       localStorage.removeItem("authToken");
 //       localStorage.removeItem("user");
 //       localStorage.removeItem("role");
 //       localStorage.removeItem("user_id");
+
+//       // 🔁 Redirect to login
 //       window.location.href = "/login";
+//     }
+
+//     // 🔎 Better error logging
+//     if (error.response) {
+//       console.error("API Error:", error.response.data);
+//     } else {
+//       console.error("API Error:", error.message);
 //     }
 
 //     return Promise.reject(error);
 //   }
 // );
 
-// // 🔧 Export common API calls
+// // 🌐 Export reusable HTTP methods
 // export const apiClient = {
-//   get: (url, config) => axiosInstance.get(url, config),
-//   post: (url, data, config) => axiosInstance.post(url, data, config),
-//   put: (url, data, config) => axiosInstance.put(url, data, config),
-//   patch: (url, data, config) => axiosInstance.patch(url, data, config),
-//   delete: (url, config) => axiosInstance.delete(url, config),
+//   get: (url, config = {}) => axiosInstance.get(url, config),
+//   post: (url, data, config = {}) => axiosInstance.post(url, data, config),
+//   put: (url, data, config = {}) => axiosInstance.put(url, data, config),
+//   patch: (url, data, config = {}) => axiosInstance.patch(url, data, config),
+//   delete: (url, config = {}) => axiosInstance.delete(url, config),
 // };
 
 // export default axiosInstance;
-
 
 // src/api/apiclient.js
 import axios from "axios";
@@ -119,12 +124,23 @@ axiosInstance.interceptors.response.use(
       !excludedRoutes.some((route) => requestUrl?.includes(route));
 
     if (shouldRedirect) {
-  localStorage.setItem("authToken", response.data.token);
+      const token =
+        localStorage.getItem("authToken") ||
+        sessionStorage.getItem("authToken");
 
-      localStorage.removeItem("user");
-      localStorage.removeItem("role");
-      localStorage.removeItem("user_id");
-      window.location.href = "/login";
+      if (token) {
+        // ✅ Only clear if user actually had a token
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = "/login";
+      }
+    }
+
+    // 🔎 Better error logging
+    if (error.response) {
+      console.error("API Error:", error.response.data);
+    } else {
+      console.error("API Error:", error.message);
     }
 
     return Promise.reject(error);

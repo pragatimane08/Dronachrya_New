@@ -1,15 +1,20 @@
 // src/components/ui/Student/Bookmark.jsx
 import React, { useEffect, useState } from "react";
-import { FiStar, FiBookmark, FiMapPin } from "react-icons/fi";
+import { FiBookmark, FiMapPin } from "react-icons/fi";
 import { PiUser } from "react-icons/pi";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { apiClient } from "../../../../api/apiclient";
 import { apiUrl } from "../../../../api/apiUtl";
+import { useNavigate } from "react-router-dom";
 
 const Bookmark = () => {
   const [bookmarkedTutors, setBookmarkedTutors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [contactInfo, setContactInfo] = useState(null);
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+
+  const navigate = useNavigate();
 
   const fetchBookmarks = async () => {
     try {
@@ -33,7 +38,6 @@ const Bookmark = () => {
             city: location.city || "N/A",
             state: location.state || "N/A",
           },
-          rating: tutor?.rating || "N/A",
         };
       });
 
@@ -60,26 +64,42 @@ const Bookmark = () => {
 
   const handleViewContact = async (tutorId) => {
     try {
-      const res = await apiClient.get(`/contact/${tutorId}`);
+      const res = await apiClient.get(`/contacts/view/${tutorId}`);
       const { email, mobile_number } = res.data.contact_info;
-      toast.success(`Email: ${email}, Mobile: ${mobile_number}`);
+      setContactInfo({ email, mobile_number });
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to fetch contact info");
+      const status = err.response?.status;
+      const msg = err.response?.data?.message || "Something went wrong";
+
+      if (status === 403) {
+        if (msg.includes("subscribe") || msg.includes("limit")) {
+          setShowSubscribeModal(true);
+        }
+        toast.error(msg);
+      } else if (status === 404) {
+        toast.error("Tutor not found.");
+      } else {
+        toast.error("Server error while fetching contact.");
+      }
+
+      if (process.env.NODE_ENV === "development") {
+        console.error("Contact fetch error:", err);
+      }
     }
   };
 
-  const handleRaiseEnquiry = async (tutorId, subject, className) => {
-    try {
-      await apiClient.post("/enquiries", {
+  const handleRaiseEnquiry = (tutorId, subject, className) => {
+    if (!tutorId) {
+      toast.error("Tutor ID missing. Cannot raise enquiry.");
+      return;
+    }
+    navigate("/enquiry_form_student", {
+      state: {
         receiver_id: tutorId,
         subject: subject || "General",
         class: className || "Any",
-        description: "I'm interested in your tutoring services.",
-      });
-      toast.success("Enquiry sent");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Enquiry failed");
-    }
+      },
+    });
   };
 
   useEffect(() => {
@@ -92,7 +112,6 @@ const Bookmark = () => {
   return (
     <div className="w-full px-6 py-6 bg-gray-100 min-h-screen mt-10">
       <ToastContainer />
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Bookmarked Tutors</h2>
 
       {loading ? (
         <p>Loading...</p>
@@ -116,7 +135,9 @@ const Bookmark = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-md font-semibold text-gray-800">{tutor.name}</h3>
+                    <h3 className="text-md font-semibold text-gray-800">
+                      {tutor.name}
+                    </h3>
                     {tutor.verified && (
                       <span className="bg-teal-100 text-teal-600 text-xs px-2 py-0.5 rounded-full">
                         Verified
@@ -132,16 +153,14 @@ const Bookmark = () => {
                     Experience: {tutor.experience}
                   </p>
                   <p className="text-sm text-gray-800">
-                    Classes: {tutor.classes.join(", ")}
+                    Classes: {tutor.classes.join(", ") || "N/A"}
                   </p>
                   <p className="text-sm text-gray-800">
-                    Subjects: {tutor.subjects.join(", ")}
+                    Subjects: {tutor.subjects.join(", ") || "N/A"}
                   </p>
                 </div>
 
-                <div className="flex items-center text-yellow-500 font-medium text-sm ml-4">
-                  <FiStar className="mr-1" />
-                  {tutor.rating}
+                <div className="flex items-center font-medium text-sm ml-4">
                   <button
                     className="ml-3 text-teal-600"
                     onClick={() => handleBookmarkToggle(tutor.id)}
@@ -161,7 +180,11 @@ const Bookmark = () => {
                 <button
                   className="border border-gray-300 text-sm px-4 py-1.5 rounded-md hover:bg-gray-100"
                   onClick={() =>
-                    handleRaiseEnquiry(tutor.id, tutor.subjects?.[0], tutor.classes?.[0])
+                    handleRaiseEnquiry(
+                      tutor.id,
+                      tutor.subjects?.[0],
+                      tutor.classes?.[0]
+                    )
                   }
                 >
                   Raise Enquiry
@@ -170,6 +193,60 @@ const Bookmark = () => {
             </div>
           </div>
         ))
+      )}
+
+      {/* Contact Info Modal */}
+      {contactInfo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-md shadow-md max-w-sm w-full text-center">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">
+              Tutor Contact Info
+            </h2>
+            <p className="text-gray-700 mb-2">
+              <strong>Email:</strong> {contactInfo.email}
+            </p>
+            <p className="text-gray-700 mb-4">
+              <strong>Phone:</strong> {contactInfo.mobile_number}
+            </p>
+            <button
+              className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded"
+              onClick={() => setContactInfo(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Subscription Modal */}
+      {showSubscribeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-md shadow-md max-w-md w-full text-center">
+            <h2 className="text-xl font-bold text-[#0E2D63] mb-4">
+              Subscription Required
+            </h2>
+            <p className="text-gray-700 mb-6">
+              Please subscribe to a plan to view tutor contact information.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                className="bg-[#35BAA3] hover:bg-[#2ea391] text-white font-semibold py-2 px-4 rounded"
+                onClick={() => {
+                  setShowSubscribeModal(false);
+                  navigate("/subscriptionPlans_student");
+                }}
+              >
+                View Plans
+              </button>
+              <button
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded"
+                onClick={() => setShowSubscribeModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

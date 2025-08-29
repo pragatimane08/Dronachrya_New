@@ -1,5 +1,302 @@
+// import React, { useState } from "react";
+// import { XMarkIcon } from "@heroicons/react/24/outline";
+// import { useNavigate } from "react-router-dom";
+// import { authRepository } from "../../../api/repository/auth.repository";
+// import { toast, ToastContainer } from "react-toastify";
+// import "react-toastify/dist/ReactToastify.css";
+
+// const StudentReg = ({ onClose }) => {
+//   const navigate = useNavigate();
+
+//   const [formData, setFormData] = useState({
+//     name: "",
+//     email: "",
+//     phone: "",
+//     subject: "",
+//     class: "",
+//     password: "",
+//   });
+
+//   const [formErrors, setFormErrors] = useState({});
+//   const [step, setStep] = useState("form");
+//   const [userId, setUserId] = useState("");
+//   const [otp, setOtp] = useState("");
+//   const [loading, setLoading] = useState(false);
+
+//   const inputClass = "w-full border rounded px-3 py-2 mt-1";
+
+//   const handleClose = () => {
+//     if (onClose) {
+//       onClose();
+//     } else {
+//       navigate(-1);
+//     }
+//   };
+
+//   const validateFields = () => {
+//     const errors = {};
+//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//     const phoneRegex = /^[0-9]{10}$/;
+//     const passwordRegex =
+//       /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%?&])[A-Za-z\d@$!%?&]{6,}$/;
+
+//     if (!formData.name.trim()) errors.name = "Full name is required.";
+//     if (!emailRegex.test(formData.email.trim()))
+//       errors.email = "Enter a valid email.";
+//     if (!phoneRegex.test(formData.phone.trim()))
+//       errors.phone = "Enter a 10-digit mobile number.";
+//     if (!formData.class.trim()) errors.class = "Class is required.";
+//     if (!formData.subject.trim()) errors.subject = "Subjects are required.";
+//     if (!passwordRegex.test(formData.password)) {
+//       errors.password =
+//         "Password must be 6+ chars with uppercase, lowercase, digit & special char.";
+//     }
+
+//     return errors;
+//   };
+
+//   const handleChange = (e) => {
+//     setFormErrors({ ...formErrors, [e.target.name]: "" });
+//     setFormData((prev) => ({
+//       ...prev,
+//       [e.target.name]: e.target.value,
+//     }));
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     const validationErrors = validateFields();
+//     if (Object.keys(validationErrors).length > 0) {
+//       setFormErrors(validationErrors);
+//       toast.warning("Please fix the highlighted fields.");
+//       return;
+//     }
+
+//     setLoading(true);
+
+//     const userData = {
+//       name: formData.name.trim(),
+//       email: formData.email.trim(),
+//       mobile_number: formData.phone.trim(),
+//       password: formData.password.trim(),
+//       role: "student",
+//       class: formData.class.trim(),
+//       subjects: formData.subject
+//         .split(",")
+//         .map((s) => s.trim())
+//         .filter(Boolean),
+//     };
+
+//     try {
+//       const res = await authRepository.register(userData);
+//       if (res.data?.user_id) {
+//         setUserId(res.data.user_id);
+//         setStep("otp");
+//         toast.success("✅ OTP sent to your email and mobile.");
+//       } else {
+//         toast.error(res.data.message || "⚠ Registration failed.");
+//       }
+//     } catch (error) {
+//       const status = error.response?.status;
+//       const msg = error.response?.data?.message || error.message;
+//       if (status === 409) {
+//         toast.warn("⚠ Email or mobile already exists.");
+//       } else {
+//         toast.error("❌ Error: " + msg);
+//       }
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleVerifyOTP = async (e) => {
+//     e.preventDefault();
+//     if (!otp.trim()) {
+//       toast.warning("⚠ Please enter the OTP.");
+//       return;
+//     }
+
+//     if (otp.length < 6) {
+//       toast.info("ℹ OTP must be 6 digits.");
+//       return;
+//     }
+
+//     toast.info("🔍 Verifying OTP...");
+//     setLoading(true);
+
+//     try {
+//       const res = await authRepository.verifyOtp({
+//         user_id: userId,
+//         otp: otp.trim(),
+//       });
+
+//       const { token, user } = res.data;
+//       if (token) {
+//         localStorage.setItem("authToken", token);
+//         localStorage.setItem("user", JSON.stringify(user));
+//         localStorage.setItem("role", user.role);
+//         localStorage.setItem("user_id", user.id);
+
+//         // toast.success("✅ OTP verified successfully!", {
+//         //   autoClose: 1500,
+//         //   onClose: () =>
+//         //     navigate("/location-selector", { state: { token } }),
+//         // }); 
+//         toast.success("✅ OTP verified successfully!", {
+//           autoClose: 1500,
+//           onClose: () =>
+//             navigate("/student_referral_code", { state: { token, userId } }),
+//         });
+
+//       } else {
+//         toast.error("⚠ OTP verification failed.");
+//       }
+//     } catch (error) {
+//       const msg =
+//         error.response?.data?.message || "❌ Invalid or expired OTP.";
+//       toast.error(msg);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div
+//       className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-30"
+//       onClick={handleClose}
+//     >
+//       <div
+//         className="bg-white w-[90%] max-w-md rounded border border-gray-300 p-6 shadow-md relative"
+//         onClick={(e) => e.stopPropagation()}
+//       >
+//         <button
+//           onClick={handleClose}
+//           className="absolute top-3 right-3 text-gray-500 hover:text-black"
+//         >
+//           <XMarkIcon className="h-5 w-5" />
+//         </button>
+
+//         {step === "form" ? (
+//           <>
+//             <h2 className="text-center text-lg font-semibold text-blue-900 mb-6">
+//               Student Registration
+//             </h2>
+//             <form onSubmit={handleSubmit} className="space-y-4">
+//               {[
+//                 { label: "Full Name", name: "name", type: "text", placeholder: "John Doe" },
+//                 { label: "Email", name: "email", type: "email", placeholder: "student@example.com" },
+//                 { label: "Mobile Number", name: "phone", type: "tel", placeholder: "9876543210", maxLength: 10 },
+//                 { label: "Class", name: "class", type: "text", placeholder: "10" },
+//                 { label: "Subjects", name: "subject", type: "text", placeholder: "Math, Science" },
+//                 { label: "Password", name: "password", type: "password", placeholder: "Student@123" },
+//               ].map((input) => (
+//                 <div key={input.name}>
+//                   <label className="block text-sm font-medium text-gray-700">
+//                     {input.label}
+//                   </label>
+//                   <input
+//                     type={input.type}
+//                     name={input.name}
+//                     placeholder={input.placeholder}
+//                     maxLength={input.maxLength}
+//                     value={formData[input.name]}
+//                     onChange={handleChange}
+//                     required
+//                     className={`${inputClass} ${formErrors[input.name] ? "border-red-500" : ""}`}
+//                   />
+//                   {formErrors[input.name] && (
+//                     <p className="text-red-500 text-xs mt-1">{formErrors[input.name]}</p>
+//                   )}
+//                 </div>
+//               ))}
+
+//               <div className="flex justify-center gap-4 pt-4">
+//                 <button
+//                   type="button"
+//                   onClick={handleClose}
+//                   className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded text-sm"
+//                 >
+//                   Cancel
+//                 </button>
+//                 <button
+//                   type="submit"
+//                   disabled={loading}
+//                   className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded text-sm"
+//                 >
+//                   {loading ? "Submitting..." : "Submit"}
+//                 </button>
+//               </div>
+//             </form>
+//           </>
+//         ) : (
+//           <>
+//             <h2 className="text-center text-lg font-semibold text-blue-900 mb-6">
+//               OTP Verification
+//             </h2>
+//             <form onSubmit={handleVerifyOTP} className="space-y-4">
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700">
+//                   Registered Email
+//                 </label>
+//                 <input
+//                   type="email"
+//                   value={formData.email}
+//                   className={`${inputClass} bg-gray-100`}
+//                   readOnly
+//                 />
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700">
+//                   Enter OTP
+//                 </label>
+//                 <input
+//                   type="text"
+//                   value={otp}
+//                   onChange={(e) => {
+//                     const newOtp = e.target.value;
+//                     setOtp(newOtp);
+//                     if (newOtp.length === 6) {
+//                       toast.info("ℹ OTP entered. Click Verify to continue.");
+//                     }
+//                   }}
+//                   placeholder="Enter OTP"
+//                   required
+//                   maxLength={6}
+//                   className={inputClass}
+//                 />
+//               </div>
+
+//               <div className="flex justify-center gap-4 pt-4">
+//                 <button
+//                   type="button"
+//                   onClick={() => setStep("form")}
+//                   className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded text-sm"
+//                 >
+//                   Back
+//                 </button>
+//                 <button
+//                   type="submit"
+//                   disabled={loading}
+//                   className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded text-sm"
+//                 >
+//                   {loading ? "Verifying..." : "Verify"}
+//                 </button>
+//               </div>
+//             </form>
+//           </>
+//         )}
+
+//         <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default StudentReg;
+
 import React, { useState } from "react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { authRepository } from "../../../api/repository/auth.repository";
 import { toast, ToastContainer } from "react-toastify";
@@ -15,6 +312,7 @@ const StudentReg = ({ onClose }) => {
     subject: "",
     class: "",
     password: "",
+    confirmPassword: "",
   });
 
   const [formErrors, setFormErrors] = useState({});
@@ -22,15 +320,14 @@ const StudentReg = ({ onClose }) => {
   const [userId, setUserId] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const inputClass = "w-full border rounded px-3 py-2 mt-1";
+  const inputClass = "w-full border rounded px-3 py-2 text-sm";
 
   const handleClose = () => {
-    if (onClose) {
-      onClose(); // call parent close if provided
-    } else {
-      navigate(-1); // fallback: go back
-    }
+    if (onClose) onClose();
+    else navigate(-1);
   };
 
   const validateFields = () => {
@@ -39,17 +336,25 @@ const StudentReg = ({ onClose }) => {
     const phoneRegex = /^[0-9]{10}$/;
     const passwordRegex =
       /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%?&])[A-Za-z\d@$!%?&]{6,}$/;
+    const nameRegex = /^[A-Za-z\s]+$/; // Only letters and spaces
 
     if (!formData.name.trim()) errors.name = "Full name is required.";
+    else if (!nameRegex.test(formData.name.trim()))
+      errors.name = "Name cannot contain numbers or special characters.";
+
     if (!emailRegex.test(formData.email.trim()))
       errors.email = "Enter a valid email.";
     if (!phoneRegex.test(formData.phone.trim()))
       errors.phone = "Enter a 10-digit mobile number.";
     if (!formData.class.trim()) errors.class = "Class is required.";
     if (!formData.subject.trim()) errors.subject = "Subjects are required.";
-    if (!passwordRegex.test(formData.password)) {
+    if (!passwordRegex.test(formData.password))
       errors.password =
         "Password must be 6+ chars with uppercase, lowercase, digit & special char.";
+    
+    // Confirm password validation
+    if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = "Passwords do not match.";
     }
 
     return errors;
@@ -98,11 +403,10 @@ const StudentReg = ({ onClose }) => {
       }
     } catch (error) {
       const status = error.response?.status;
-      const msg = error.response?.data?.message || error.message;
       if (status === 409) {
         toast.warn("⚠ Email or mobile already exists.");
       } else {
-        toast.error("❌ Error: " + msg);
+        toast.error("❌ Error: " + (error.response?.data?.message || error.message));
       }
     } finally {
       setLoading(false);
@@ -121,15 +425,11 @@ const StudentReg = ({ onClose }) => {
       return;
     }
 
-    toast.info("🔍 Verifying OTP...");
+    toast.info("Verifying OTP...");
     setLoading(true);
 
     try {
-      const res = await authRepository.verifyOtp({
-        user_id: userId,
-        otp: otp.trim(),
-      });
-
+      const res = await authRepository.verifyOtp({ user_id: userId, otp: otp.trim() });
       const { token, user } = res.data;
       if (token) {
         localStorage.setItem("authToken", token);
@@ -140,14 +440,13 @@ const StudentReg = ({ onClose }) => {
         toast.success("✅ OTP verified successfully!", {
           autoClose: 1500,
           onClose: () =>
-            navigate("/location-selector", { state: { token } }),
+            navigate("/student_referral_code", { state: { token, userId } }),
         });
       } else {
         toast.error("⚠ OTP verification failed.");
       }
     } catch (error) {
-      const msg =
-        error.response?.data?.message || "❌ Invalid or expired OTP.";
+      const msg = error.response?.data?.message || "❌ Invalid or expired OTP.";
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -155,68 +454,30 @@ const StudentReg = ({ onClose }) => {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-30"
-      onClick={handleClose} // close on clicking outside
-    >
-      <div
-        className="bg-white w-[90%] max-w-md rounded border border-gray-300 p-6 shadow-md relative"
-        onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-30 p-4 overflow-y-auto">
+      <div className="bg-white w-full max-w-sm rounded border border-gray-300 p-4 shadow-md relative my-auto">
         <button
           onClick={handleClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-black"
+          className="absolute top-2 right-2 text-gray-500 hover:text-black"
         >
           <XMarkIcon className="h-5 w-5" />
         </button>
 
         {step === "form" ? (
           <>
-            <h2 className="text-center text-lg font-semibold text-blue-900 mb-6">
+            <h2 className="text-center text-lg font-semibold text-blue-900 mb-4">
               Student Registration
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {[
-                {
-                  label: "Full Name",
-                  name: "name",
-                  type: "text",
-                  placeholder: "John Doe",
-                },
-                {
-                  label: "Email",
-                  name: "email",
-                  type: "email",
-                  placeholder: "student@example.com",
-                },
-                {
-                  label: "Mobile Number",
-                  name: "phone",
-                  type: "tel",
-                  placeholder: "9876543210",
-                  maxLength: 10,
-                },
-                {
-                  label: "Class",
-                  name: "class",
-                  type: "text",
-                  placeholder: "10",
-                },
-                {
-                  label: "Subjects",
-                  name: "subject",
-                  type: "text",
-                  placeholder: "Math, Science",
-                },
-                {
-                  label: "Password",
-                  name: "password",
-                  type: "password",
-                  placeholder: "Student@123",
-                },
+                { label: "Full Name", name: "name", type: "text", placeholder: "John Doe" },
+                { label: "Email", name: "email", type: "email", placeholder: "student@example.com" },
+                { label: "Mobile Number", name: "phone", type: "tel", placeholder: "9876543210", maxLength: 10 },
+                { label: "Class", name: "class", type: "text", placeholder: "10" },
+                { label: "Subjects", name: "subject", type: "text", placeholder: "Math, Science" },
               ].map((input) => (
                 <div key={input.name}>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-xs font-medium text-gray-700">
                     {input.label}
                   </label>
                   <input
@@ -227,30 +488,78 @@ const StudentReg = ({ onClose }) => {
                     value={formData[input.name]}
                     onChange={handleChange}
                     required
-                    className={`${inputClass} ${
-                      formErrors[input.name] ? "border-red-500" : ""
-                    }`}
+                    className={`${inputClass} ${formErrors[input.name] ? "border-red-500" : ""}`}
                   />
                   {formErrors[input.name] && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {formErrors[input.name]}
-                    </p>
+                    <p className="text-red-500 text-xs mt-1">{formErrors[input.name]}</p>
                   )}
                 </div>
               ))}
 
-              <div className="flex justify-center gap-4 pt-4">
+              {/* Password field with toggle */}
+              <div className="relative">
+                <label className="block text-xs font-medium text-gray-700">
+                  Password
+                </label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Student@123"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className={`${inputClass} ${formErrors.password ? "border-red-500" : ""}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-7 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                </button>
+                {formErrors.password && (
+                  <p className="text-red-500 text-xs mt-1">{formErrors.password}</p>
+                )}
+              </div>
+
+              {/* Confirm Password field with toggle */}
+              <div className="relative">
+                <label className="block text-xs font-medium text-gray-700">
+                  Confirm Password
+                </label>
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Confirm your password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  className={`${inputClass} ${formErrors.confirmPassword ? "border-red-500" : ""}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-7 text-gray-500 hover:text-gray-700"
+                >
+                  {showConfirmPassword ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                </button>
+                {formErrors.confirmPassword && (
+                  <p className="text-red-500 text-xs mt-1">{formErrors.confirmPassword}</p>
+                )}
+              </div>
+
+              <div className="flex justify-center gap-3 pt-3">
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded text-sm"
+                  className="bg-gray-300 hover:bg-gray-400 px-3 py-1.5 rounded text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded text-sm"
+                  className="bg-teal-500 hover:bg-teal-600 text-white px-3 py-1.5 rounded text-xs"
                 >
                   {loading ? "Submitting..." : "Submit"}
                 </button>
@@ -259,12 +568,12 @@ const StudentReg = ({ onClose }) => {
           </>
         ) : (
           <>
-            <h2 className="text-center text-lg font-semibold text-blue-900 mb-6">
+            <h2 className="text-center text-lg font-semibold text-blue-900 mb-4">
               OTP Verification
             </h2>
-            <form onSubmit={handleVerifyOTP} className="space-y-4">
+            <form onSubmit={handleVerifyOTP} className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-xs font-medium text-gray-700">
                   Registered Email
                 </label>
                 <input
@@ -276,7 +585,7 @@ const StudentReg = ({ onClose }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-xs font-medium text-gray-700">
                   Enter OTP
                 </label>
                 <input
@@ -285,10 +594,8 @@ const StudentReg = ({ onClose }) => {
                   onChange={(e) => {
                     const newOtp = e.target.value;
                     setOtp(newOtp);
-                    if (newOtp.length === 6 && otp.length < 6) {
-                      toast.info(
-                        "ℹ OTP entered. Click Verify to continue."
-                      );
+                    if (newOtp.length === 6) {
+                      toast.info("ℹ OTP entered. Click Verify to continue.");
                     }
                   }}
                   placeholder="Enter OTP"
@@ -298,18 +605,18 @@ const StudentReg = ({ onClose }) => {
                 />
               </div>
 
-              <div className="flex justify-center gap-4 pt-4">
+              <div className="flex justify-center gap-3 pt-3">
                 <button
                   type="button"
                   onClick={() => setStep("form")}
-                  className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded text-sm"
+                  className="bg-teal-500 hover:bg-teal-600 text-white px-3 py-1.5 rounded text-xs"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded text-sm"
+                  className="bg-teal-500 hover:bg-teal-600 text-white px-3 py-1.5 rounded text-xs"
                 >
                   {loading ? "Verifying..." : "Verify"}
                 </button>
@@ -318,11 +625,7 @@ const StudentReg = ({ onClose }) => {
           </>
         )}
 
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar
-        />
+        <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       </div>
     </div>
   );

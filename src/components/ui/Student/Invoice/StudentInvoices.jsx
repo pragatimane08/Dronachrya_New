@@ -7,7 +7,6 @@
 // const StudentInvoices = () => {
 //   const [invoices, setInvoices] = useState([]);
 //   const [loading, setLoading] = useState(false);
-//   const [referralReward, setReferralReward] = useState(null);
 
 //   const fetchInvoices = async () => {
 //     setLoading(true);
@@ -23,34 +22,6 @@
 //       console.error(error);
 //     } finally {
 //       setLoading(false);
-//     }
-//   };
-
-//   const fetchReferralReward = async () => {
-//     try {
-//       const response = await fetch(
-//         "http://localhost:3000/api/referrals/reward/22b05a6f-1238-4a77-a3c5-9b476009b0c4",
-//         {
-//           method: "POST",
-//           headers: {
-//             "Content-Type": "application/json",
-//           },
-//           body: JSON.stringify({
-//             rewardType: "subscription_bonus",
-//             rewardValue: "2Days Extra",
-//           }),
-//         }
-//       );
-//       const data = await response.json();
-//       if (data.status) {
-//         setReferralReward(data.referral);
-//         toast.success("Referral reward processed.");
-//       } else {
-//         toast.error("Failed to process referral reward.");
-//       }
-//     } catch (error) {
-//       toast.error("Error processing referral.");
-//       console.error(error);
 //     }
 //   };
 
@@ -74,58 +45,49 @@
 
 //   useEffect(() => {
 //     fetchInvoices();
-//     fetchReferralReward();
 //   }, []);
 
 //   return (
-//     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen space-y-8">
-
-//       <div className="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+//     <div className="p-6 bg-gray-50 min-h-screen">
+//       {/* <h1 className="text-2xl mb-4 text-gray-800">My Invoices</h1> */}
+//       <div className="bg-white rounded shadow border border-gray-200 p-4">
 //         {loading ? (
-//           <div className="text-center py-8 text-gray-500">Loading...</div>
+//           <div className="text-center py-6">Loading...</div>
 //         ) : invoices.length === 0 ? (
-//           <div className="text-center py-8 text-gray-500">No invoices available</div>
+//           <div className="text-center text-gray-500 py-6">No invoices available</div>
 //         ) : (
-//           <div className="overflow-x-auto">
-//             <table className="min-w-full divide-y divide-gray-200 text-sm">
-//               <thead className="bg-gray-100 text-gray-700 sticky top-0">
-//                 <tr>
-//                   <th className="px-4 py-3 text-left whitespace-nowrap">Plan</th>
-//                   <th className="px-4 py-3 text-left whitespace-nowrap">Amount</th>
-//                   <th className="px-4 py-3 text-left whitespace-nowrap">Date</th>
-//                   <th className="px-4 py-3 text-left whitespace-nowrap">Payment ID</th>
-//                   <th className="px-4 py-3 text-left whitespace-nowrap">Razorpay ID</th>
-//                   <th className="px-4 py-3 text-left whitespace-nowrap">Action</th>
+//           <table className="w-full table-auto">
+//             <thead>
+//               <tr className="bg-gray-100 text-left text-sm text-gray-700">
+//                 <th className="px-4 py-2">Plan</th>
+//                 <th className="px-4 py-2">Amount</th>
+//                 <th className="px-4 py-2">Date</th>
+//                 <th className="px-4 py-2">Payment ID</th>
+//                 <th className="px-4 py-2">Action</th>
+//               </tr>
+//             </thead>
+//             <tbody>
+//               {invoices.map((inv, idx) => (
+//                 <tr key={idx} className="border-t text-sm">
+//                   <td className="px-4 py-2">{inv.plan_name}</td>
+//                   <td className="px-4 py-2">₹{inv.amount}</td>
+//                   <td className="px-4 py-2">
+//                     {moment(inv.date, ["D/M/YYYY, h:mm:ss a"]).format("DD/MM/YYYY")}
+//                   </td>
+//                   <td className="px-4 py-2">{inv.razorpay_payment_id}</td>
+//                   <td className="px-4 py-2">
+//                     <button
+//                       onClick={() => handleDownload(inv.payment_id)}
+//                       className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+//                     >
+//                       <ArrowDownTrayIcon className="w-4 h-4" />
+//                       <span>Download</span>
+//                     </button>
+//                   </td>
 //                 </tr>
-//               </thead>
-//               <tbody className="divide-y divide-gray-100">
-//                 {invoices.map((inv, idx) => (
-//                   <tr key={idx} className="hover:bg-gray-50 transition">
-//                     <td className="px-4 py-3">{inv.plan_name}</td>
-//                     <td className="px-4 py-3 text-gray-800 font-medium">₹{inv.amount}</td>
-//                     <td className="px-4 py-3">
-//                       {moment(inv.date, ["D/M/YYYY, h:mm:ss a"]).format("DD MMM YYYY")}
-//                     </td>
-//                     <td className="px-4 py-3 text-gray-600">
-//                       {inv.payment_id}
-//                     </td>
-//                     <td className="px-4 py-3 text-gray-600">
-//                       {inv.razorpay_payment_id}
-//                     </td>
-//                     <td className="px-4 py-3">
-//                       <button
-//                         onClick={() => handleDownload(inv.payment_id)}
-//                         className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 transition font-medium"
-//                       >
-//                         <ArrowDownTrayIcon className="w-4 h-4" />
-//                         <span>Download</span>
-//                       </button>
-//                     </td>
-//                   </tr>
-//                 ))}
-//               </tbody>
-//             </table>
-//           </div>
+//               ))}
+//             </tbody>
+//           </table>
 //         )}
 //       </div>
 //     </div>
@@ -139,6 +101,8 @@ import { studentInvoiceRepository } from "../../../../api/repository/student_inv
 import { toast } from "react-toastify";
 import moment from "moment";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const StudentInvoices = () => {
   const [invoices, setInvoices] = useState([]);
@@ -161,18 +125,99 @@ const StudentInvoices = () => {
     }
   };
 
+  const generateInvoicePDF = (invoice) => {
+    // Create new PDF document
+    const doc = new jsPDF();
+    
+    // Add company logo (replace with actual logo URL or base64 encoded image)
+    // doc.addImage(logo, 'PNG', 15, 10, 30, 30);
+    
+    // Company information
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text("DRONACHARYA", 105, 20, { align: "center" });
+    
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'normal');
+    doc.text("123 Education Street", 105, 30, { align: "center" });
+    doc.text("Gurgaon, Haryana 122001", 105, 37, { align: "center" });
+    doc.text("Phone: +91 1234567890 | Email: info@dronacharya.com", 105, 44, { align: "center" });
+    
+    // Invoice title
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text("INVOICE", 105, 60, { align: "center" });
+    
+    // Horizontal line
+    doc.line(15, 65, 195, 65);
+    
+    // Invoice details
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Invoice Number: ${invoice.razorpay_payment_id}`, 15, 75);
+    doc.text(`Invoice Date: ${moment(invoice.date, ["D/M/YYYY, h:mm:ss a"]).format("DD/MM/YYYY")}`, 15, 82);
+    
+    // Student information (you might want to fetch this from user profile)
+    doc.text("Bill To:", 15, 95);
+    doc.setFont(undefined, 'bold');
+    doc.text("Student Name", 15, 102); // Replace with actual student name
+    doc.setFont(undefined, 'normal');
+    doc.text("Student Address", 15, 109); // Replace with actual student address
+    doc.text("student@email.com", 15, 116); // Replace with actual student email
+    
+    // Invoice items table
+    const tableColumn = ["Description", "Amount"];
+    const tableRows = [
+      [invoice.plan_name, `₹${invoice.amount}`],
+      ["", ""],
+      ["", ""],
+      ["Total", `₹${invoice.amount}`]
+    ];
+    
+    doc.autoTable({
+      startY: 130,
+      head: [tableColumn],
+      body: tableRows,
+      theme: 'grid',
+      styles: { fontSize: 12 },
+      headStyles: { fillColor: [41, 128, 185] },
+      foot: [['Total', `₹${invoice.amount}`]],
+      footStyles: { fillColor: [41, 128, 185] },
+    });
+    
+    // Payment information
+    const finalY = doc.lastAutoTable.finalY + 15;
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text("Payment Information:", 15, finalY);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Payment ID: ${invoice.razorpay_payment_id}`, 15, finalY + 7);
+    doc.text(`Payment Date: ${moment(invoice.date, ["D/M/YYYY, h:mm:ss a"]).format("DD/MM/YYYY")}`, 15, finalY + 14);
+    
+    // Terms and conditions
+    doc.setFontSize(10);
+    doc.text("Terms & Conditions:", 15, finalY + 30);
+    doc.text("1. Payment is due within 30 days of invoice date.", 15, finalY + 37);
+    doc.text("2. Late payment may result in suspension of services.", 15, finalY + 44);
+    
+    // Thank you message
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'italic');
+    doc.text("Thank you for your business!", 105, finalY + 60, { align: "center" });
+    
+    // Save the PDF
+    doc.save(`invoice-${invoice.razorpay_payment_id}.pdf`);
+  };
+
   const handleDownload = async (paymentId) => {
     try {
-      const blob = await studentInvoiceRepository.downloadInvoicePDF(paymentId);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = url;
-      link.setAttribute("download", `${paymentId}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      const invoice = invoices.find(inv => inv.payment_id === paymentId);
+      if (invoice) {
+        generateInvoicePDF(invoice);
+        toast.success("Invoice downloaded successfully!");
+      } else {
+        toast.error("Invoice not found.");
+      }
     } catch (error) {
       toast.error("Download failed.");
       console.error(error);
@@ -185,7 +230,6 @@ const StudentInvoices = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl mb-4 text-gray-800">My Invoices</h1>
       <div className="bg-white rounded shadow border border-gray-200 p-4">
         {loading ? (
           <div className="text-center py-6">Loading...</div>

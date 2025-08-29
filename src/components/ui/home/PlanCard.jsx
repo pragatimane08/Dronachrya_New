@@ -12,11 +12,11 @@ const PlanCard = ({ name, price, features, color, highlight, period }) => {
         hover:scale-105 hover:border-[#35BAA3]`}
     >
       {/* Ribbon for Highlighted Plan */}
-{highlight && (
-  <div className="absolute top-2 -right-12 w-40 transform rotate-45 bg-[#35BAA3] text-white text-xs font-bold text-center py-1 shadow-md z-10">
-    POPULAR
-  </div>
-)}
+      {highlight && (
+        <div className="absolute top-2 -right-12 w-40 transform rotate-45 bg-[#35BAA3] text-white text-xs font-bold text-center py-1 shadow-md z-10">
+          POPULAR
+        </div>
+      )}
 
 
       {/* Header */}

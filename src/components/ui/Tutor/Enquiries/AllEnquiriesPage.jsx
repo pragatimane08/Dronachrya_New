@@ -183,6 +183,8 @@ const AllEnquiriesPage = () => {
               ? "All Student Enquiries"
               : "All Tutor Enquiries"}
           </h1>
+          {/* <h1 className="text-2xl font-bold text-gray-800"></h1> */}
+
           <div className="flex gap-3">
             <button
               onClick={() => navigate(-1)}

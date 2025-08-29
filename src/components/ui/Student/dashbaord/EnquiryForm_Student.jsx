@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import { apiClient } from "../../../../api/apiclient";
 
 // ---------- Reusable Input Components ----------
@@ -105,6 +106,15 @@ const EnquiryForm_Student = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 relative">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md border border-[#35BAA3] relative">
+        
+        {/* ❌ Close Button */}
+        <button
+          onClick={handleCancel}
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+        >
+          <XMarkIcon className="h-6 w-6" />
+        </button>
+
         <h2 className="text-2xl font-semibold text-center text-[#0E2D63] mb-6">
           Raise an Enquiry
         </h2>
@@ -142,7 +152,7 @@ const EnquiryForm_Student = () => {
           <button
             type="button"
             onClick={handleCancel}
-            className="bg-[#5E5E5E] hover:bg-[#4a4a4a] text-white font-semibold py-2 px-6 rounded"
+            className="bg-[#878484] hover:bg-[#4a4a4a] text-white font-semibold py-2 px-6 rounded"
           >
             Cancel
           </button>

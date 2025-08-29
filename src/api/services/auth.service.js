@@ -1,3 +1,4 @@
+// src/api/services/authService.js
 import axios from "axios";
 import { apiUtl } from "../apiUtl";
 
@@ -18,11 +19,9 @@ export const authService = {
     return axios.post(`${apiUtl.baseUrl}/auth/forgot-password`, { emailOrMobile });
   },
 
-  verifyOtp: (emailOrMobile, otp) => {
-    return axios.post(`${apiUtl.baseUrl}/auth/login/verify-otp`, {
-      emailOrMobile,
-      otp,
-    });
+  verifyOtp: (data) => {
+    // data = { user_id, otp }
+    return axios.post(`${apiUtl.baseUrl}/auth/login/verify-otp`, data);
   },
 
   resetPassword: (emailOrMobile, newPassword, otp) => {
@@ -32,8 +31,14 @@ export const authService = {
       otp,
     });
   },
+
+  // ✅ Pre-register student (Book Demo)
+  preRegisterStudent: (data) => {
+    return axios.post(`${apiUtl.baseUrl}/auth/student/pre-register`, data);
+  },
 };
 
+// ✅ update location stays as is
 export const updateLocation = async (placeId) => {
   try {
     const token = localStorage.getItem("token");
@@ -55,4 +60,3 @@ export const updateLocation = async (placeId) => {
     throw new Error(message);
   }
 };
-

@@ -1,3 +1,297 @@
+// import React, { useEffect, useState } from "react";
+// import { useNavigate, useLocation } from "react-router-dom";
+// import {
+//   FiActivity,
+//   FiUser,
+//   FiUsers,
+//   FiCalendar,
+//   FiCheckSquare,
+//   FiSettings,
+//   FiHelpCircle,
+//   FiChevronLeft,
+//   FiChevronRight,
+//   FiDollarSign,
+//   FiMail,
+//   FiMessageSquare,
+//   FiLogOut
+// } from "react-icons/fi";
+
+// const scrollbarStyle = `
+//   .custom-scrollbar {
+//     scrollbar-width: none;
+//     -ms-overflow-style: none;
+//   }
+//   .custom-scrollbar::-webkit-scrollbar {
+//     display: none;
+//   }
+// `;
+
+// const menuItems = [
+//   { icon: <FiActivity />, label: "Dashboard", route: "/tutor-dashboard" },
+//   { icon: <FiCalendar />, label: "My Classes", route: "/my_classes_tutor" },
+//   { icon: <FiMessageSquare />, label: "Messages", route: "/message_tutor" },
+//   { icon: <FiMail />, label: "Enquiries", route: "/view_all_enquires" },
+//   { icon: <FiUsers />, label: "Students", route: "/Student_Filter" },
+//   { icon: <FiDollarSign />, label: "Invoices", route: "/tutor_invoice" },
+//   { icon: <FiSettings />, label: "Account", hasSubmenu: true },
+//   { icon: <FiHelpCircle />, label: "Help Center", route: "/help-center" },
+// ];
+
+// const accountSubmenu = [
+//   { label: "Profile", icon: <FiUser />, route: "/tutor-profile-show" },
+//   { label: "My Plans", icon: <FiCheckSquare />, route: "/my_plan_tutor" },
+//   { label: "Refer Friends", icon: <FiUsers />, route: "/refer_tutor" },
+// ];
+
+// const TutorSidebar = ({ isOpen, toggleSidebar }) => {
+//   const [tutorData, setTutorData] = useState({
+//     name: "Tutor",
+//     subjects: [],
+//     location: "Location not set",
+//     profileStatus: "pending",
+//     role: "tutor",
+//     profileImage: null
+//   });
+
+//   const [activeIndex, setActiveIndex] = useState(null);
+//   const [activeSubItem, setActiveSubItem] = useState(null);
+//   const [openSubmenu, setOpenSubmenu] = useState(false);
+
+//   const navigate = useNavigate();
+//   const location = useLocation();
+
+//   useEffect(() => {
+//     const updateFromStorage = () => {
+//       const storedUser = localStorage.getItem("user");
+//       if (storedUser) {
+//         try {
+//           const user = JSON.parse(storedUser);
+//           const role = user?.role || "tutor";
+//           const name = user.profile?.name || "User";
+//           const subjects = user.profile?.subjects || [];
+//           const loc =
+//             user.profile?.Location?.city ||
+//             user.profile?.location?.city ||
+//             user.profile?.Location?.address ||
+//             "Location not set";
+//           const profileStatus = user.profile?.profile_status || "pending";
+//           const profileImage = user.profile?.profile_image || null;
+
+//           setTutorData({ 
+//             name, 
+//             subjects, 
+//             location: loc, 
+//             profileStatus, 
+//             role,
+//             profileImage 
+//           });
+//         } catch (e) {
+//           console.error("Error parsing localStorage user:", e);
+//         }
+//       }
+//     };
+
+//     updateFromStorage();
+//     window.addEventListener("storageUpdate", updateFromStorage);
+
+//     return () => {
+//       window.removeEventListener("storageUpdate", updateFromStorage);
+//     };
+//   }, []);
+
+//   useEffect(() => {
+//     const index = menuItems.findIndex(
+//       (item) =>
+//         item.route === location.pathname ||
+//         (item.hasSubmenu &&
+//           accountSubmenu.some((sub) => sub.route === location.pathname))
+//     );
+//     setActiveIndex(index);
+
+//     const subItem = accountSubmenu.find(
+//       (sub) => sub.route === location.pathname
+//     );
+//     if (subItem) {
+//       setActiveSubItem(subItem.label);
+//       setOpenSubmenu(true);
+//     } else {
+//       setOpenSubmenu(false);
+//     }
+//   }, [location.pathname]);
+
+//   const getInitials = () => {
+//     if (!tutorData.name) return tutorData.role[0].toUpperCase();
+//     const names = tutorData.name.trim().split(" ");
+//     return names.length === 1
+//       ? names[0][0].toUpperCase()
+//       : `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+//   };
+
+//   const handleMenuClick = (index) => {
+//     const selectedItem = menuItems[index];
+//     setActiveIndex(index);
+
+//     if (selectedItem.hasSubmenu) {
+//       setOpenSubmenu((prev) => !prev);
+//     } else {
+//       setOpenSubmenu(false);
+//       navigate(selectedItem.route);
+//     }
+
+//     setActiveSubItem(null);
+//   };
+
+//   const handleSubmenuClick = (sub) => {
+//     setActiveSubItem(sub.label);
+//     navigate(sub.route);
+//   };
+
+//   const handleLogout = () => {
+//     localStorage.removeItem("user");
+//     localStorage.removeItem("authToken");
+//     navigate("/login");
+//   };
+
+//   return (
+//     <>
+//       <style>{scrollbarStyle}</style>
+
+//       <div
+//         className={`bg-[#2c3e91] h-screen sticky top-0 rounded-r-2xl pt-4 pb-2 px-2 text-white flex flex-col shadow-lg transition-all duration-300 ${
+//           isOpen ? "w-64" : "w-20"
+//         }`}
+//       >
+//         <div className="w-full flex justify-end pr-2 mb-4">
+//           <button
+//             onClick={toggleSidebar}
+//             className="text-white hover:bg-white/20 p-1 rounded-full transition-colors"
+//           >
+//             {isOpen ? <FiChevronLeft size={20} /> : <FiChevronRight size={20} />}
+//           </button>
+//         </div>
+
+//         <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+//           <div className="flex flex-col items-center mb-4 px-2">
+//             {tutorData.profileImage ? (
+//               <img 
+//                 src={tutorData.profileImage} 
+//                 alt="Profile" 
+//                 className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md mb-3"
+//               />
+//             ) : (
+//               <div className="w-14 h-14 bg-white text-[#2c3e91] rounded-full flex items-center justify-center text-xl font-bold shadow-md mb-3">
+//                 {getInitials()}
+//               </div>
+//             )}
+//             {isOpen && (
+//               <div className="w-full text-center">
+//                 <h2 className="font-semibold text-lg truncate">
+//                   {tutorData.name}
+//                 </h2>
+//                 <div className="flex justify-center mt-1">
+//                   <span
+//                     className={`px-2 py-0.5 rounded text-xs ${
+//                       tutorData.profileStatus === "approved"
+//                         ? "bg-green-500 text-white"
+//                         : "bg-yellow-500 text-gray-800"
+//                     }`}
+//                   >
+//                     {tutorData.profileStatus}
+//                   </span>
+//                 </div>
+//                 <p className="text-xs text-gray-300 mt-1 truncate">
+//                   {tutorData.location}
+//                 </p>
+//                 {tutorData.subjects.length > 0 && (
+//                   <div className="mt-2 flex flex-wrap justify-center gap-1">
+//                     {tutorData.subjects.slice(0, 3).map((subject, idx) => (
+//                       <span
+//                         key={idx}
+//                         className="text-xs bg-blue-500/30 px-2 py-0.5 rounded"
+//                       >
+//                         {subject}
+//                       </span>
+//                     ))}
+//                     {tutorData.subjects.length > 3 && (
+//                       <span className="text-xs bg-blue-500/30 px-2 py-0.5 rounded">
+//                         +{tutorData.subjects.length - 3}
+//                       </span>
+//                     )}
+//                   </div>
+//                 )}
+//               </div>
+//             )}
+//           </div>
+
+//           <hr className="w-full border-gray-400/50 my-3" />
+
+//           <nav className="w-full flex flex-col gap-1">
+//             {menuItems.map((item, index) => (
+//               <div key={index} className="mb-1">
+//                 <div
+//                   onClick={() => handleMenuClick(index)}
+//                   className={`flex items-center ${
+//                     isOpen ? "justify-start" : "justify-center"
+//                   } gap-3 px-4 py-3 rounded-md cursor-pointer transition-all duration-200 ${
+//                     activeIndex === index && !item.hasSubmenu
+//                       ? "bg-white text-[#2c3e91] font-semibold"
+//                       : "hover:bg-white/10"
+//                   }`}
+//                 >
+//                   <span className="text-lg flex-shrink-0">{item.icon}</span>
+//                   {isOpen && (
+//                     <span className="truncate flex-grow">{item.label}</span>
+//                   )}
+//                   {item.hasSubmenu && isOpen && (
+//                     <span className="text-xs">
+//                       {openSubmenu && activeIndex === index ? "▲" : "▼"}
+//                     </span>
+//                   )}
+//                 </div>
+
+//                 {item.hasSubmenu &&
+//                   isOpen &&
+//                   openSubmenu &&
+//                   activeIndex === index && (
+//                     <div className="ml-8 mt-1 mb-2 flex flex-col gap-1">
+//                       {accountSubmenu.map((sub, subIndex) => (
+//                         <div
+//                           key={subIndex}
+//                           onClick={() => handleSubmenuClick(sub)}
+//                           className={`flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-all ${
+//                             activeSubItem === sub.label
+//                               ? "bg-white/20 font-semibold"
+//                               : "hover:bg-white/10"
+//                           }`}
+//                         >
+//                           <span className="text-sm">{sub.icon}</span>
+//                           <span className="text-sm">{sub.label}</span>
+//                         </div>
+//                       ))}
+//                     </div>
+//                   )}
+//               </div>
+//             ))}
+//           </nav>
+//         </div>
+
+//         <div className="mt-auto pt-2 border-t border-gray-400/50">
+//           <div
+//             onClick={handleLogout}
+//             className={`flex items-center mt-2 ${
+//               isOpen ? "justify-start" : "justify-center"
+//             } gap-3 px-4 py-3 rounded-md cursor-pointer transition-all hover:bg-red-500/80`}
+//           >
+//             <FiLogOut className="text-lg" />
+//             {isOpen && <span>Logout</span>}
+//           </div>
+//         </div>
+//       </div>
+//     </>
+//   );
+// };
+
+// export default TutorSidebar;
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -12,18 +306,28 @@ import {
   FiChevronRight,
   FiDollarSign,
   FiMail,
+  FiMessageSquare,
+  FiLogOut,
 } from "react-icons/fi";
+import { getProfile } from "../../../api/repository/profile.repository";
+
+const scrollbarStyle = `
+  .custom-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+`;
 
 const menuItems = [
   { icon: <FiActivity />, label: "Dashboard", route: "/tutor-dashboard" },
   { icon: <FiCalendar />, label: "My Classes", route: "/my_classes_tutor" },
-  { icon: <FiCheckSquare />, label: "Messages", route: "/message_tutor" },
-  { icon: <FiMail />, label: "Enquiries", route: "/view_all_enquires" }, // ✅ Updated icon
-  { icon: <FiUsers />, label: "Student", route: "/Student_Filter" },
-  { icon: <FiUsers />, label: "Invoice", route: "/tutor_invoice" },
-    { icon: <FiUsers />, label: "Refral", route: "/refer_tutor" },
-  
-
+  { icon: <FiMessageSquare />, label: "Messages", route: "/message_tutor" },
+  { icon: <FiMail />, label: "Enquiries", route: "/view_all_enquires" },
+  { icon: <FiUsers />, label: "Students", route: "/Student_Filter" },
+  { icon: <FiDollarSign />, label: "Invoices", route: "/tutor_invoice" },
   { icon: <FiSettings />, label: "Account", hasSubmenu: true },
   { icon: <FiHelpCircle />, label: "Help Center", route: "/help-center" },
 ];
@@ -31,7 +335,7 @@ const menuItems = [
 const accountSubmenu = [
   { label: "Profile", icon: <FiUser />, route: "/tutor-profile-show" },
   { label: "My Plans", icon: <FiCheckSquare />, route: "/my_plan_tutor" },
-  { label: "Refer", icon: <FiDollarSign />, route: "/refer_tutor" },
+  { label: "Refer Friends", icon: <FiUsers />, route: "/refer_tutor" },
 ];
 
 const TutorSidebar = ({ isOpen, toggleSidebar }) => {
@@ -40,6 +344,7 @@ const TutorSidebar = ({ isOpen, toggleSidebar }) => {
     subjects: [],
     location: "Location not set",
     profileStatus: "pending",
+    profileImage: null,
   });
 
   const [activeIndex, setActiveIndex] = useState(null);
@@ -49,35 +354,83 @@ const TutorSidebar = ({ isOpen, toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    const updateFromStorage = () => {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        try {
-          const user = JSON.parse(storedUser);
-          if (user?.role === "tutor") {
-            const name = user.profile?.name || "Tutor";
-            const subjects = user.profile?.subjects || [];
-            const location =
-              user.profile?.Location?.city ||
-              user.profile?.location?.city ||
-              user.profile?.Location?.address ||
-              "Location not set";
-            const profileStatus = user.profile?.profile_status || "pending";
+  // ✅ Ensure subjects is always an array
+  const ensureArray = (data) => {
+    if (Array.isArray(data)) return data;
+    if (typeof data === 'string') return [data];
+    if (data === null || data === undefined) return [];
+    return [];
+  };
 
-            setTutorData({ name, subjects, location, profileStatus });
-          }
-        } catch (e) {
-          console.error("Error parsing localStorage user:", e);
+  // ✅ Fetch latest profile from API
+  const loadProfile = async () => {
+    try {
+      const p = await getProfile();
+      setTutorData({
+        name: p.name || "Tutor",
+        subjects: ensureArray(p.subjects),
+        location: p.Location?.city || p.location || "Location not set",
+        profileStatus: p.profile_status || "pending",
+        profileImage: p.profile_photo || null,
+      });
+    } catch (err) {
+      console.error("Failed to fetch tutor profile:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadProfile();
+
+    // ✅ Listen for custom event when profile is updated elsewhere in the app
+    const handleProfileUpdate = () => {
+      loadProfile();
+    };
+
+    // ✅ Listen for localStorage changes
+    const handleStorageChange = (e) => {
+      if (e.key === "user") {
+        const user = e.newValue ? JSON.parse(e.newValue) : null;
+        if (user?.role === "tutor") {
+          updateTutorDataFromUser(user);
         }
       }
     };
 
-    updateFromStorage();
-    window.addEventListener("storageUpdate", updateFromStorage);
+    // ✅ Function to update tutor data from user object
+    const updateTutorDataFromUser = (user) => {
+      const name = user.profile?.name || "Tutor";
+      const subjects = ensureArray(user.profile?.subjects);
+      const loc =
+        user.profile?.Location?.city ||
+        user.profile?.Location?.address ||
+        user.profile?.location ||
+        "Location not set";
+      const profileStatus = user.profile?.profile_status || "pending";
+      const profileImage = user.profile?.profile_image || null;
+      
+      setTutorData({ 
+        name, 
+        subjects, 
+        location: loc, 
+        profileStatus, 
+        profileImage 
+      });
+    };
 
+    // Add event listeners
+    window.addEventListener("profileUpdated", handleProfileUpdate);
+    window.addEventListener("storage", handleStorageChange);
+    
+    // Also check if there's a user in localStorage on mount
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user?.role === "tutor") {
+      updateTutorDataFromUser(user);
+    }
+
+    // Cleanup
     return () => {
-      window.removeEventListener("storageUpdate", updateFromStorage);
+      window.removeEventListener("profileUpdated", handleProfileUpdate);
+      window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
@@ -97,7 +450,7 @@ const TutorSidebar = ({ isOpen, toggleSidebar }) => {
       setActiveSubItem(subItem.label);
       setOpenSubmenu(true);
     } else {
-      setOpenSubmenu(false); // Close submenu when navigating away
+      setOpenSubmenu(false);
     }
   }, [location.pathname]);
 
@@ -128,105 +481,148 @@ const TutorSidebar = ({ isOpen, toggleSidebar }) => {
     navigate(sub.route);
   };
 
-  return (
-    <div
-      className={`bg-[#2c3e91] h-full rounded-r-2xl pt-4 pb-2 px-2 text-white flex flex-col items-center shadow-lg transition-all duration-300 ${isOpen ? "w-64" : "w-20"
-        }`}
-    >
-      {/* Toggle */}
-      <div className="w-full flex justify-end pr-2 mb-4">
-        <button onClick={toggleSidebar} className="text-white">
-          {isOpen ? <FiChevronLeft size={20} /> : <FiChevronRight size={20} />}
-        </button>
-      </div>
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("authToken");
+    navigate("/login");
+  };
 
-      {/* Avatar */}
-      <div className="flex flex-col items-center mb-4">
-        <div className="w-14 h-14 bg-white text-[#2c3e91] rounded-full flex items-center justify-center text-xl font-bold shadow-md">
-          {getInitials()}
+  return (
+    <>
+      <style>{scrollbarStyle}</style>
+
+      <div
+        className={`bg-[#2c3e91] h-screen sticky top-0 rounded-r-2xl pt-4 pb-2 px-2 text-white flex flex-col shadow-lg transition-all duration-300 ${
+          isOpen ? "w-64" : "w-20"
+        }`}
+      >
+        <div className="w-full flex justify-end pr-2 mb-4">
+          <button
+            onClick={toggleSidebar}
+            className="text-white hover:bg-white/20 p-1 rounded-full transition-colors"
+          >
+            {isOpen ? <FiChevronLeft size={20} /> : <FiChevronRight size={20} />}
+          </button>
         </div>
-        {isOpen && (
-          <>
-            <h2 className="mt-2 font-semibold truncate max-w-full px-2 text-center text-base md:text-lg">
-              {tutorData.name}
-            </h2>
-            <div className="flex gap-1 mt-1">
-              <span
-                className={`px-2 py-0.5 rounded text-xs md:text-sm ${tutorData.profileStatus === "approved"
-                    ? "bg-green-500 text-white"
-                    : "bg-yellow-500 text-gray-800"
-                  }`}
-              >
-                {tutorData.profileStatus}
-              </span>
-            </div>
-            <p className="text-xs md:text-sm text-gray-300 mt-1 truncate max-w-full px-2 text-center">
-              {tutorData.location}
-            </p>
-            {tutorData.subjects.length > 0 && (
-              <div className="mt-1 flex flex-wrap justify-center gap-1 max-w-full">
-                {tutorData.subjects.slice(0, 3).map((subject, idx) => (
+
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+          <div className="flex flex-col items-center mb-4 px-2">
+            {tutorData.profileImage ? (
+              <img
+                src={tutorData.profileImage}
+                alt="Profile"
+                className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md mb-3"
+              />
+            ) : (
+              <div className="w-14 h-14 bg-white text-[#2c3e91] rounded-full flex items-center justify-center text-xl font-bold shadow-md mb-3">
+                {getInitials()}
+              </div>
+            )}
+            {isOpen && (
+              <div className="w-full text-center">
+                <h2 className="font-semibold text-lg truncate">
+                  {tutorData.name}
+                </h2>
+                <div className="flex justify-center mt-1">
                   <span
-                    key={idx}
-                    className="text-xs md:text-sm bg-blue-500/30 px-1.5 py-0.5 rounded"
+                    className={`px-2 py-0.5 rounded text-xs ${
+                      tutorData.profileStatus === "approved"
+                        ? "bg-green-500 text-white"
+                        : "bg-yellow-500 text-gray-800"
+                    }`}
                   >
-                    {subject}
+                    {tutorData.profileStatus}
                   </span>
-                ))}
-                {tutorData.subjects.length > 3 && (
-                  <span className="text-xs md:text-sm bg-blue-500/30 px-1.5 py-0.5 rounded">
-                    +{tutorData.subjects.length - 3}
-                  </span>
+                </div>
+                <p className="text-xs text-gray-300 mt-1 truncate">
+                  {tutorData.location}
+                </p>
+                {tutorData.subjects.length > 0 && (
+                  <div className="mt-2 flex flex-wrap justify-center gap-1">
+                    {tutorData.subjects.slice(0, 3).map((subject, idx) => (
+                      <span
+                        key={idx}
+                        className="text-xs bg-blue-500/30 px-2 py-0.5 rounded"
+                      >
+                        {subject}
+                      </span>
+                    ))}
+                    {tutorData.subjects.length > 3 && (
+                      <span className="text-xs bg-blue-500/30 px-2 py-0.5 rounded">
+                        +{tutorData.subjects.length - 3}
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
             )}
-          </>
-        )}
-      </div>
-
-      <hr className="w-full border-gray-400 my-3" />
-
-      {/* Navigation */}
-      <nav className="w-full flex flex-col gap-2 text-sm md:text-base">
-        {menuItems.map((item, index) => (
-          <div key={index}>
-            <div
-              onClick={() => handleMenuClick(index)}
-              className={`flex items-center ${isOpen ? "justify-start" : "justify-center"
-                } gap-3 px-4 py-2 rounded-md cursor-pointer transition-all duration-200 ${activeIndex === index &&
-                  (!item.hasSubmenu || (item.hasSubmenu && openSubmenu))
-                  ? "bg-white text-[#2c3e91] font-semibold"
-                  : "text-white hover:bg-white hover:text-[#2c3e91]"
-                }`}
-            >
-              <span className="text-lg">{item.icon}</span>
-              {isOpen && <span>{item.label}</span>}
-            </div>
-
-            {item.hasSubmenu &&
-              isOpen &&
-              openSubmenu &&
-              activeIndex === index && (
-                <div className="ml-8 mt-1 flex flex-col gap-1 text-xs md:text-sm">
-                  {accountSubmenu.map((sub, subIndex) => (
-                    <div
-                      key={subIndex}
-                      onClick={() => handleSubmenuClick(sub)}
-                      className={`flex items-center gap-2 px-2 py-1 rounded-md cursor-pointer transition-all ${activeSubItem === sub.label
-                          ? "bg-white text-[#2c3e91] font-semibold"
-                          : "text-white hover:bg-white hover:text-[#2c3e91]"
-                        }`}
-                    >
-                      <span>{sub.icon}</span>
-                      <span>{sub.label}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
           </div>
-        ))}
-      </nav>
-    </div>
+
+          <hr className="w-full border-gray-400/50 my-3" />
+
+          <nav className="w-full flex flex-col gap-1">
+            {menuItems.map((item, index) => (
+              <div key={index} className="mb-1">
+                <div
+                  onClick={() => handleMenuClick(index)}
+                  className={`flex items-center ${
+                    isOpen ? "justify-start" : "justify-center"
+                  } gap-3 px-4 py-3 rounded-md cursor-pointer transition-all duration-200 ${
+                    activeIndex === index && !item.hasSubmenu
+                      ? "bg-white text-[#2c3e91] font-semibold"
+                      : "hover:bg-white/10"
+                  }`}
+                >
+                  <span className="text-lg flex-shrink-0">{item.icon}</span>
+                  {isOpen && (
+                    <span className="truncate flex-grow">{item.label}</span>
+                  )}
+                  {item.hasSubmenu && isOpen && (
+                    <span className="text-xs">
+                      {openSubmenu && activeIndex === index ? "▲" : "▼"}
+                    </span>
+                  )}
+                </div>
+
+                {item.hasSubmenu &&
+                  isOpen &&
+                  openSubmenu &&
+                  activeIndex === index && (
+                    <div className="ml-8 mt-1 mb-2 flex flex-col gap-1">
+                      {accountSubmenu.map((sub, subIndex) => (
+                        <div
+                          key={subIndex}
+                          onClick={() => handleSubmenuClick(sub)}
+                          className={`flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-all ${
+                            activeSubItem === sub.label
+                              ? "bg-white/20 font-semibold"
+                              : "hover:bg-white/10"
+                          }`}
+                        >
+                          <span className="text-sm">{sub.icon}</span>
+                          <span className="text-sm">{sub.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+              </div>
+            ))}
+          </nav>
+        </div>
+
+        <div className="mt-auto pt-2 border-t border-gray-400/50">
+          <div
+            onClick={handleLogout}
+            className={`flex items-center mt-2 ${
+              isOpen ? "justify-start" : "justify-center"
+            } gap-3 px-4 py-3 rounded-md cursor-pointer transition-all hover:bg-red-500/80`}
+          >
+            <FiLogOut className="text-lg" />
+            {isOpen && <span>Logout</span>}
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 

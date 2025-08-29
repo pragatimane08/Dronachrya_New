@@ -33,7 +33,7 @@ const Whole_Profile_student = () => {
           school_name: p.school_name || "",
           class_modes: p.class_modes || [],
           sms_alerts: p.sms_alerts ?? true,
-          languages: p.languages || [],
+          languages: p.languages || [], // ✅ array of objects { language, proficiency }
           location: p.Location?.city || "",
         });
         toast.success("Profile loaded");
@@ -80,7 +80,7 @@ const Whole_Profile_student = () => {
         if (field === "subjects") {
           payload.subjects = value.split(",").map((s) => s.trim());
         } else if (field === "languages") {
-          payload.languages = value;
+          payload.languages = value; // ✅ array of objects
         } else {
           payload[field] = value;
         }
@@ -277,7 +277,7 @@ const Whole_Profile_student = () => {
             <textarea
               value={tempValue}
               onChange={(e) => setTempValue(e.target.value)}
-              placeholder="Enter languages line by line:\nEnglish\nHindi"
+              placeholder="Enter languages line by line:\nEnglish (Fluent)\nHindi (Intermediate)"
               className="border p-2 w-full h-32"
             />
             <div className="mt-2 flex gap-2">
@@ -286,7 +286,14 @@ const Whole_Profile_student = () => {
                   const parsed = tempValue
                     .split("\n")
                     .map((line) => line.trim())
-                    .filter(Boolean);
+                    .filter(Boolean)
+                    .map((line) => {
+                      const match = line.match(/^(.*?)\s*\((.*?)\)$/);
+                      if (match) {
+                        return { language: match[1].trim(), proficiency: match[2].trim() };
+                      }
+                      return { language: line, proficiency: "Fluent" };
+                    });
                   handleSave("languages", parsed);
                 }}
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
@@ -305,14 +312,20 @@ const Whole_Profile_student = () => {
           <div className="flex justify-between items-start">
             <ul className="list-disc ml-6 break-words">
               {Array.isArray(profile.languages) && profile.languages.length > 0 ? (
-                profile.languages.map((lang, i) => <li key={i}>{lang}</li>)
+                profile.languages.map((lang, i) => (
+                  <li key={i}>
+                    {lang.language} {lang.proficiency ? `(${lang.proficiency})` : ""}
+                  </li>
+                ))
               ) : (
                 <li>No languages specified</li>
               )}
             </ul>
             <button
               onClick={() => {
-                const editableString = (profile.languages || []).join("\n");
+                const editableString = (profile.languages || [])
+                  .map((l) => `${l.language}${l.proficiency ? ` (${l.proficiency})` : ""}`)
+                  .join("\n");
                 setEditField("languages");
                 setTempValue(editableString);
               }}

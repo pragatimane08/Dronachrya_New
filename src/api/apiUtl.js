@@ -95,7 +95,7 @@
 
 // src/api/apiUrl.js-after admin
 export const apiUrl = {
-  baseUrl: "http://15.206.81.98:3000/api", // ✅ Use your backend IP and port
+  baseUrl: "http://15.206.81.98:3000/api", // ✅ backend base
 
   auth: {
     login: "/auth/login",
@@ -105,6 +105,9 @@ export const apiUrl = {
     verifyOtp: "/auth/login/verify-otp",
     sendOtp: "/auth/login/send-otp",
     changePassword: "/auth/change-password",
+
+    // ✅ New endpoint for Book Demo reverse registration
+    preRegisterStudent: "/auth/student/pre-register",
   },
 
   user: {
@@ -128,31 +131,31 @@ export const apiUrl = {
   referrals: {
     all: "/referrals/all",
     generate: "/referrals/generate",
-    reward: (id) => `/referrals/reward/${id}`, // <-- function
+    apply: "/referrals/apply", // ✅ Added missing apply endpoint
+    reward: (id) => `/referrals/reward/${id}`,
     delete: (id) => `/referrals/${id}`,
   },
+
   notifications: {
     list: "/notifications/admin/all",
     sendSingle: "/admin/users/send-message",
     sendBulk: "/admin/users/send-bulk-message",
   },
 
-
- analytics: {
-    summary: '/analytics/summary',
-    classesChart: '/analytics/classes/chart',
-    enquiriesChart: '/analytics/enquiries/chart',
-    usersChart: '/analytics/users/chart'
+  analytics: {
+    summary: "/analytics/summary",
+    classesChart: "/analytics/classes/chart",
+    enquiriesChart: "/analytics/enquiries/chart",
+    usersChart: "/analytics/users/chart",
   },
 
   invoices: {
-  student: "/invoices/my",
-  downloadPDF: (paymentId) => `/invoices/${paymentId}/pdf`,
-}
-
-
+    student: "/invoices/my",
+    downloadPDF: (paymentId) => `/invoices/${paymentId}/pdf`,
+  },
 };
 
+// ⚠️ This looks redundant. Keep only one (apiUrl). Remove this if not needed.
 export const apiUtl = {
   baseUrl: "http://15.206.81.98:3000/api",
 };

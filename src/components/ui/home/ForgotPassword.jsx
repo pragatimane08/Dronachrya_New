@@ -1,80 +1,79 @@
 import React, { useState } from "react";
+import { authRepository } from "../../../api/repository/auth.repository";
+import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { authService } from "../../../api/services/auth.service";
+import "react-toastify/dist/ReactToastify.css";
 
-const ForgotPassword = () => {
-  const [emailOrMobile, setEmailOrMobile] = useState("");
+export default function ForgotPassword() {
+  const [step, setStep] = useState("forgot"); // "forgot" | "reset"
+  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [step, setStep] = useState(1); // 1: Enter email, 2: Enter OTP, 3: Reset password
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  const handleSendOtp = async () => {
-    if (!emailOrMobile.trim()) {
-      setError("Email or Mobile number is required");
+  // ✅ Handle Forgot Password (Send OTP)
+  const handleForgot = async () => {
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
+      toast.error("Enter a valid email.");
       return;
     }
 
     setLoading(true);
     try {
-      await authService.forgotPassword(emailOrMobile.trim());
-      setMessage("OTP sent to your email/mobile");
-      setStep(2);
-      setError("");
+      const res = await authRepository.forgotPassword({ email: email.trim() });
+      toast.success(res.data?.message || "OTP sent to your email!");
+      setStep("reset");
     } catch (err) {
-      setError(
-        err.response?.data?.message || 
-        "Failed to send OTP. Please try again."
+      toast.error(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "Failed to send OTP."
       );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVerifyOtp = async () => {
-    if (!otp.trim()) {
-      setError("OTP is required");
+  // ✅ Handle Reset Password
+  const handleReset = async () => {
+    if (!otp.trim() || !newPassword.trim()) {
+      toast.error("Enter OTP and new password.");
+      return;
+    }
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
+
+    if (!passwordRegex.test(newPassword)) {
+      toast.error(
+        "Password must include uppercase, lowercase, number, special character and be at least 6 characters long."
+      );
       return;
     }
 
     setLoading(true);
     try {
-      await authService.verifyOtp(emailOrMobile.trim(), otp.trim());
-      setMessage("OTP verified successfully");
-      setStep(3);
-      setError("");
-    } catch (err) {
-      setError(
-        err.response?.data?.message || 
-        "Invalid OTP. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+      const res = await authRepository.resetPassword({
+        email: email.trim(),
+        otp: otp.trim(),
+        new_password: newPassword.trim(),
+      });
+      toast.success(res.data?.message || "Password reset successful! Redirecting to login...");
+      
+      setTimeout(() => {
+        navigate("/login"); // ✅ Redirect after success
+      }, 2000);
 
-  const handleResetPassword = async () => {
-    if (!newPassword.trim()) {
-      setError("New password is required");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await authService.resetPassword(
-        emailOrMobile.trim(),
-        newPassword.trim(),
-        otp.trim()
-      );
-      setMessage("Password reset successfully!");
-      setTimeout(() => navigate("/login"), 2000);
+      setStep("forgot");
+      setEmail("");
+      setOtp("");
+      setNewPassword("");
     } catch (err) {
-      setError(
-        err.response?.data?.message || 
-        "Failed to reset password. Please try again."
+      toast.error(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "Failed to reset password."
       );
     } finally {
       setLoading(false);
@@ -82,126 +81,71 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-md border border-[#35BAA3]">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-[#35BAA3]">
-            Reset Your Password
-          </h2>
-        </div>
-
-        {message && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-            {message}
-          </div>
-        )}
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-            {error}
-          </div>
-        )}
-
-        <div className="space-y-4">
-          {step === 1 && (
+    <>
+      <ToastContainer position="top-right" autoClose={3000} />
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="w-full max-w-md bg-white p-6 rounded shadow">
+          {step === "forgot" && (
             <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Email / Mobile Number
-                </label>
-                <input
-                  type="text"
-                  value={emailOrMobile}
-                  onChange={(e) => setEmailOrMobile(e.target.value)}
-                  className="mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-[#35BAA3]/30 focus:border-[#35BAA3]"
-                  placeholder="Enter your email or mobile number"
-                />
-              </div>
-
+              <h2 className="text-xl font-bold mb-4 text-center">
+                Forgot Password
+              </h2>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="w-full border px-3 py-2 rounded mb-4 outline-none focus:ring focus:ring-[#35BAA3]"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
               <button
-                onClick={handleSendOtp}
+                onClick={handleForgot}
                 disabled={loading}
-                className={`w-full py-2 px-4 rounded-md text-white font-medium ${
-                  loading
-                    ? "bg-gray-400"
-                    : "bg-[#35BAA3] hover:bg-[#2a9d8a]"
-                }`}
+                className="w-full py-2 bg-[#35BAA3] hover:bg-[#2fa28e] text-white font-medium rounded transition disabled:opacity-70"
               >
-                {loading ? "Sending OTP..." : "Send OTP"}
+                {loading ? "Sending..." : "Send OTP"}
               </button>
             </>
           )}
 
-          {step === 2 && (
+          {step === "reset" && (
             <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Enter OTP
-                </label>
-                <input
-                  type="text"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className="mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-[#35BAA3]/30 focus:border-[#35BAA3]"
-                  placeholder="Enter OTP sent to your email/mobile"
-                />
-              </div>
-
+              <h2 className="text-xl font-bold mb-4 text-center">
+                Reset Password
+              </h2>
+              <input
+                type="text"
+                placeholder="Enter OTP"
+                className="w-full border px-3 py-2 rounded mb-4 outline-none focus:ring focus:ring-[#35BAA3]"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+              />
+              <input
+                type="password"
+                placeholder="Enter New Password"
+                className="w-full border px-3 py-2 rounded mb-2 outline-none focus:ring focus:ring-[#35BAA3]"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+              <p className="text-xs text-gray-500 mb-4">
+                Password must contain at least 1 uppercase, 1 lowercase, 1 number, 1 special character, and be 6+ characters long.
+              </p>
               <button
-                onClick={handleVerifyOtp}
+                onClick={handleReset}
                 disabled={loading}
-                className={`w-full py-2 px-4 rounded-md text-white font-medium ${
-                  loading
-                    ? "bg-gray-400"
-                    : "bg-[#35BAA3] hover:bg-[#2a9d8a]"
-                }`}
-              >
-                {loading ? "Verifying..." : "Verify OTP"}
-              </button>
-            </>
-          )}
-
-          {step === 3 && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-[#35BAA3]/30 focus:border-[#35BAA3]"
-                  placeholder="Enter your new password"
-                />
-              </div>
-
-              <button
-                onClick={handleResetPassword}
-                disabled={loading}
-                className={`w-full py-2 px-4 rounded-md text-white font-medium ${
-                  loading
-                    ? "bg-gray-400"
-                    : "bg-[#35BAA3] hover:bg-[#2a9d8a]"
-                }`}
+                className="w-full py-2 bg-[#35BAA3] hover:bg-[#2fa28e] text-white font-medium rounded transition disabled:opacity-70"
               >
                 {loading ? "Resetting..." : "Reset Password"}
               </button>
+              <button
+                onClick={() => setStep("forgot")}
+                className="w-full py-2 mt-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded transition"
+              >
+                ← Back
+              </button>
             </>
           )}
-
-          <div className="text-center">
-            <button
-              onClick={() => navigate("/login")}
-              className="text-sm text-[#35BAA3] hover:underline"
-            >
-              Back to Login
-            </button>
-          </div>
         </div>
       </div>
-    </div>
+    </>
   );
-};
-
-export default ForgotPassword;
+}

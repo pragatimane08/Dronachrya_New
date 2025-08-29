@@ -10,13 +10,13 @@ import {
   Activity
 } from "lucide-react";
 
-// Optimized WebP image URLs for different categories (free to use)
-const SchoolImg = "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=600&auto=format&fit=crop&q=80&fm=webp";
-const LanguageImg = "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=800&h=600&auto=format&fit=crop&q=80&fm=webp";
-const HobbyImg = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&h=600&auto=format&fit=crop&q=80&fm=webp";
-const ITImg = "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=600&auto=format&fit=crop&q=80&fm=webp";
-const ExamImg = "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&h=600&auto=format&fit=crop&q=80&fm=webp";
-const CollegeImg = "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&h=600&auto=format&fit=crop&q=80&fm=webp";
+// Using Picsum for reliable placeholder images
+const SchoolImg = "https://picsum.photos/id/201/800/600";
+const LanguageImg = "https://picsum.photos/id/60/800/600";
+const HobbyImg = "https://picsum.photos/id/96/800/600";
+const ITImg = "https://picsum.photos/id/0/800/600";
+const ExamImg = "https://picsum.photos/id/25/800/600";
+const CollegeImg = "https://picsum.photos/id/26/800/600";
 
 const categories = [
   // Tuition Categories
@@ -116,9 +116,22 @@ const mainCategories = [
 
 const ExploreCategories = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showRegistrationMessage, setShowRegistrationMessage] = useState(false);
+
+  // Fallback image in case of loading errors
+  const fallbackImage = "https://picsum.photos/id/1/800/600";
+
+  const handleLearnMoreClick = () => {
+    setShowRegistrationMessage(true);
+    
+    // Redirect to location selector after 2 seconds
+    setTimeout(() => {
+      window.location.href = "/book-demo";
+    }, 2000);
+  };
 
   return (
-    <section className="bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 px-4 py-12 sm:py-14 font-[system-ui]">
+    <section id="explore-categories" className="bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 px-4 py-12 sm:py-14 font-[system-ui]">
       {/* Header */}
       <div className="text-center mb-10 md:mb-12 max-w-4xl mx-auto">
         <div className="inline-flex items-center justify-center p-3 bg-white rounded-full shadow-lg mb-4 sm:mb-5">
@@ -153,6 +166,9 @@ const ExploreCategories = () => {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
                       decoding="async"
+                      onError={(e) => {
+                        e.target.src = fallbackImage;
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                     <div className="absolute top-3 left-3 px-2.5 py-1 bg-white/30 text-white text-xs sm:text-sm rounded-full font-medium backdrop-blur-sm">
@@ -198,6 +214,9 @@ const ExploreCategories = () => {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
                       decoding="async"
+                      onError={(e) => {
+                        e.target.src = fallbackImage;
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                     <div className="absolute top-3 left-3 px-2.5 py-1 bg-white/30 text-white text-xs sm:text-sm rounded-full font-medium backdrop-blur-sm">
@@ -258,11 +277,12 @@ const ExploreCategories = () => {
                 {groupedCategories[selectedCategory]?.map((course, index) => (
                   <div
                     key={index}
-                    className="group bg-white p-4 sm:p-5 border border-gray-200 rounded-xl hover:shadow-sm transition-all hover:border-[#2F4380]"
+                    className="group bg-white p-4 sm:p-5 border border-gray-200 rounded-xl hover:shadow-sm transition-all hover:border-[#2F4380] cursor-pointer"
                     style={{ 
                       backgroundColor: mainCategories.find(c => c.title === selectedCategory)?.color + "40" || "#D4DEFF40",
                       borderColor: mainCategories.find(c => c.title === selectedCategory)?.color || "#D4DEFF"
                     }}
+                    onClick={handleLearnMoreClick}
                   >
                     <div className="flex items-start gap-3 sm:gap-4">
                       <div className="flex-shrink-0">
@@ -293,6 +313,34 @@ const ExploreCategories = () => {
         </div>
       )}
 
+      {/* Registration Message Modal */}
+      {showRegistrationMessage && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full animate-scaleIn">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="mt-4 text-lg font-medium text-gray-900">Registration Required</h3>
+              <div className="mt-2">
+                <p className="text-sm text-gray-600">
+                  Please register as a student to access our courses. Redirecting to location selection...
+                </p>
+              </div>
+              <div className="mt-6">
+                <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
+                  <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
+                    Loading...
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
         @keyframes slideUp {
           from {
@@ -304,8 +352,21 @@ const ExploreCategories = () => {
             opacity: 1;
           }
         }
+        @keyframes scaleIn {
+          from {
+            transform: scale(0.9);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
         .animate-slideUp {
           animation: slideUp 0.3s ease-out forwards;
+        }
+        .animate-scaleIn {
+          animation: scaleIn 0.2s ease-out forwards;
         }
         .line-clamp-1 {
           display: -webkit-box;

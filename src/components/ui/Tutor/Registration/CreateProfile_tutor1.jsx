@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../../../api/apiclient";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
 const availableLanguages = ["English", "Hindi", "Telugu", "Tamil"];
 
@@ -30,6 +31,12 @@ const CreateProfile = () => {
     setLanguages([...languages, { name: "", proficiency: "" }]);
   };
 
+  const handleRemoveLanguage = (index) => {
+    const updated = [...languages];
+    updated.splice(index, 1);
+    setLanguages(updated);
+  };
+
   const validate = () => {
     const errors = [];
     if (languages.length === 0 || languages.some((l) => !l.name || !l.proficiency)) {
@@ -45,7 +52,6 @@ const CreateProfile = () => {
     const errors = validate();
     if (errors.length > 0) {
       errors.forEach((error) => toast.error(error));
-      console.warn("Validation errors:", errors);
       return;
     }
 
@@ -56,14 +62,11 @@ const CreateProfile = () => {
       school_name: university,
     };
 
-    console.log("📤 Submitting tutor profile data:", payload);
-
     try {
       setLoading(true);
       await apiClient.put("/profile/tutor", payload);
       toast.success("✅ Profile updated successfully.");
-      console.log("✅ API success. Redirecting to next section...");
-      setTimeout(() => navigate("/create-profile-tutor2"), 1500); // Slight delay to show toast
+      setTimeout(() => navigate("/create-profile-tutor2"), 1500);
     } catch (err) {
       console.error("❌ Profile submission failed:", err);
       toast.error("❌ Submission failed. Please try again later.");
@@ -74,42 +77,61 @@ const CreateProfile = () => {
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center bg-white px-4">
-        <div className="max-w-xl w-full border rounded-md p-8 shadow">
-          <h2 className="text-center text-xl md:text-2xl font-semibold text-[#1E3A8A] mb-6">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="relative max-w-2xl w-full bg-white border rounded-2xl p-8 shadow-lg">
+          {/* ❌ Cross button */}
+          <button
+            onClick={() => navigate("/")}
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
+          >
+            <XMarkIcon className="w-6 h-6" />
+          </button>
+
+          {/* Heading */}
+          <h2 className="text-center text-2xl md:text-3xl font-bold text-[#1E3A8A] mb-8">
             Create Your Profile
           </h2>
 
-          {/* Languages */}
-          <div>
-            <p className="text-base md:text-lg font-medium text-gray-700 mb-1">
-              Languages you speak? <span className="text-red-500">*</span>
-            </p>
-            <div className="flex flex-wrap gap-2 text-sm md:text-base text-[#3C3C3C] mb-3">
-              {availableLanguages.map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => handleLanguageSelect(lang)}
-                  className="text-blue-700 hover:underline"
-                  type="button"
-                >
-                  {lang}
-                </button>
-              ))}
+           {/* Languages Section */}
+          <div className="mb-8">
+            <label className="block text-lg font-medium text-gray-700 mb-3">
+              Languages you speak <span className="text-red-500">*</span>
+            </label>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {availableLanguages.map((lang) => {
+                const isSelected = languages.find((l) => l.name === lang);
+                return (
+                  <button
+                    key={lang}
+                    onClick={() => handleLanguageSelect(lang)}
+                    type="button"
+                    className={`px-4 py-2 rounded-full border text-sm transition ${
+                      isSelected
+                        ? "bg-[#35BAA3] text-white border-[#35BAA3]" // ✅ all green
+                        : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {lang}
+                  </button>
+                );
+              })}
             </div>
 
             {languages.map((lang, idx) => (
-              <div key={idx} className="flex gap-2 mb-2">
+              <div
+                key={idx}
+                className="flex items-center gap-3 mb-3 border border-gray-200 p-3 rounded-lg shadow-sm"
+              >
                 <input
                   type="text"
                   value={lang.name}
                   readOnly
-                  className="border border-gray-300 rounded px-3 py-2 w-1/2 bg-gray-100 text-sm md:text-base"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-sm"
                 />
                 <select
                   value={lang.proficiency}
                   onChange={(e) => handleLanguageChange(idx, e.target.value)}
-                  className="border border-gray-300 rounded px-3 py-2 w-1/2 text-gray-700 text-sm md:text-base"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
                 >
                   <option value="">Select Proficiency</option>
                   <option value="Basic">Basic</option>
@@ -117,28 +139,36 @@ const CreateProfile = () => {
                   <option value="Fluent">Fluent</option>
                   <option value="Native">Native</option>
                 </select>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveLanguage(idx)}
+                  className="text-red-500 hover:text-red-700"
+                  title="Remove"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
               </div>
             ))}
 
             <button
               type="button"
               onClick={handleAddMore}
-              className="text-blue-600 underline mb-4 text-sm md:text-base"
+              className="bg-[#35BAA3] hover:bg-[#2ea18e] disabled:opacity-60 text-white px-6 py-2 rounded-lg font-medium text-sm transition"
             >
               + Add More
             </button>
           </div>
 
-          {/* Education Details */}
-          <div className="mt-4">
-            <p className="text-base md:text-lg font-medium text-gray-700 mb-2">
+          {/* Education Section */}
+          <div className="mb-8">
+            <label className="block text-lg font-medium text-gray-700 mb-3">
               Highest Education <span className="text-red-500">*</span>
-            </p>
+            </label>
 
             <select
               value={degree}
               onChange={(e) => setDegree(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 mb-3 text-sm md:text-base"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 text-sm"
             >
               <option value="">Select Degree</option>
               <option value="Bachelors">Bachelors</option>
@@ -152,13 +182,13 @@ const CreateProfile = () => {
               placeholder="School/University Name"
               value={university}
               onChange={(e) => setUniversity(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 mb-3 text-sm md:text-base"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 text-sm"
             />
 
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 mb-6 text-sm md:text-base"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
             >
               <option value="">Completed/Pursuing</option>
               <option value="Completed">Completed</option>
@@ -166,20 +196,25 @@ const CreateProfile = () => {
             </select>
           </div>
 
-          {/* Submit Button */}
-          <div className="text-center">
+          {/* Buttons */}
+          <div className="flex justify-between mt-6">
+            <button
+              onClick={() => navigate(-1)}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-medium text-sm transition"
+            >
+              Back
+            </button>
             <button
               onClick={handleNext}
               disabled={loading}
-              className="bg-[#35BAA3] hover:bg-[#2ea18e] text-white px-6 py-2 rounded font-medium text-base md:text-lg"
+              className="bg-[#35BAA3] hover:bg-[#2ea18e] disabled:opacity-60 text-white px-6 py-2 rounded-lg font-medium text-sm transition"
             >
-              {loading ? "Submitting..." : "Next"}
+              {loading ? "Submitting..." : "Save & Continue"}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Toast container */}
       <ToastContainer position="top-right" autoClose={3000} />
     </>
   );

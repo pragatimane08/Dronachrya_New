@@ -14,6 +14,7 @@ const Online_Classes = () => {
   const [bookmarkedIds, setBookmarkedIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [contactInfo, setContactInfo] = useState(null); // store tutor contact
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -74,9 +75,8 @@ const Online_Classes = () => {
       const res = await apiClient.get(`/contacts/view/${tutorId}`);
       const { email, mobile_number } = res.data.contact_info;
 
-      toast.success(`📧 ${email} | 📱 ${mobile_number}`, {
-        autoClose: 7000,
-      });
+      // Show popup modal with info
+      setContactInfo({ email, mobile_number });
     } catch (err) {
       const status = err.response?.status;
       const msg = err.response?.data?.message || "Something went wrong";
@@ -118,7 +118,8 @@ const Online_Classes = () => {
   };
 
   return (
-    <div className="w-full px-6 py-6 bg-gray-100 min-h-screen mt-10">
+    // <div className="w-full px-6 py-6 bg-gray-100 min-h-screen mt-10">
+    <div className="w-full px-6 py-6 bg-gray-100 mt-10">
       <ToastContainer />
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Available Tutors</h2>
 
@@ -181,17 +182,17 @@ const Online_Classes = () => {
                   <p className="text-sm text-gray-800">
                     Mode of Learning: {tutor.teaching_modes?.join(", ") || "N/A"}
                   </p>
-
                 </div>
 
                 <div className="flex items-center text-yellow-500 font-medium text-sm ml-4">
-                  <FiStar className="mr-1" />
-                  {tutor.rating || "N/A"}
+                  {/* <FiStar className="mr-1" />
+                  {tutor.rating || "N/A"} */}
                   <button
-                    className={`ml-3 ${bookmarkedIds.includes(tutor.user_id)
-                      ? "text-teal-600"
-                      : "text-gray-400 hover:text-black"
-                      }`}
+                    className={`ml-3 ${
+                      bookmarkedIds.includes(tutor.user_id)
+                        ? "text-teal-600"
+                        : "text-gray-400 hover:text-black"
+                    }`}
                     onClick={() => handleBookmark(tutor)}
                   >
                     <FiBookmark size={18} />
@@ -232,6 +233,30 @@ const Online_Classes = () => {
         ))
       )}
 
+      {/* Contact Info Modal */}
+      {contactInfo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-md shadow-md max-w-sm w-full text-center">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">
+              Tutor Contact Info
+            </h2>
+            <p className="text-gray-700 mb-2">
+              <strong>Email:</strong> {contactInfo.email}
+            </p>
+            <p className="text-gray-700 mb-4">
+              <strong>Phone:</strong> {contactInfo.mobile_number}
+            </p>
+            <button
+              className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded"
+              onClick={() => setContactInfo(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Subscription Modal */}
       {showSubscribeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-md shadow-md max-w-md w-full text-center">
@@ -246,7 +271,7 @@ const Online_Classes = () => {
                 className="bg-[#35BAA3] hover:bg-[#2ea391] text-white font-semibold py-2 px-4 rounded"
                 onClick={() => {
                   setShowSubscribeModal(false);
-                  navigate("/subscription-plan");
+                  navigate("/subscriptionPlans_student");
                 }}
               >
                 View Plans

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
-import { apiUtl, apiUrl } from "../../../../api/apiUtl";
+import { apiUrl } from "../../../../api/apiUtl"; // ✅ only apiUrl
 
 const AdminRegistration = () => {
   const navigate = useNavigate();
@@ -34,7 +34,8 @@ const AdminRegistration = () => {
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
     if (!nameRegex.test(formData.name)) {
-      newErrors.name = "Name must be at least 2 characters and only contain letters.";
+      newErrors.name =
+        "Name must be at least 2 characters and only contain letters.";
     }
 
     if (!emailRegex.test(formData.email)) {
@@ -58,28 +59,32 @@ const AdminRegistration = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Step 1: Register Admin
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     try {
       const res = await axios.post(
-        `${apiUtl.baseUrl}${apiUrl.auth.register}`,
+        `${apiUrl.baseUrl}${apiUrl.auth.register}`,
         formData
       );
 
       if (res.data?.user_id) {
         setUserId(res.data.user_id);
         setShowOtpForm(true);
-        toast.success("✅ Registration successful! Please verify OTP.");
+        toast.success("✅ Registration successful, OTP sent to your email!");
       } else {
-        toast.error("⚠️ User ID not returned. Please contact support.");
+        toast.error("⚠️ Registration failed, try again.");
       }
     } catch (error) {
-      toast.error(`❌ ${error.response?.data?.message || "Registration failed"}`);
+      toast.error(
+        `❌ ${error.response?.data?.message || "Registration failed"}`
+      );
     }
   };
 
+  // Step 2: Verify OTP
   const handleOtpVerify = async (e) => {
     e.preventDefault();
     if (!otp.trim()) {
@@ -88,17 +93,30 @@ const AdminRegistration = () => {
     }
 
     try {
-      await axios.post(`${apiUtl.baseUrl}${apiUrl.auth.verifyOtp}`, {
-        user_id: userId,
-        otp: otp,
-      });
+      const res = await axios.post(
+        `${apiUrl.baseUrl}${apiUrl.auth.verifyOtp}`,
+        {
+          user_id: userId,
+          otp,
+        }
+      );
 
-      toast.success("🎉 OTP Verified Successfully!");
-      setTimeout(() => {
-        navigate("/admin-dashboard");
-      }, 1000);
+      const { token, user } = res.data;
+      if (token && user) {
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("role", user.role);
+        localStorage.setItem("user_id", user.user_id);
+
+        toast.success("🎉 OTP Verified Successfully!");
+        setTimeout(() => navigate("/admin-dashboard"), 1000);
+      } else {
+        toast.error("⚠️ OTP verified but no token/user returned.");
+      }
     } catch (error) {
-      toast.error(`❌ ${error.response?.data?.message || "OTP verification failed"}`);
+      toast.error(
+        `❌ ${error.response?.data?.message || "OTP verification failed"}`
+      );
     }
   };
 
@@ -156,7 +174,9 @@ const AdminRegistration = () => {
               </div>
 
               <div>
-                <label className="block text-gray-700 mb-1">Mobile Number</label>
+                <label className="block text-gray-700 mb-1">
+                  Mobile Number
+                </label>
                 <input
                   type="tel"
                   name="mobile_number"
@@ -167,7 +187,9 @@ const AdminRegistration = () => {
                   required
                 />
                 {errors.mobile_number && (
-                  <p className="text-sm text-red-500">{errors.mobile_number}</p>
+                  <p className="text-sm text-red-500">
+                    {errors.mobile_number}
+                  </p>
                 )}
               </div>
 
