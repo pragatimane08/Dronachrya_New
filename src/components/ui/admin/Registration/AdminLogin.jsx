@@ -155,47 +155,49 @@ const AdminLogin = () => {
   };
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    if (!validateLogin()) {
-      toast.error("Please fill all required fields.");
-      return;
-    }
-    try {
-      const response = await authRepository.login({ emailOrMobile, password });
-      const token = response?.data?.token;
-      const user = response?.data?.user;
+  e.preventDefault();
+  if (!validateLogin()) {
+    toast.error("Please fill all required fields.");
+    return;
+  }
+  try {
+    const response = await authRepository.login({
+      emailOrMobile,
+      password,
+      role: "admin", // ✅ required for admin login
+    });
 
-      if (token && user) {
-        if (user.role !== "admin") {
-          toast.error("Access denied. Only admins can login here.");
-          return; // ❌ stay on page
-        }
+    const token = response?.data?.token;
+    const user = response?.data?.user;
 
-        // ✅ Save login details based on Remember Me
-        if (rememberMe) {
-          localStorage.setItem("authToken", token);
-          localStorage.setItem("role", user.role);
-        } else {
-          sessionStorage.setItem("authToken", token);
-          sessionStorage.setItem("role", user.role);
-        }
+    if (token) {
+      // ✅ Save login details based on Remember Me
+      if (rememberMe) {
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("role", "admin");
+      } else {
+        sessionStorage.setItem("authToken", token);
+        sessionStorage.setItem("role", "admin");
+      }
 
+      if (user) {
         localStorage.setItem("user_id", user?.user_id || "");
         localStorage.setItem("user", JSON.stringify(user));
-
-        toast.success("Login successful!");
-        setTimeout(() => navigate("/admin-dashboard"), 1000);
-      } else {
-        toast.error("Login failed. Please check your credentials.");
       }
-    } catch (error) {
-      // ✅ Show clear error message and stay on same page
-      toast.error(
-        error?.response?.data?.message ||
-          "Login failed. Invalid email/mobile or password."
-      );
+
+      toast.success("Login successful!");
+      setTimeout(() => navigate("/admin-dashboard"), 1000);
+    } else {
+      toast.error("Login failed. Please check your credentials.");
     }
-  };
+  } catch (error) {
+    toast.error(
+      error?.response?.data?.message ||
+        "Login failed. Invalid email/mobile or password."
+    );
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">

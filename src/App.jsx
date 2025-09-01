@@ -16,6 +16,7 @@ import Student_Plan from "./components/ui/home/Student_plan";
 import Tutor_Plan from "./components/ui/home/Tutor_Plan";
 import Book_Demo_StudentReg from "./components/ui/home/Book_Demo_StudentReg";
 import BookDemoReg from "./components/ui/home/BookDemoReg";
+import FindInstructor from "./components/ui/home/FindInstructor/FindTutorShow";
 
 import AdminDashboard from "./Pages/admin/admin_dashboard";
 import AdminManageTutor from "./Pages/admin/admin_manage_tutor";
@@ -106,6 +107,8 @@ const App = () => {
           <Route path="/tutor-plan" element={<Tutor_Plan />} />
           <Route path="/book-demo-studentreg" element={<Book_Demo_StudentReg />} />
           <Route path="/book-demo" element={<BookDemoReg />} />
+          <Route path="/find-instructor" element={<FindInstructor />} />
+
 
           {/* Admin Login/Register */}
           <Route path="/admin-login" element={<AdminLogin />} />

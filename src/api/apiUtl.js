@@ -10,11 +10,11 @@
 //     sendOtp: "/auth/login/send-otp",
 //     changePassword: "/auth/change-password",
 //   },
-  
+
 //   user: {
 //     profile: "/user/profile",
 //   },
-  
+
 //   // Add more groups and endpoints as needed
 // };
 
@@ -36,7 +36,7 @@
 //     sendOtp: "/auth/login/send-otp",
 //     changePassword: "/auth/change-password",
 //   },
-  
+
 //   user: {
 //     profile: "/user/profile",
 //   },
@@ -58,7 +58,7 @@
 //     sendOtp: "/auth/login/send-otp",
 //     changePassword: "/auth/change-password",
 //   },
-  
+
 //   user: {
 //     profile: "/user/profile",
 //   },
@@ -81,7 +81,7 @@
 //     sendOtp: "/auth/login/send-otp",
 //     changePassword: "/auth/change-password",
 //   },
-  
+
 //   user: {
 //     profile: "/user/profile",
 //   },
@@ -94,20 +94,21 @@
 
 
 // src/api/apiUrl.js-after admin
+
 export const apiUrl = {
-  baseUrl: "http://15.206.81.98:3000/api", // ✅ backend base
+  baseUrl: "http://15.206.81.98:3000/api",
 
   auth: {
     login: "/auth/login",
     register: "/auth/signup",
     forgotPassword: "/auth/forgot-password",
     resetPassword: "/auth/reset-password",
-    verifyOtp: "/auth/login/verify-otp",
-    sendOtp: "/auth/login/send-otp",
     changePassword: "/auth/change-password",
 
-    // ✅ New endpoint for Book Demo reverse registration
-    preRegisterStudent: "/auth/student/pre-register",
+    // ✅ Pre-registration already handles OTP
+    preRegisterStudent: "/auth/signup",
+     verifyOtp: "/auth/login/verify-otp",   // ✅ add this
+    resendOtp: "/auth/signup/resend-otp",
   },
 
   user: {
