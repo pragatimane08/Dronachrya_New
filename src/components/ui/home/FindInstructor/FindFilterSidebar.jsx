@@ -1,315 +1,464 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import LocationSearch from "./LocationSearch";
 
-const SidebarFilters = ({ onApplyFilters, onClearFilters }) => {
+const SUBJECT_OPTIONS = ["Maths", "Science", "English", "Physics", "Chemistry"];
+const CLASS_OPTIONS = ["6th", "7th", "8th", "9th", "10th", "11th", "12th"];
+const BOARD_OPTIONS = ["CBSE", "ICSE", "State Board", "IB", "Cambridge"];
+const LANGUAGE_OPTIONS = ["English", "Hindi", "Marathi", "Gujarati", "Tamil", "Telugu"];
+const MODE_OPTIONS = ["Online", "Offline"];
+const GENDER_OPTIONS = ["Any", "Male", "Female", "Other"];
+
+const chipCls = (active) =>
+  `px-3 py-1 rounded-lg border text-sm transition-colors ${active ? "bg-teal-600 text-white border-teal-600" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"}`;
+
+const DropdownSection = ({ title, isOpen, toggleOpen, children }) => (
+  <div className="mb-4 border border-gray-200 rounded-xl overflow-hidden">
+    <button
+      type="button"
+      onClick={toggleOpen}
+      className="w-full flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+    >
+      <span className="text-sm font-medium text-gray-800">{title}</span>
+      <svg
+        className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+    {isOpen && <div className="p-4 bg-white">{children}</div>}
+  </div>
+);
+
+export default function FindFilterSidebar({ defaultFilters, onApplyFilters, onClearFilters, subjectsData, demoData }) {
   const [filters, setFilters] = useState({
-    name: "",
-    budgetMin: "",
-    budgetMax: "",
-    language: "Any",
-    gender: "",
-    location: "",
-    sortBy: "Relevance",
-    moreFilter: "",
-    experience: "",
-    education: "",
+    ...defaultFilters,
+    ...(demoData || {})
   });
 
-  // ✅ Added state for toggle
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
+  // Add a useEffect to update filters when demoData changes
+  useEffect(() => {
+    if (demoData) {
+      setFilters(prev => ({ ...prev, ...demoData }));
+    }
+  }, [demoData]);
 
-  // Handle input changes
-  const handleChange = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+  const [subjectInput, setSubjectInput] = useState("");
+  const [classInput, setClassInput] = useState("");
+  const [error, setError] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [filteredClasses, setFilteredClasses] = useState([]);
+  const [activeDropdown, setActiveDropdown] = useState(null);
+
+  useEffect(() => {
+    if (defaultFilters) setFilters((f) => ({ ...f, ...defaultFilters }));
+  }, [defaultFilters]);
+
+  useEffect(() => {
+    // Filter classes based on selected category
+    if (selectedCategory) {
+      const classes = [...new Set(subjectsData
+        .filter(item => item.category === selectedCategory)
+        .map(item => item.class)
+      )];
+      setFilteredClasses(classes);
+    } else {
+      setFilteredClasses([...new Set(subjectsData.map(item => item.class))]);
+    }
+  }, [selectedCategory, subjectsData]);
+
+  const toggleInArray = (key, value) => {
+    setFilters((f) => {
+      const arr = new Set(f[key] || []);
+      arr.has(value) ? arr.delete(value) : arr.add(value);
+      return { ...f, [key]: Array.from(arr) };
+    });
   };
 
-  // Apply Filters
-  const handleApply = () => {
-    onApplyFilters(filters);
+  const setField = (key, val) => setFilters((f) => ({ ...f, [key]: val }));
+
+  const addSubject = () => {
+    if (subjectInput && !filters.subjects.includes(subjectInput)) {
+      setFilters((f) => ({ ...f, subjects: [...f.subjects, subjectInput] }));
+    }
+    setSubjectInput("");
   };
 
-  // Clear Filters
-  const handleClear = () => {
+  const addClass = () => {
+    if (classInput && !filters.classes.includes(classInput)) {
+      setFilters((f) => ({ ...f, classes: [...f.classes, classInput] }));
+    }
+    setClassInput("");
+  };
+
+  const apply = () => {
+    setError("");
+    onApplyFilters?.(filters);
+  };
+
+  const clear = () => {
     const cleared = {
       name: "",
-      budgetMin: "",
-      budgetMax: "",
-      language: "Any",
-      gender: "",
-      location: "",
-      sortBy: "Relevance",
-      moreFilter: "",
+      subjects: [],
+      classes: [],
+      board: [],
+      availability: [],
+      languages: [],
+      teaching_modes: [],
       experience: "",
-      education: "",
+      budgetMin: 100,
+      budgetMax: "",
+      location: "",
+      gender: "Any",
     };
     setFilters(cleared);
-    onClearFilters();
+    onClearFilters?.(cleared);
+  };
+
+  const getSubjectsForClass = (className) => {
+    const classData = subjectsData.find(item => item.class === className);
+    return classData ? classData.subjects : [];
+  };
+
+  const handleClassSelect = (classItem) => {
+    toggleInArray("classes", classItem);
+    const subjectsForClass = getSubjectsForClass(classItem);
+    if (subjectsForClass.length > 0) {
+      setFilters((f) => {
+        const newSubjects = [...new Set([...f.subjects, ...subjectsForClass.slice(0, 2)])];
+        return { ...f, subjects: newSubjects };
+      });
+    }
+  };
+
+  const toggleDropdown = (dropdownName) => {
+    setActiveDropdown(activeDropdown === dropdownName ? null : dropdownName);
   };
 
   return (
-    <div className="w-full md:w-72 bg-white shadow-lg p-5 rounded-2xl sticky top-6 h-fit">
-      <h2 className="text-xl font-bold text-gray-800 mb-5 flex items-center gap-2">
-        <svg
-          className="w-5 h-5 text-teal-600"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+    <div className="w-full bg-white rounded-2xl shadow-md p-5 h-fit sticky top-5">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold text-gray-800">Filters</h2>
+        <button
+          onClick={clear}
+          className="text-sm text-teal-600 hover:text-teal-800 font-medium"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-          />
-        </svg>
-        Filters
-      </h2>
+          Clear All
+        </button>
+      </div>
 
-      {/* Name Search */}
-      <div className="mb-5">
-        <label className="text-sm font-medium block mb-2 text-gray-700">
-          Name
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg
-              className="h-5 w-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
+      {demoData && (
+        <div className="bg-teal-50 border border-teal-200 text-teal-700 px-3 py-2 rounded-lg mb-4 text-sm">
+          <div className="flex items-center">
+            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
             </svg>
+            <span>Showing tutors based on your demo preferences</span>
           </div>
+        </div>
+      )}
+
+      <div className="space-y-5 max-h-[calc(100vh-120px)] overflow-y-auto pr-2">
+        {/* Name */}
+        <div>
+          <label className="text-sm font-medium block mb-2 text-gray-700">Tutor Name</label>
           <input
             type="text"
-            value={filters.name}
-            onChange={(e) => handleChange("name", e.target.value)}
-            placeholder="Search tutor..."
-            className="pl-10 w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+            value={filters.name || ""}
+            onChange={(e) => setField("name", e.target.value)}
+            placeholder="Search by name..."
+            className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           />
         </div>
-      </div>
 
-      {/* Budget */}
-      <div className="mb-5">
-        <label className="text-sm font-medium block mb-2 text-gray-700">
-          Budget (₹/hr)
-        </label>
-        <div className="flex gap-3">
-          <input
-            type="number"
-            value={filters.budgetMin}
-            onChange={(e) => handleChange("budgetMin", e.target.value)}
-            placeholder="Min"
-            className="flex-1 w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
-          />
-          <input
-            type="number"
-            value={filters.budgetMax}
-            onChange={(e) => handleChange("budgetMax", e.target.value)}
-            placeholder="Max"
-            className="flex-1 w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+        {/* Location */}
+        <div>
+          <label className="text-sm font-medium block mb-2 text-gray-700">Location</label>
+          <LocationSearch
+            value={filters.location || ""}
+            onSelect={(place) => {
+              setFilters((f) => ({
+                ...f,
+                location: place.city || place.name,
+                place_id: place.place_id
+              }));
+            }}
           />
         </div>
-      </div>
-{/* Language */}
-<div className="mb-5">
-  <label className="text-sm font-medium block mb-2 text-gray-700">
-    Language
-  </label>
-  <div className="relative">
-    <select
-      value={filters.language}
-      onChange={(e) => handleChange("language", e.target.value)}
-      className="w-full border rounded-xl p-3 text-sm appearance-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
-    >
-      <option>Any</option>
-      <option>English</option>
-      <option>Hindi</option>
-      <option>Arabic</option>
-      <option>Bengali</option>
-      <option>Punjabi</option>
-      <option>German</option>
-      <option>Telugu</option>
-      <option>Korean</option>
-      <option>French</option>
-      <option>Marathi</option>
-      <option>Tamil</option>
-      <option>Urdu</option>
-      <option>Gujarati</option>
-      <option>Kannada</option>
-      <option>Malayalam</option>
-      <option>Oriya</option>
-      <option>Bhojpuri</option>
-      <option>Assamese</option>
-      <option>Konkani</option>
-      <option>Sanskrit</option>
-    </select>
-  </div>
-</div>
 
-      {/* Gender */}
-      <div className="mb-5">
-        <label className="text-sm font-medium block mb-2 text-gray-700">
-          Gender
-        </label>
-        <div className="grid grid-cols-3 gap-2">
-          {["Male", "Female","Any"].map((g) => (
-            <button
-              key={g}
-              onClick={() => handleChange("gender", g)}
-              className={`py-2 text-sm rounded-xl border transition-all ${
-                filters.gender === g
-                  ? "bg-teal-500 text-white border-teal-500 shadow-md"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-              }`}
-            >
-              {g}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Location */}
-      <div className="mb-5">
-        <label className="text-sm font-medium block mb-2 text-gray-700">
-          Location
-        </label>
-        <input
-          type="text"
-          value={filters.location}
-          onChange={(e) => handleChange("location", e.target.value)}
-          placeholder="Enter city..."
-          className="w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
-        />
-      </div>
-{/* Sort By */}
-<div className="mb-5">
-  <label className="text-sm font-medium block mb-2 text-gray-700">
-    Sort By
-  </label>
-  <div className="relative">
-    <select
-      value={filters.sortBy}
-      onChange={(e) => handleChange("sortBy", e.target.value)}
-      className="w-full border rounded-xl p-3 text-sm appearance-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
-    >
-      <option value="Relevance">Relevance</option>
-      <option value="Experience">Experience</option>
-      <option value="Student Ratings">Student Ratings</option>
-      <option value="Price Low - High">Price Low - High</option>
-      <option value="Price High - Low">Price High - Low</option>
-    </select>
-  </div>
-</div>
-
-
-      {/* More Filters */}
-      <div className="mb-6">
-        <label className="text-sm font-medium block mb-2 text-gray-700">
-          More Filters
-        </label>
-        <button
-          type="button"
-          onClick={() => setShowMoreFilters(!showMoreFilters)}
-          className="w-full border rounded-xl p-3 text-sm flex justify-between items-center focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
-        >
-          {filters.moreFilter ? filters.moreFilter : "Select"}
-          <svg
-            className={`h-5 w-5 transform transition ${
-              showMoreFilters ? "rotate-180" : "rotate-0"
-            }`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
-
-        {/* Dropdown */}
-        {showMoreFilters && (
-          <div className="absolute mt-2 w-full bg-white border rounded-xl shadow-lg p-4 z-10">
-            {/* Experience */}
-            <div className="mb-4">
-              <p className="text-sm font-medium mb-2">
-                Minimum Experience in Teaching
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {["1 yr", "3 yr", "5 yr", "7 yr", "10 yr", "15 yr"].map(
-                  (exp) => (
-                    <button
-                      key={exp}
-                      onClick={() => handleChange("experience", exp)}
-                      className={`px-3 py-1 rounded-lg border text-sm ${
-                        filters.experience === exp
-                          ? "bg-teal-500 text-white border-teal-500"
-                          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                      }`}
-                    >
-                      {exp}
-                    </button>
-                  )
-                )}
-              </div>
+        {/* Budget */}
+        <div>
+          <label className="text-sm font-medium block mb-2 text-gray-700">Budget (₹/hr)</label>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <input
+                type="number"
+                min={100}
+                value={filters.budgetMin || ""}
+                onChange={(e) => setField("budgetMin", e.target.value)}
+                placeholder="Min (≥100)"
+                className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              />
             </div>
-
-            {/* Education */}
-            <div>
-              <p className="text-sm font-medium mb-2">
-                Minimum Education Level
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  "Pursuing Graduation",
-                  "Graduate",
-                  "Post Graduate",
-                  "Doctorate",
-                  "Any",
-                ].map((edu) => (
-                  <button
-                    key={edu}
-                    onClick={() => handleChange("education", edu)}
-                    className={`px-3 py-1 rounded-lg border text-sm ${
-                      filters.education === edu
-                        ? "bg-teal-500 text-white border-teal-500"
-                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                    }`}
-                  >
-                    {edu}
-                  </button>
-                ))}
-              </div>
+            <div className="flex-1">
+              <input
+                type="number"
+                value={filters.budgetMax || ""}
+                onChange={(e) => setField("budgetMax", e.target.value)}
+                placeholder="Max"
+                className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              />
             </div>
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-3">
-        <button
-          onClick={handleApply}
-          className="flex-1 bg-teal-600 text-white py-3 rounded-xl hover:bg-teal-700 transition-all"
+        {/* Gender */}
+        <div>
+          <label className="text-sm font-medium block mb-2 text-gray-700">Gender Preference</label>
+          <select
+            value={filters.gender || "Any"}
+            onChange={(e) => setField("gender", e.target.value)}
+            className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+          >
+            {GENDER_OPTIONS.map((g) => (
+              <option key={g} value={g}>{g}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Experience */}
+        <div>
+          <label className="text-sm font-medium block mb-2 text-gray-700">Min Experience (years)</label>
+          <input
+            type="number"
+            min={0}
+            value={filters.experience || ""}
+            onChange={(e) => setField("experience", e.target.value)}
+            placeholder="e.g., 3"
+            className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+          />
+        </div>
+
+        {/* Classes dropdown */}
+        <DropdownSection
+          title="Classes"
+          isOpen={activeDropdown === 'classes'}
+          toggleOpen={() => toggleDropdown('classes')}
         >
-          Apply
-        </button>
-        <button
-          onClick={handleClear}
-          className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 transition-all"
+          <div className="mb-3">
+            <label className="text-xs font-medium block mb-2 text-gray-600">Filter by Category</label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+            >
+              <option value="">All Categories</option>
+              {[...new Set(subjectsData.map(item => item.category))].map(category => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mb-3">
+            {filters.classes && filters.classes.map((c) => (
+              <span key={c} className={chipCls(true)}>
+                {c}
+                <button
+                  onClick={() => toggleInArray("classes", c)}
+                  className="ml-1 focus:outline-none"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1">
+            {filteredClasses.map((c) => (
+              <label key={c} className="flex items-center gap-2 text-sm p-2 rounded-lg hover:bg-gray-50">
+                <input
+                  type="checkbox"
+                  checked={filters.classes && filters.classes.includes(c)}
+                  onChange={() => handleClassSelect(c)}
+                  className="rounded text-teal-600 focus:ring-teal-500"
+                />
+                {c}
+              </label>
+            ))}
+          </div>
+        </DropdownSection>
+
+        {/* Subjects dropdown */}
+        <DropdownSection
+          title="Subjects"
+          isOpen={activeDropdown === 'subjects'}
+          toggleOpen={() => toggleDropdown('subjects')}
         >
-          Clear
+          <div className="flex gap-2 mb-3">
+            <input
+              type="text"
+              value={subjectInput}
+              onChange={(e) => setSubjectInput(e.target.value)}
+              placeholder="Type subject..."
+              className="flex-1 border border-gray-300 rounded-lg p-2 text-sm"
+              onKeyPress={(e) => e.key === 'Enter' && addSubject()}
+            />
+            <button
+              type="button"
+              onClick={addSubject}
+              className="px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+            >
+              Add
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mb-3">
+            {filters.subjects && filters.subjects.map((s) => (
+              <span key={s} className={chipCls(true)}>
+                {s}
+                <button
+                  onClick={() => toggleInArray("subjects", s)}
+                  className="ml-1 focus:outline-none"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1">
+            {SUBJECT_OPTIONS.map((s) => (
+              <label key={s} className="flex items-center gap-2 text-sm p-2 rounded-lg hover:bg-gray-50">
+                <input
+                  type="checkbox"
+                  checked={filters.subjects && filters.subjects.includes(s)}
+                  onChange={() => toggleInArray("subjects", s)}
+                  className="rounded text-teal-600 focus:ring-teal-500"
+                />
+                {s}
+              </label>
+            ))}
+          </div>
+        </DropdownSection>
+
+        {/* Board dropdown */}
+        <DropdownSection
+          title="Education Board"
+          isOpen={activeDropdown === 'board'}
+          toggleOpen={() => toggleDropdown('board')}
+        >
+          <div className="flex flex-wrap gap-2 mb-3">
+            {filters.board && filters.board.map((b) => (
+              <span key={b} className={chipCls(true)}>
+                {b}
+                <button
+                  onClick={() => toggleInArray("board", b)}
+                  className="ml-1 focus:outline-none"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+
+          <div className="space-y-2">
+            {BOARD_OPTIONS.map((b) => (
+              <label key={b} className="flex items-center gap-3 text-sm p-2 rounded-lg hover:bg-gray-50">
+                <input
+                  type="checkbox"
+                  checked={filters.board && filters.board.includes(b)}
+                  onChange={() => toggleInArray("board", b)}
+                  className="rounded text-teal-600 focus:ring-teal-500"
+                />
+                {b}
+              </label>
+            ))}
+          </div>
+        </DropdownSection>
+
+        {/* Languages dropdown */}
+        <DropdownSection
+          title="Languages"
+          isOpen={activeDropdown === 'languages'}
+          toggleOpen={() => toggleDropdown('languages')}
+        >
+          <div className="flex flex-wrap gap-2 mb-3">
+            {filters.languages && filters.languages.map((l) => (
+              <span key={l} className={chipCls(true)}>
+                {l}
+                <button
+                  onClick={() => toggleInArray("languages", l)}
+                  className="ml-1 focus:outline-none"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+
+          <div className="space-y-2">
+            {LANGUAGE_OPTIONS.map((l) => (
+              <label key={l} className="flex items-center gap-3 text-sm p-2 rounded-lg hover:bg-gray-50">
+                <input
+                  type="checkbox"
+                  checked={filters.languages && filters.languages.includes(l)}
+                  onChange={() => toggleInArray("languages", l)}
+                  className="rounded text-teal-600 focus:ring-teal-500"
+                />
+                {l}
+              </label>
+            ))}
+          </div>
+        </DropdownSection>
+
+        {/* Teaching modes dropdown */}
+        <DropdownSection
+          title="Teaching Mode"
+          isOpen={activeDropdown === 'teaching_modes'}
+          toggleOpen={() => toggleDropdown('teaching_modes')}
+        >
+          <div className="flex flex-wrap gap-2 mb-3">
+            {filters.teaching_modes && filters.teaching_modes.map((m) => (
+              <span key={m} className={chipCls(true)}>
+                {m}
+                <button
+                  onClick={() => toggleInArray("teaching_modes", m)}
+                  className="ml-1 focus:outline-none"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+
+          <div className="space-y-2">
+            {MODE_OPTIONS.map((m) => (
+              <label key={m} className="flex items-center gap-3 text-sm p-2 rounded-lg hover:bg-gray-50">
+                <input
+                  type="checkbox"
+                  checked={filters.teaching_modes && filters.teaching_modes.includes(m)}
+                  onChange={() => toggleInArray("teaching_modes", m)}
+                  className="rounded text-teal-600 focus:ring-teal-500"
+                />
+                {m}
+              </label>
+            ))}
+          </div>
+        </DropdownSection>
+
+        {error && <p className="text-red-600 text-sm mb-3 p-2 bg-red-50 rounded-lg">{error}</p>}
+
+        {/* Apply Button */}
+        <button
+          onClick={apply}
+          className="w-full bg-teal-600 text-white py-3 rounded-xl hover:bg-teal-700 transition-colors font-medium shadow-md hover:shadow-lg"
+        >
+          Apply Filters
         </button>
       </div>
     </div>
   );
-};
-
-export default SidebarFilters;
+}

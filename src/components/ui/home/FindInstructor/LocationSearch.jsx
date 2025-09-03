@@ -1,12 +1,11 @@
-// src/components/LocationSearch.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Autocomplete, LoadScriptNext } from "@react-google-maps/api";
+import { GOOGLE_MAPS_API_KEY } from "../../../../api/config/googleMapsConfig";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyB2fZzo4kGI7K1iOW_o1QkRItwScC4Ma-I";
-
-const LocationSearch = ({ onSelect, value }) => {
+const LocationSearch = ({ onSelect, value, placeholder = "Search location..." }) => {
   const [autocomplete, setAutocomplete] = useState(null);
   const [inputValue, setInputValue] = useState(value || "");
+  const autocompleteRef = useRef(null);
 
   useEffect(() => {
     if (value !== inputValue) setInputValue(value || "");
@@ -20,24 +19,64 @@ const LocationSearch = ({ onSelect, value }) => {
           comp.types.includes("locality") || comp.types.includes("administrative_area_level_2")
         )?.long_name;
 
-        onSelect({
+        const state = place.address_components?.find(comp =>
+          comp.types.includes("administrative_area_level_1")
+        )?.long_name;
+
+        const country = place.address_components?.find(comp =>
+          comp.types.includes("country")
+        )?.long_name;
+
+        const locationData = {
           name: place.formatted_address,
           place_id: place.place_id,
-          city: city || place.formatted_address
-        });
+          city: city || place.formatted_address,
+          state: state || "",
+          country: country || ""
+        };
+
+        onSelect(locationData);
+        setInputValue(place.formatted_address);
+      }
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setInputValue(e.target.value);
+  };
+
+  const handleKeyPress = (e) => {
+    // Allow user to press Enter to select the first suggestion
+    if (e.key === 'Enter' && autocompleteRef.current) {
+      e.preventDefault();
+      // Trigger the place selection
+      const places = autocompleteRef.current.getPlace();
+      if (places && places.length > 0) {
+        handlePlaceChanged();
       }
     }
   };
 
   return (
     <LoadScriptNext googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
-      <Autocomplete onLoad={setAutocomplete} onPlaceChanged={handlePlaceChanged}>
+      <Autocomplete
+        onLoad={(autocomplete) => {
+          setAutocomplete(autocomplete);
+          autocompleteRef.current = autocomplete;
+        }}
+        onPlaceChanged={handlePlaceChanged}
+        options={{
+          types: ['(cities)'],
+          componentRestrictions: { country: 'in' } // Restrict to India only
+        }}
+      >
         <input
           type="text"
-          placeholder="Search location"
+          placeholder={placeholder}
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          className="w-full border rounded-md p-2 text-sm"
+          onChange={handleInputChange}
+          onKeyPress={handleKeyPress}
+          className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
         />
       </Autocomplete>
     </LoadScriptNext>

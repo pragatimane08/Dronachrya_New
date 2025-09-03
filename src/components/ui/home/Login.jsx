@@ -9,9 +9,12 @@ export default function Login() {
   const [role, setRole] = useState("student");
   const [input, setInput] = useState("");
   const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [userId, setUserId] = useState(""); // store user_id from sendOtp response
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
 
   const navigate = useNavigate();
 
@@ -22,19 +25,57 @@ export default function Login() {
     const isEmail = /^\S+@\S+\.\S+$/.test(input.trim());
 
     if (!input.trim()) {
-      newErrors.input = "Email or Mobile number is required.";
-    } else if (!isMobile && !isEmail) {
+      newErrors.input =
+        role === "student"
+          ? "Mobile number is required."
+          : "Email or Mobile number is required.";
+    } else if (role === "student" && !isMobile) {
+      newErrors.input = "Enter a valid 10-digit mobile number.";
+    } else if (role === "tutor" && !isMobile && !isEmail) {
       newErrors.input = "Enter a valid email or 10-digit mobile number.";
     }
 
-    if (!password.trim()) {
-      newErrors.password = "Password is required.";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters.";
+    if (role === "tutor") {
+      if (!password.trim()) {
+        newErrors.password = "Password is required.";
+      } else if (password.length < 6) {
+        newErrors.password = "Password must be at least 6 characters.";
+      }
+    }
+
+    if (role === "student" && otpSent && !otp.trim()) {
+      newErrors.otp = "OTP is required.";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // ✅ Send OTP for student
+  const handleSendOtp = async () => {
+    if (!/^[0-9]{10}$/.test(input.trim())) {
+      toast.error("❌ Please enter a valid 10-digit mobile number.");
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await authRepository.sendOtp({ emailOrMobile: input.trim() });
+      if (res.data?.user_id) {
+        setUserId(res.data.user_id);
+        setOtpSent(true);
+        toast.success("✅ OTP sent successfully!");
+      } else {
+        toast.error("❌ Failed to send OTP. Try again.");
+      }
+    } catch (err) {
+      const msg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        "❌ Failed to send OTP.";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ✅ Login handler
@@ -44,17 +85,33 @@ export default function Login() {
     setLoading(true);
     setErrors({});
     try {
-      const res = await authRepository.login({
-        emailOrMobile: input.trim(),
-        password: password.trim(),
-      });
+      let res;
+      if (role === "student") {
+        // 🔹 Student login via OTP
+        res = await authRepository.verifyOtp({
+          user_id: userId,
+          otp: otp.trim(),
+        });
+      } else {
+        // 🔹 Tutor login via password
+        res = await authRepository.login({
+          emailOrMobile: input.trim(),
+          password: password.trim(),
+          role: "tutor",
+        });
+      }
 
       const { token, user } = res.data;
 
-      if (user.role !== role) {
-        toast.error(
-          `⚠️ You're trying to log in as a ${role}, but this account is registered as a ${user.role}.`
-        );
+      if (!token) {
+        toast.error("❌ Login failed. Invalid response from server.");
+        setLoading(false);
+        return;
+      }
+
+      // 🔹 Role mismatch check
+      if (role === "student" && user?.role === "tutor") {
+        toast.error("❌ This account is registered as a Tutor. Please login as Tutor.");
         setLoading(false);
         return;
       }
@@ -66,14 +123,12 @@ export default function Login() {
         sessionStorage.setItem("authToken", token);
       }
 
-      // Store user info
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("role", user.role);
-      localStorage.setItem("user_id", user.id);
+      // Save minimal user object
+      localStorage.setItem("user", JSON.stringify(user || { role }));
+      localStorage.setItem("role", role);
 
       toast.success("✅ Login successful!");
 
-      // Navigate after short delay so toast is visible
       setTimeout(() => {
         if (role === "tutor") {
           navigate("/tutor-dashboard");
@@ -114,7 +169,12 @@ export default function Login() {
             {["student", "tutor"].map((type) => (
               <button
                 key={type}
-                onClick={() => setRole(type)}
+                onClick={() => {
+                  setRole(type);
+                  setOtpSent(false);
+                  setOtp("");
+                  setPassword("");
+                }}
                 className={`px-4 py-1 rounded-full border font-medium capitalize ${
                   role === type
                     ? "bg-[#35BAA3] text-white"
@@ -139,60 +199,113 @@ export default function Login() {
             {/* Email/Mobile */}
             <div>
               <label className="block mb-1 text-sm font-medium">
-                Email / Mobile No
+                {role === "student" ? "Mobile No" : "Email / Mobile No"}
               </label>
               <input
                 type="text"
-                placeholder="Email or Mobile"
+                maxLength={role === "student" ? 10 : undefined}
+                placeholder={
+                  role === "student" ? "Enter Mobile Number" : "Email or Mobile"
+                }
                 className={`w-full border px-3 py-2 rounded outline-none focus:ring ${
                   errors.input ? "border-red-500" : "focus:ring-[#35BAA3]"
                 }`}
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) =>
+                  setInput(
+                    role === "student"
+                      ? e.target.value.replace(/\D/g, "")
+                      : e.target.value
+                  )
+                }
               />
             </div>
 
-            {/* Password */}
-            <div>
-              <label className="block mb-1 text-sm font-medium">Password</label>
-              <input
-                type="password"
-                placeholder="Enter Password"
-                className={`w-full border px-3 py-2 rounded outline-none focus:ring ${
-                  errors.password ? "border-red-500" : "focus:ring-[#35BAA3]"
-                }`}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-
-            {/* Remember me & Forgot */}
-            <div className="flex items-center justify-between text-sm text-gray-600">
-              <label className="flex items-center space-x-2">
+            {/* Tutor Password Field */}
+            {role === "tutor" && (
+              <div>
+                <label className="block mb-1 text-sm font-medium">
+                  Password
+                </label>
                 <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={() => setRememberMe(!rememberMe)}
-                  className="accent-[#35BAA3]"
+                  type="password"
+                  placeholder="Enter Password"
+                  className={`w-full border px-3 py-2 rounded outline-none focus:ring ${
+                    errors.password ? "border-red-500" : "focus:ring-[#35BAA3]"
+                  }`}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
-                <span>Remember Me</span>
-              </label>
-              <button
-                type="button"
-                onClick={() => navigate("/forgot-password")}
-                className="hover:underline text-sm text-[#0E2D63]"
-              >
-                Forgot Password?
-              </button>
-            </div>
+              </div>
+            )}
+
+            {/* Remember Me + Send OTP row */}
+            {role === "student" && (
+              <div className="flex items-center justify-between text-sm">
+                <label className="flex items-center space-x-2 text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={() => setRememberMe(!rememberMe)}
+                    className="accent-[#35BAA3]"
+                  />
+                  <span>Remember Me</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={handleSendOtp}
+                  disabled={loading || otpSent}
+                  className="px-3 py-1 bg-[#35BAA3] hover:bg-[#2fa28e] text-white font-medium rounded transition disabled:opacity-70"
+                >
+                  {otpSent ? "OTP Sent" : "Send OTP"}
+                </button>
+              </div>
+            )}
+
+            {role === "tutor" && (
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={() => setRememberMe(!rememberMe)}
+                    className="accent-[#35BAA3]"
+                  />
+                  <span>Remember Me</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => navigate("/forgot-password")}
+                  className="hover:underline text-sm text-[#0E2D63]"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+            )}
+
+            {/* Student OTP Field */}
+            {role === "student" && otpSent && (
+              <div>
+                <label className="block mb-1 text-sm font-medium">OTP</label>
+                <input
+                  type="text"
+                  placeholder="Enter OTP"
+                  className={`w-full border px-3 py-2 rounded outline-none focus:ring ${
+                    errors.otp ? "border-red-500" : "focus:ring-[#35BAA3]"
+                  }`}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                />
+              </div>
+            )}
 
             {/* Login Button */}
             <button
               onClick={handleLogin}
-              disabled={loading}
+              disabled={loading || (role === "student" && !otpSent)}
               className="w-full py-2 bg-[#35BAA3] hover:bg-[#2fa28e] text-white font-medium rounded transition disabled:opacity-70"
             >
-              {loading ? "Logging in..." : "Login"}
+              {loading ? "Processing..." : "Login"}
             </button>
 
             {/* Sign up link */}

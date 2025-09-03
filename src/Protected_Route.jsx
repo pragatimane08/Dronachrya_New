@@ -1,12 +1,14 @@
+// src/components/auth/ProtectedRoute.jsx
 import React from "react";
-import { Navigate, useLocation } from "react-router-dom"; // ✅ Add useLocation import
+import { Navigate, useLocation } from "react-router-dom";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+  const token =
+    localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
   const userData = localStorage.getItem("user");
-  const location = useLocation(); // ✅ Now this will work
+  const location = useLocation();
 
-  // Parse user data to get role
+  // Parse user role
   let role = "";
   try {
     const user = userData ? JSON.parse(userData) : null;
@@ -15,19 +17,23 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     console.error("Error parsing user data:", e);
   }
 
-  // Fallback: also check localStorage/sessionStorage directly
-  role = role || localStorage.getItem("role") || sessionStorage.getItem("role") || "";
+  // Fallback to role from storage
+  role =
+    role ||
+    localStorage.getItem("role") ||
+    sessionStorage.getItem("role") ||
+    "";
 
+  // 🚫 Not logged in
   if (!token) {
-    // Not logged in → send to correct login page
-    if (allowedRoles && allowedRoles.includes("admin")) {
+    if (allowedRoles?.includes("admin")) {
       return <Navigate to="/admin-login" state={{ from: location }} replace />;
     }
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // 🚫 Wrong role logged in
   if (allowedRoles && !allowedRoles.includes(role)) {
-    // Logged in but wrong role → block access
     if (role === "admin") {
       return <Navigate to="/admin-dashboard" replace />;
     }
@@ -37,14 +43,15 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     if (role === "student") {
       return <Navigate to="/student-dashboard" replace />;
     }
-    
-    // If role is missing or invalid, redirect to appropriate login
+
+    // Unknown role → fallback to login
     if (allowedRoles.includes("admin")) {
       return <Navigate to="/admin-login" replace />;
     }
     return <Navigate to="/login" replace />;
   }
 
+  // ✅ Passed all checks → render page
   return children;
 };
 

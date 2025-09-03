@@ -1,231 +1,221 @@
-import React, { useState } from "react";
-import SidebarFilters from "./FindFilterSidebar";
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import FindFilterSidebar from "./FindFilterSidebar";
 import TutorCard from "./TutorCard";
+import { searchTutors, recommendedTutors } from "../../../../api/services/tutorService";
+import Layout from "../layout/MainLayout";
+import subjectsData from "../subjectsData";
+import { useNavigate } from "react-router-dom";
 
-const FindTutorShow = () => {
-  // Sample Tutors Data
-  const tutorsData = [
-    {
-      name: "Aditya Pratap Singh",
-      image: "https://via.placeholder.com/120",
-      rating: 4.9,
-      reviews: 48,
-      experience: 4,
-      students: 24,
-      mode: "Online / Offline",
-      location: "Lucknow",
-      city: "Ashiyana, Lucknow",
-      subjects: "Mathematics, Science, Hindi, Social Studies",
-      about:
-        "I have 4 years of experience in online edtech. I create personalized lessons for Class 1–5 students with interactive learning methods and regular progress tracking.",
-      priceRange: "₹350 - ₹450",
-      availability: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-      teachingTypes: ["Online", "Offline", "Student Place", "Tutor Place"],
-    },
-    {
-      name: "Priya Sharma",
-      image: "https://via.placeholder.com/120",
-      rating: 4.7,
-      reviews: 30,
-      experience: 6,
-      students: 40,
-      mode: "Offline Classes",
-      location: "Delhi",
-      city: "Connaught Place, Delhi",
-      subjects: "English, History, Political Science",
-      about:
-        "Dedicated to improving student communication and writing skills with interactive lessons and personalized feedback sessions.",
-      priceRange: "₹500 - ₹700",
-      availability: ["Mon", "Wed", "Fri", "Sat"],
-      teachingTypes: ["Offline", "Tutor Place"],
-    },
-    {
-      name: "Rohit Kumar",
-      image: "https://via.placeholder.com/120",
-      rating: 4.5,
-      reviews: 20,
-      experience: 3,
-      students: 15,
-      mode: "Online Classes",
-      location: "Mumbai",
-      city: "Andheri, Mumbai",
-      subjects: "Physics, Chemistry, Mathematics",
-      about:
-        "Focused on conceptual clarity and practical problem solving with real-world examples and application-based learning.",
-      priceRange: "₹400 - ₹600",
-      availability: ["Tue", "Thu", "Sat", "Sun"],
-      teachingTypes: ["Online", "Student Place"],
-    },
-  ];
+const initialFiltersFromYou = {
+  name: "",
+  subjects: [],
+  classes: [],
+  board: [],
+  availability: [],
+  languages: [],
+  teaching_modes: [],
+  experience: "",
+  budgetMin: "",
+  budgetMax: "",
+  location: "",
+  gender: "Any",
+};
 
-  // State to hold filtered tutors
-  const [filteredTutors, setFilteredTutors] = useState(tutorsData);
-  const [showFilters, setShowFilters] = useState(false);
+export default function FindTutorShow() {
+  const [filters, setFilters] = useState(initialFiltersFromYou);
+  const [tutors, setTutors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [usingRecommended, setUsingRecommended] = useState(false);
+  const [error, setError] = useState("");
+  const location = useLocation();
+  const [demoFilters, setDemoFilters] = useState(null); // Add this state
+  const navigate = useNavigate();
+  // Check for demo filters from BookDemo registration
+  useEffect(() => {
+    if (location.state?.demoFilters) {
+      const demoData = location.state.demoFilters;
+      setDemoFilters(demoData);
+      setFilters(demoData);
+      runSearch(demoData);
 
-  // Apply Filters
-  const handleApplyFilters = (filters) => {
-    let results = tutorsData;
-
-    // Name filter
-    if (filters.name) {
-      results = results.filter((t) =>
-        t.name.toLowerCase().includes(filters.name.toLowerCase())
-      );
+      // Clear the state to avoid reapplying on refresh
+      window.history.replaceState({}, document.title);
+    } else {
+      runSearch(filters);
     }
+  }, [location.state]);
 
-    // Location filter
-    if (filters.location) {
-      results = results.filter((t) =>
-        t.location.toLowerCase().includes(filters.location.toLowerCase())
-      );
+  const runSearch = async (f) => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await searchTutors(f);
+      setTutors(data);
+      setUsingRecommended(false);
+    } catch (e) {
+      setError(e?.response?.data?.message || e.message || "Failed to fetch tutors");
+    } finally {
+      setLoading(false);
     }
-
-    // More Filters → Online / Offline
-    if (filters.moreFilter === "online") {
-      results = results.filter((t) => t.mode.toLowerCase().includes("online"));
-    } else if (filters.moreFilter === "offline") {
-      results = results.filter((t) => t.mode.toLowerCase().includes("offline"));
-    } else if (filters.moreFilter === "experience") {
-      results = results.filter((t) => t.experience >= 5);
-    }
-
-    // Budget filter
-    if (filters.budgetMin || filters.budgetMax) {
-      results = results.filter((t) => {
-        const priceRange = t.priceRange.replace("₹", "").split(" - ");
-        const min = parseInt(priceRange[0]);
-        const max = parseInt(priceRange[1]);
-
-        const filterMin = filters.budgetMin ? parseInt(filters.budgetMin) : 0;
-        const filterMax = filters.budgetMax
-          ? parseInt(filters.budgetMax)
-          : Infinity;
-
-        return min >= filterMin && max <= filterMax;
-      });
-    }
-
-    // Sort By
-    if (filters.sortBy === "Rating") {
-      results = [...results].sort((a, b) => b.rating - a.rating);
-    } else if (filters.sortBy === "Experience") {
-      results = [...results].sort((a, b) => b.experience - a.experience);
-    } else if (filters.sortBy === "Price Low → High") {
-      results = [...results].sort((a, b) => {
-        const aMin = parseInt(a.priceRange.replace("₹", "").split(" - ")[0]);
-        const bMin = parseInt(b.priceRange.replace("₹", "").split(" - ")[0]);
-        return aMin - bMin;
-      });
-    } else if (filters.sortBy === "Price High → Low") {
-      results = [...results].sort((a, b) => {
-        const aMin = parseInt(a.priceRange.replace("₹", "").split(" - ")[0]);
-        const bMin = parseInt(b.priceRange.replace("₹", "").split(" - ")[0]);
-        return bMin - aMin;
-      });
-    }
-
-    setFilteredTutors(results);
-    setShowFilters(false); // Hide filters on mobile after applying
   };
 
-  // Clear Filters
-  const handleClearFilters = () => {
-    setFilteredTutors(tutorsData);
+  const runRecommended = async (f) => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await recommendedTutors(f);
+      setTutors(data);
+      setUsingRecommended(true);
+    } catch (e) {
+      setError(e?.response?.data?.message || e.message || "Failed to fetch recommended tutors");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const saved = localStorage.getItem("demoFilters");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setFilters(parsed);
+      setDemoFilters(parsed);
+      runSearch(parsed);
+      localStorage.removeItem("demoFilters");
+    }
+  }, []);
+
+  const onApplyFilters = (next) => {
+    setFilters(next);
+    setDemoFilters(null); // Clear demo filters when user applies new filters
+    runSearch(next);
+  };
+
+  const onClearFilters = (cleared) => {
+    setFilters(cleared);
+    setDemoFilters(null); // Clear demo filters when user clears all filters
+    runSearch(cleared);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Page Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Find Your Perfect Tutor
-          </h1>
-          <p className="text-gray-600">
-            Browse through our verified tutors and find the best match for your
-            learning needs
-          </p>
-        </div>
-
-        {/* Mobile Filter Toggle */}
-        <div className="md:hidden flex justify-center mb-6">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 bg-white px-5 py-3 rounded-xl shadow-md text-teal-600 font-medium"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-              />
-            </svg>
-            {showFilters ? "Hide Filters" : "Show Filters"}
-          </button>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Sidebar - Hidden on mobile unless toggled */}
-          <div className={`${showFilters ? "block" : "hidden"} md:block`}>
-            <SidebarFilters
-              onApplyFilters={handleApplyFilters}
-              onClearFilters={handleClearFilters}
-            />
-          </div>
-
-          {/* Tutors List */}
-          <div className="flex-1">
-            <div className="bg-white rounded-2xl shadow-md p-5 mb-6">
-              <h2 className="text-xl font-semibold text-gray-800">
-                {filteredTutors.length} Tutors Available
-              </h2>
-              <p className="text-gray-600 text-sm">
-                {filteredTutors.length === tutorsData.length
-                  ? "Browse all our qualified tutors"
-                  : "Matching your criteria"}
-              </p>
-            </div>
-
-            <div className="grid gap-6">
-              {filteredTutors.length > 0 ? (
-                filteredTutors.map((tutor, index) => (
-                  <TutorCard key={index} tutor={tutor} />
-                ))
-              ) : (
-                <div className="bg-white rounded-2xl shadow-md p-8 text-center">
+    <Layout showNavbar={false}>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto p-4 md:p-6">
+          {/* header */}
+          {/* <div className="bg-gray-50 rounded-2xl shadow-sm p-8 mb-6 text-center">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Find Your Perfect Tutor
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Browse through our verified tutors and find the best match for your learning needs
+            </p>
+          </div> */}
+          <div className="bg-gray-50 rounded-2xl shadow-sm p-6 mb-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+              {/* Left Side - Dashboard Shortcut */}
+              <div className="mb-4 md:mb-0 flex items-center">
+                <button
+                  onClick={() => navigate("/student-dashboard")}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-teal-600 text-teal-600 text-sm font-medium hover:bg-teal-50 transition"
+                >
                   <svg
-                    className="w-16 h-16 text-gray-300 mx-auto mb-4"
+                    xmlns="http://www.w3.org/2000/svg"
                     fill="none"
-                    stroke="currentColor"
                     viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-4 h-4"
                   >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 10v10h14V10"
                     />
                   </svg>
-                  <h3 className="text-xl font-medium text-gray-700 mb-2">
-                    No tutors found
-                  </h3>
-                  <p className="text-gray-500">
-                    Try adjusting your filters to find more results
-                  </p>
+                  <span>Go to Dashboard</span>
+                </button>
+              </div>
+
+              {/* Center - Title & Subtitle */}
+              <div className="flex-1 flex flex-col items-center justify-center text-center">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                  Find Your Perfect Tutor
+                </h1>
+                <p className="text-gray-600 mt-2 text-sm md:text-base max-w-xl">
+                  Browse through our verified tutors and find the best match for your learning needs
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* main content */}
+
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* sidebar */}
+            <div className="lg:w-80">
+              <FindFilterSidebar
+                defaultFilters={initialFiltersFromYou}
+                onApplyFilters={onApplyFilters}
+                onClearFilters={onClearFilters}
+                subjectsData={subjectsData}
+                demoData={demoFilters} // Pass demo filters to sidebar
+              />
+            </div>
+
+            {/* results */}
+            <div className="flex-1">
+              <div className="bg-white rounded-2xl shadow-md p-5 mb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-800">
+                      {loading ? "Loading…" : `${tutors.length} Tutors`}
+                    </h2>
+                    <p className="text-gray-600 text-sm">
+                      {demoFilters
+                        ? "Based on your demo preferences"
+                        : usingRecommended
+                          ? "Based on your saved profile"
+                          : "Matching your filters"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 text-red-800 border border-red-200 rounded-xl p-4 mb-4">
+                  {error}
                 </div>
               )}
+
+              <div className="grid gap-4">
+                {!loading && tutors.length === 0 && !error && (
+                  <div className="bg-white rounded-2xl shadow-md p-8 text-center">
+                    <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h3 className="text-xl font-medium text-gray-700 mb-2">No tutors found</h3>
+                    <p className="text-gray-500">Try adjusting your filters</p>
+                  </div>
+                )}
+
+                {tutors.map((t) => (
+                  <TutorCard key={t.user_id || t.id} tutor={t} />
+                ))}
+
+                {loading && (
+                  <div className="bg-white rounded-2xl shadow-md p-6 text-gray-600">Fetching tutors…</div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
-};
-
-export default FindTutorShow;
+}

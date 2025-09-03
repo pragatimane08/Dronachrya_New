@@ -1,395 +1,183 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
-import {
-  FaCheckCircle,
-  FaTimesCircle,
-  FaEnvelope,
-  FaPhone,
-} from "react-icons/fa";
-import { FiArrowLeft, FiMoreVertical, FiShare2 } from "react-icons/fi";
+// src/components/TutorCard.jsx
+// src/components/TutorCard.jsx
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import TutorProfile from "./TutorProfile";
 
-const TutorProfile = () => {
-  const { id } = useParams();
-  const [activeTab, setActiveTab] = useState("profile"); // default tab
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [reportOpen, setReportOpen] = useState(false);
+export default function TutorCard({ tutor }) {
+  const navigate = useNavigate();
 
-  const tutor = {
-    name: "Dr. Neetu",
-    image: "https://via.placeholder.com/150",
-    mode: "Online Classes",
-    experience: 10,
-    location: "Vidhyadhar Nagar Sector 5, Jaipur, India - 302039",
-    lastActive: "Within 6 months",
-    education: [
-      {
-        degree: "Master of Science (M.Sc.)",
-        year: 2012,
-        university: "Rajasthan University",
-      },
-      {
-        degree: "Doctor of Philosophy (Ph.D.)",
-        year: 2015,
-        university: "Rajasthan University",
-      },
-    ],
-    verifiedInfo: [
-      "ID Verified",
-      "Education Verified",
-      "Phone Verified",
-      "Email Verified",
-    ],
-    taughtSchools: ["Biyani Girls College, Vidyadhar Nagar Naya Khera, Jaipur"],
-    classLocation: {
-      online: true,
-      studentHome: false,
-      tutorHome: false,
-    },
-    bscExperienceYears: 10,
-    bscSubjects:
-      "Cell Biology, Plant Biotechnology, Ecology and Phytogeography, Environmental Management / Bioinformatics, Reproductive Biology of Angiosperms, Biology: Introduction to Biology with Practicals, Technical writing and Communication in English / Computational skills, Biodiversity, Chemistry, Molecular Biology, Plant Resource Utilization, Plant Development and Anatomy, Plant Systematics & Evolution, Plant Physiology, Genetics & Genomics, Plant Metabolism & Biochemistry",
-    schoolOrCollegeExperience: "10 years experience in teaching at college level.",
-    classType: "Regular Classes",
-    classStrength: "Group Classes, One on one/ Private Tuitions",
-    taughtInSchool: true,
-    bscBranch: "BSc Botany",
-    detailedTeachingExperience: "10 years experience in teaching M.Sc. and B.Sc. Botany.",
-    overview:
-      "I am an Experienced faculty of Science with PhD in Botany. I have more than 10 years of experience in teaching B.SC & M.Sc students. I have vast experience in Online teaching and Home tuitions for (science, EVS, Hindi, Maths) grade 1-5, and Botany, Microbiology, Plant Pathology, Plant Taxonomy, Environmental Science for B.Sc and M.Sc students.",
-    languages: [
-      { name: "Hindi", level: "Mother Tongue (Native)" },
-      { name: "English", level: "Basic" },
-    ],
-  };
+  const photo = tutor?.profile_photo || "https://via.placeholder.com/120";
+  const location =
+    tutor?.Location?.city ||
+    tutor?.Location?.state ||
+    tutor?.Location?.country ||
+    "—";
+  const price = tutor?.pricing_per_hour
+    ? `₹${Number(tutor.pricing_per_hour)}/hr`
+    : "—";
+  const rating = tutor?.rating || 4.9;
+  const reviews = tutor?.reviews || 48;
+  const experience = tutor?.experience || 4;
+  const students = tutor?.students || 24;
+  const address = tutor?.address || "Ashiyana, Lucknow";
+  const teachingTypes = tutor?.teaching_modes || ["Online", "Offline"];
+  const subjects =
+    tutor?.subjects || ["Mathematics", "Science", "Hindi", "Social Studies"];
+  const description =
+    tutor?.description ||
+    "I have 4 years of experience in online edtech. I create personalized lessons for Class 1–5 students with interactive learning methods and regular progress tracking.";
+const tutorId = tutor.user_id || tutor.User?.id;
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-2xl">
-      {/* Subject Header with Menu */}
-      <div className="flex justify-between items-center border-b py-3 px-4 bg-gray-50 mb-4">
-        <div className="flex items-center gap-3">
-          <FiArrowLeft className="text-xl cursor-pointer" />
-          <span className="font-medium">BSc Tuition</span>
+    <div className="bg-white rounded-2xl shadow-md p-6 max-w-4xl w-full">
+      <div className="flex gap-6">
+        {/* Tutor Image & Profile Button */}
+        <div className="flex flex-col items-center w-32">
+          <img
+            src={photo}
+            alt={tutor?.name}
+            className="w-28 h-28 object-cover rounded-full mb-3 shadow"
+          />
+
+          <button
+            onClick={() => tutorId && navigate(`/TutorProfile/${tutorId}`)}
+            className="bg-teal-600 text-white py-2 px-4 rounded-lg text-xs font-medium hover:bg-teal-700 transition-colors w-full"
+          >
+            View Profile
+          </button>
+
         </div>
 
-        <div className="flex items-center gap-4 relative">
-          <FiShare2 className="text-gray-500 cursor-pointer" />
-
-          <div className="relative">
-            <FiMoreVertical
-              className="text-gray-500 cursor-pointer"
-              onClick={() => setMenuOpen(!menuOpen)}
-            />
-            {menuOpen && (
-              <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md border z-50">
-                <button
-                  onClick={() => {
-                    setReportOpen(true);
-                    setMenuOpen(false);
-                  }}
-                  className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                >
-                  Report this profile
-                </button>
-              </div>
-            )}
+        {/* Tutor Details */}
+        <div className="flex-1">
+          {/* Name, Price & Rating */}
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <h3 className="text-base font-semibold text-gray-800">
+                {tutor?.name || "Aditya Pratap Singh"}
+              </h3>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-teal-700 font-semibold text-sm">
+                {price}
+              </span>
+              <p className="text-gray-600 text-xs mt-1">
+                <span className="text-amber-500 font-semibold">{rating}</span>{" "}
+                ({reviews} reviews)
+              </p>
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Report Modal */}
-      {reportOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-[500px] shadow-xl relative">
-            <button
-              onClick={() => setReportOpen(false)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+          {/* Location */}
+          <div className="flex items-center text-gray-600 mb-2">
+            <svg
+              className="w-3.5 h-3.5 mr-1"
+              fill="currentColor"
+              viewBox="0 0 20 20"
             >
-              ✖
-            </button>
-            <h2 className="text-lg font-semibold mb-3">
-              Is this listing inaccurate or duplicate? Any other problem?
-            </h2>
-            <textarea
-              placeholder="Please tell us about the problem and we will fix it."
-              className="w-full border rounded-md p-3 h-28 mb-4"
-            />
-            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-              Submit
-            </button>
+              <path
+                fillRule="evenodd"
+                d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span className="text-xs">{location}</span>
           </div>
-        </div>
-      )}
 
-      {/* Header Info */}
-      <div className="flex gap-6 mb-6">
-        <img
-          src={tutor.image}
-          alt={tutor.name}
-          className="w-28 h-28 rounded-lg object-cover"
-        />
-        <div>
-          <h2 className="text-2xl font-bold">{tutor.name}</h2>
-          <p className="text-teal-600 font-semibold">{tutor.mode}</p>
-          <p className="text-gray-600">{tutor.experience} yrs of Exp</p>
-          <p className="text-gray-600">{tutor.location}</p>
-          <p className="text-gray-500 text-sm">
-            Last Active - {tutor.lastActive}
-          </p>
-
-          {/* Contact Buttons */}
-          <div className="mt-4">
-            <p className="text-gray-600 mb-2">
-              Contact to Book a Free Demo Class.
-            </p>
-            <div className="flex gap-3">
-              <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                <FaEnvelope className="text-sm" />{" "}
-                <span className="font-medium">Message</span>
-              </button>
-              <button className="flex items-center gap-2 border border-blue-600 text-blue-600 px-4 py-2 rounded-md hover:bg-blue-50">
-                <FaPhone className="text-sm" />{" "}
-                <span className="font-medium">Call</span>
-              </button>
+          {/* Stats */}
+          <div className="flex flex-wrap gap-3 mb-3">
+            <div className="flex items-center text-xs text-gray-700">
+              <svg
+                className="w-3.5 h-3.5 mr-1 text-teal-600"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              {experience} yrs Experience
+            </div>
+            <div className="flex items-center text-xs text-gray-700">
+              <svg
+                className="w-3.5 h-3.5 mr-1 text-teal-600"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path
+                  fillRule="evenodd"
+                  d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              {students} Students
+            </div>
+            <div className="flex items-center text-xs text-gray-700">
+              <svg
+                className="w-3.5 h-3.5 mr-1 text-teal-600"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              {address}
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="border-b mb-6 flex gap-6">
-        <button
-          className={`pb-2 ${
-            activeTab === "profile"
-              ? "border-b-2 border-teal-500 text-teal-600"
-              : "text-gray-600"
-          }`}
-          onClick={() => setActiveTab("profile")}
-        >
-          Profile
-        </button>
-        <button
-          className={`pb-2 ${
-            activeTab === "classes"
-              ? "border-b-2 border-teal-500 text-teal-600"
-              : "text-gray-600"
-          }`}
-          onClick={() => setActiveTab("classes")}
-        >
-          Classes
-        </button>
-        <button
-          className={`pb-2 ${
-            activeTab === "reviews"
-              ? "border-b-2 border-teal-500 text-teal-600"
-              : "text-gray-600"
-          }`}
-          onClick={() => setActiveTab("reviews")}
-        >
-          Reviews
-        </button>
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === "profile" && (
-        <>
-          {/* Overview */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">Overview</h3>
-            <p className="text-gray-700">{tutor.overview}</p>
-          </div>
-
-          {/* Languages */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">Languages Spoken</h3>
-            {tutor.languages.map((lang, idx) => (
-              <div
-                key={idx}
-                className="flex justify-between text-gray-700 mb-1"
-              >
-                <span>{lang.name}</span>
-                <span>{lang.level}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Education */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">Education</h3>
-            <ul className="list-disc list-inside text-gray-700">
-              {tutor.education.map((edu, idx) => (
-                <li key={idx}>
-                  {edu.university} - {edu.degree} ({edu.year})
-                </li>
+          {/* Teaching Types */}
+          <div className="mb-3">
+            <h4 className="text-xs font-medium text-gray-700 mb-1">
+              Teaching Types:
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {teachingTypes.map((type, index) => (
+                <span
+                  key={index}
+                  className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-md text-xs"
+                >
+                  {type}
+                </span>
               ))}
-            </ul>
-          </div>
-
-          {/* Address */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">Address</h3>
-            <p className="text-gray-700">{tutor.location}</p>
-          </div>
-
-          {/* Classes Section */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">Class Location</h3>
-            <div className="text-gray-700 space-y-1">
-              <p className="flex items-center gap-2">
-                {tutor.classLocation.online ? (
-                  <FaCheckCircle className="text-green-600" />
-                ) : (
-                  <FaTimesCircle className="text-red-500" />
-                )}
-                Online Classes
-              </p>
-              <p className="flex items-center gap-2">
-                {tutor.classLocation.studentHome ? (
-                  <FaCheckCircle className="text-green-600" />
-                ) : (
-                  <FaTimesCircle className="text-red-500" />
-                )}
-                Student's Home
-              </p>
-              <p className="flex items-center gap-2">
-                {tutor.classLocation.tutorHome ? (
-                  <FaCheckCircle className="text-green-600" />
-                ) : (
-                  <FaTimesCircle className="text-red-500" />
-                )}
-                Tutor's Home
-              </p>
             </div>
           </div>
 
-          <p className="mb-2">
-            <strong>Years of Experience in BSc Tuition:</strong>{" "}
-            {tutor.bscExperienceYears}
-          </p>
-
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">BSc Botany Subjects</h3>
-            <p className="text-gray-700">{tutor.bscSubjects}</p>
-          </div>
-
-          <p>
-            <strong>Experience in School or College:</strong>{" "}
-            {tutor.schoolOrCollegeExperience}
-          </p>
-          <p>
-            <strong>Type of Class:</strong> {tutor.classType}
-          </p>
-          <p>
-            <strong>Class Strength:</strong> {tutor.classStrength}
-          </p>
-          <p>
-            <strong>Taught in School or College:</strong>{" "}
-            {tutor.taughtInSchool ? "Yes" : "No"}
-          </p>
-          <p>
-            <strong>BSc Branch:</strong> {tutor.bscBranch}
-          </p>
-          <p>
-            <strong>Detailed Teaching Experience:</strong>{" "}
-            {tutor.detailedTeachingExperience}
-          </p>
-
-          {/* Reviews Section */}
-          <div className="mb-6 mt-6">
-            <h3 className="text-lg font-semibold mb-2">Reviews</h3>
-            <div className="bg-gray-100 p-4 rounded-lg text-center">
-              <p className="text-gray-700">No Reviews yet!</p>
-              <a
-                href="#"
-                className="text-blue-600 font-medium hover:underline"
-              >
-                Be the first one to Review
-              </a>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Classes Tab */}
-      {activeTab === "classes" && (
-        <>
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">Class Location</h3>
-            <div className="text-gray-700 space-y-1">
-              <p className="flex items-center gap-2">
-                {tutor.classLocation.online ? (
-                  <FaCheckCircle className="text-green-600" />
-                ) : (
-                  <FaTimesCircle className="text-red-500" />
-                )}
-                Online Classes
-              </p>
-              <p className="flex items-center gap-2">
-                {tutor.classLocation.studentHome ? (
-                  <FaCheckCircle className="text-green-600" />
-                ) : (
-                  <FaTimesCircle className="text-red-500" />
-                )}
-                Student's Home
-              </p>
-              <p className="flex items-center gap-2">
-                {tutor.classLocation.tutorHome ? (
-                  <FaCheckCircle className="text-green-600" />
-                ) : (
-                  <FaTimesCircle className="text-red-500" />
-                )}
-                Tutor's Home
-              </p>
+          {/* Subjects */}
+          <div className="mb-3">
+            <h4 className="text-xs font-medium text-gray-700 mb-1">Subjects:</h4>
+            <div className="flex flex-wrap gap-2">
+              {subjects.map((subject, index) => (
+                <span
+                  key={index}
+                  className="px-2 py-0.5 bg-teal-100 text-teal-800 rounded-md text-xs"
+                >
+                  {subject}
+                </span>
+              ))}
             </div>
           </div>
 
-          <p className="mb-2">
-            <strong>Years of Experience in BSc Tuition:</strong>{" "}
-            {tutor.bscExperienceYears}
-          </p>
+          {/* Description */}
+          <p className="text-gray-600 text-xs mb-4">{description}</p>
 
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">BSc Botany Subjects</h3>
-            <p className="text-gray-700">{tutor.bscSubjects}</p>
-          </div>
-
-          <p>
-            <strong>Experience in School or College:</strong>{" "}
-            {tutor.schoolOrCollegeExperience}
-          </p>
-          <p>
-            <strong>Type of Class:</strong> {tutor.classType}
-          </p>
-          <p>
-            <strong>Class Strength:</strong> {tutor.classStrength}
-          </p>
-          <p>
-            <strong>Taught in School or College:</strong>{" "}
-            {tutor.taughtInSchool ? "Yes" : "No"}
-          </p>
-          <p>
-            <strong>BSc Branch:</strong> {tutor.bscBranch}
-          </p>
-          <p>
-            <strong>Detailed Teaching Experience:</strong>{" "}
-            {tutor.detailedTeachingExperience}
-          </p>
-        </>
-      )}
-
-      {/* Reviews Tab */}
-      {activeTab === "reviews" && (
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">Reviews</h3>
-          <div className="bg-gray-100 p-4 rounded-lg text-center">
-            <p className="text-gray-700">No Reviews yet!</p>
-            <a href="#" className="text-blue-600 font-medium hover:underline">
-              Be the first one to Review
-            </a>
+          {/* Book Demo Button */}
+          <div className="flex gap-3">
+            <button className="flex-1 bg-teal-600 text-white py-2 rounded-lg text-xs font-medium hover:bg-teal-700 transition-colors">
+              Book Free Demo
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
-};
-
-export default TutorProfile;
+}

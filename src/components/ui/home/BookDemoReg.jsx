@@ -62,7 +62,7 @@ export default function BookDemoReg() {
   const startTimelineOptions = ["Immediately", "Within a month", "Not sure, just exploring options"];
   const [startTimeline, setStartTimeline] = useState("");
   const [selectedModes, setSelectedModes] = useState({ online: false, offline: false });
-  const [genderPref, setGenderPref] = useState("No preference");
+  const [genderPref, setGenderPref] = useState("");
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -166,14 +166,20 @@ export default function BookDemoReg() {
       const email = (form.email || "").trim();
       const mobile = (form.mobile_number || "").trim();
       const otpTrim = (otp || "").trim();
+
       if (!name) e.name = "Full name is required.";
       else if (!isLettersSpaces(name)) e.name = "Name can only contain letters and spaces.";
+
       if (!email) e.email = "Email is required.";
       else if (!isValidEmail(email)) e.email = "Please enter a valid email address.";
+
       if (!mobile) e.mobile_number = "Mobile number is required.";
       else if (!isValidMobile(mobile)) e.mobile_number = "Please enter a valid 10-digit mobile number.";
-      if (!otpTrim) e.otp = "OTP is required.";
-      else if (!/^\d{6}$/.test(otpTrim)) e.otp = "OTP must be exactly 6 digits.";
+
+      if (otpSent) {
+        if (!otpTrim) e.otp = "OTP is required.";
+        else if (!/^\d{6}$/.test(otpTrim)) e.otp = "OTP must be exactly 6 digits.";
+      }
     }
     return e;
   };
@@ -185,14 +191,16 @@ export default function BookDemoReg() {
       return;
     }
     setErrors({});
+
     if (step === 8) {
       setStep(9);
       return;
     }
+
     if (step === 9) {
-      await handleSendOtp();
       return;
     }
+
     setStep((p) => Math.min(9, p + 1));
   };
 
@@ -210,6 +218,25 @@ export default function BookDemoReg() {
   };
 
   const handleSendOtp = async () => {
+    const basicErrors = {};
+    const name = (form.name || "").trim();
+    const email = (form.email || "").trim();
+    const mobile = (form.mobile_number || "").trim();
+
+    if (!name) basicErrors.name = "Full name is required.";
+    else if (!isLettersSpaces(name)) basicErrors.name = "Name can only contain letters and spaces.";
+
+    if (!email) basicErrors.email = "Email is required.";
+    else if (!isValidEmail(email)) basicErrors.email = "Please enter a valid email address.";
+
+    if (!mobile) basicErrors.mobile_number = "Mobile number is required.";
+    else if (!isValidMobile(mobile)) basicErrors.mobile_number = "Please enter a valid 10-digit mobile number.";
+
+    if (Object.keys(basicErrors).length > 0) {
+      setErrors(basicErrors);
+      return;
+    }
+
     setLoading(true);
     try {
       const payload = {
@@ -236,11 +263,10 @@ export default function BookDemoReg() {
         sms_alerts: true,
       };
 
-      console.log("Final payload:", payload);
       const res = await authRepository.preRegisterStudent(payload);
 
       if (res?.data?.user_id) {
-        setTempStudentId(res.data.user_id);   // store user_id
+        setTempStudentId(res.data.user_id);
         setOtpSent(true);
         setOtpTimer(60);
       } else {
@@ -249,12 +275,77 @@ export default function BookDemoReg() {
 
     } catch (err) {
       console.error("OTP Error:", err.response?.data || err.message);
-      setErrors({ submit: err?.response?.data?.message || "Failed to send OTP" });
+
+      if (err.response?.data?.details) {
+        const serverErrors = {};
+        err.response.data.details.forEach(detail => {
+          if (detail.path && detail.message) {
+            serverErrors[detail.path[0]] = detail.message;
+          }
+        });
+
+        setErrors({ ...serverErrors, submit: "Please fix the validation errors above." });
+      } else {
+        setErrors({ submit: err?.response?.data?.message || "Failed to send OTP" });
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  // const handleVerifyOtp = async () => {
+  //   const e = validateStep(9);
+  //   if (Object.keys(e).length > 0) {
+  //     setErrors(e);
+  //     return;
+  //   }
+  //   setLoading(true);
+  //   try {
+  //     const otpVerifyPayload = {
+  //       user_id: tempStudentId,
+  //       otp: otp.trim(),
+  //     };
+
+  //     const otpVerifyRes = await authRepository.verifyOtp(otpVerifyPayload);
+
+  //     if (!otpVerifyRes?.data || otpVerifyRes?.data?.error) {
+  //       throw new Error(
+  //         otpVerifyRes?.data?.message || "OTP verification failed."
+  //       );
+  //     }
+
+  //     // ✅ Build filters object for tutor search
+  //     const filters = {
+  //       name: "",
+  //       subjects: selectedSubjects,
+  //       classes: [locationHook.state?.class || ""].filter(Boolean),
+  //       board: [board === "Other" ? boardOtherText.trim() : board],
+  //       availability: [availability],
+  //       languages: ["English", "Hindi"],
+  //       teaching_modes: Object.keys(selectedModes)
+  //         .filter((k) => selectedModes[k])
+  //         .map((m) => (m === "online" ? "Online" : "Offline")),
+  //       experience: "",
+  //       budgetMin: form.minPrice || "",
+  //       budgetMax: form.maxPrice || "",
+  //       location: location?.city || "",
+  //       gender: genderPref === "No preference" ? "Any" : genderPref,
+  //     };
+
+  //     // ✅ Navigate with filters as state
+  //     navigate("/find-instructor", { state: { demoFilters: filters } });
+
+  //   } catch (err) {
+  //     console.error("OTP Verify Error:", err.response?.data || err.message);
+  //     setErrors({
+  //       submit:
+  //         err?.response?.data?.message ||
+  //         "OTP verification failed. Please try again.",
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handleVerifyOtp = async () => {
     const e = validateStep(9);
     if (Object.keys(e).length > 0) {
@@ -264,37 +355,45 @@ export default function BookDemoReg() {
     setLoading(true);
     try {
       const otpVerifyPayload = {
-        user_id: tempStudentId,  // this actually stores user_id
+        user_id: tempStudentId,
         otp: otp.trim(),
       };
 
       const otpVerifyRes = await authRepository.verifyOtp(otpVerifyPayload);
 
-      // ✅ Adjust this check based on your backend’s real response
       if (!otpVerifyRes?.data || otpVerifyRes?.data?.error) {
         throw new Error(
           otpVerifyRes?.data?.message || "OTP verification failed."
         );
       }
 
-      // If verification passed, go to tutors page
-      const params = {
-        city: location?.city,
-        board: board === "Other" ? boardOtherText.trim() : board,
-        subjects: selectedSubjects.join(","),
-        availability,
-        startTimeline,
-        class_modes: Object.keys(selectedModes)
+      // ✅ Save token & user to localStorage for login session
+      if (otpVerifyRes.data.token && otpVerifyRes.data.user) {
+        localStorage.setItem("token", otpVerifyRes.data.token);
+        localStorage.setItem("user", JSON.stringify(otpVerifyRes.data.user));
+      }
+
+      // ✅ Build filters object for tutor search
+      const filters = {
+        name: "",
+        subjects: selectedSubjects,
+        classes: [locationHook.state?.class || ""].filter(Boolean),
+        board: [board === "Other" ? boardOtherText.trim() : board],
+        availability: [availability],
+        languages: ["English", "Hindi"],
+        teaching_modes: Object.keys(selectedModes)
           .filter((k) => selectedModes[k])
-          .join(","),
-        gender_preference: genderPref,
-        min_price: form.minPrice,
-        max_price: form.maxPrice || "",
-        class: locationHook.state?.class || "",
-        subject: locationHook.state?.subject || "",
+          .map((m) => (m === "online" ? "Online" : "Offline")),
+        experience: "",
+        budgetMin: form.minPrice || "",
+        budgetMax: form.maxPrice || "",
+        location: location?.city || "",
+        gender: genderPref === "No preference" ? "Any" : genderPref,
       };
 
-      navigate("/find-instructor", { state: params });
+      // ✅ Navigate with filters as state
+      navigate("/find-instructor", { state: { demoFilters: filters } });
+
     } catch (err) {
       console.error("OTP Verify Error:", err.response?.data || err.message);
       setErrors({
@@ -341,7 +440,7 @@ export default function BookDemoReg() {
 
   return (
     <Layout showNavbar={false}>
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50 p-4">
+      <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-30 z-50 p-4">
         <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl relative max-h-[95vh] overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <style>{`
             .overflow-y-auto::-webkit-scrollbar {
@@ -377,6 +476,7 @@ export default function BookDemoReg() {
               {errors.submit}
             </div>
           )}
+
           {/* STEP 1: Location */}
           {step === 1 && (
             <div className="space-y-6">
@@ -636,10 +736,13 @@ export default function BookDemoReg() {
           {step === 6 && (
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700">How would you like to attend your tuition classes? *</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">
+                  How would you like to attend your tuition classes? *
+                </label>
                 <p className="text-xs text-gray-500 mb-2">Select at least one option</p>
 
                 <div className="space-y-3 mt-4">
+                  {/* Online */}
                   <label
                     className={`flex items-center justify-between w-full p-4 border rounded-lg cursor-pointer transition-colors ${selectedModes.online
                       ? "border-teal-500 bg-teal-50"
@@ -653,12 +756,11 @@ export default function BookDemoReg() {
                         onChange={() => toggleMode("online")}
                         className="h-4 w-4 text-teal-600 focus:ring-teal-500"
                       />
-                      <span className="ml-3 text-sm text-gray-700">
-                        Online Classes
-                      </span>
+                      <span className="ml-3 text-sm text-gray-700">Online Classes</span>
                     </div>
                   </label>
 
+                  {/* Offline */}
                   <label
                     className={`flex items-center justify-between w-full p-4 border rounded-lg cursor-pointer transition-colors ${selectedModes.offline
                       ? "border-teal-500 bg-teal-50"
@@ -672,33 +774,33 @@ export default function BookDemoReg() {
                         onChange={() => toggleMode("offline")}
                         className="h-4 w-4 text-teal-600 focus:ring-teal-500"
                       />
-                      <span className="ml-3 text-sm text-gray-700">
-                        Offline Classes
-                      </span>
+                      <span className="ml-3 text-sm text-gray-700">Offline Classes</span>
                     </div>
                   </label>
                 </div>
 
-                {errors.modes && <p className="text-red-500 text-xs mt-2">{errors.modes}</p>}
+                {errors.modes && (
+                  <p className="text-red-500 text-xs mt-2">{errors.modes}</p>
+                )}
               </div>
 
               <div className="flex justify-between mt-6">
-                <button onClick={goBack} className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+                <button
+                  onClick={goBack}
+                  className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                >
                   Back
                 </button>
                 <button
                   onClick={goNext}
-                  disabled={!selectedModes.online && !selectedModes.offline}
-                  className={`px-5 py-2.5 rounded-md text-white transition-colors ${selectedModes.online || selectedModes.offline
-                    ? "bg-teal-600 hover:bg-teal-700"
-                    : "bg-gray-300 cursor-not-allowed"
-                    }`}
+                  className="px-5 py-2.5 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
                 >
                   Next
                 </button>
               </div>
             </div>
           )}
+
 
           {/* STEP 7: Tutor Gender Preference */}
           {step === 7 && (
@@ -750,7 +852,6 @@ export default function BookDemoReg() {
             </div>
           )}
 
-          {/* STEP 8: Pricing Preference */}
           {/* STEP 8: Pricing Preference */}
           {step === 8 && (
             <div className="space-y-6">
@@ -819,125 +920,169 @@ export default function BookDemoReg() {
           {/* STEP 9: Your Details + OTP Verification */}
           {step === 9 && (
             <div className="space-y-6">
-              {/* Full Name */}
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => {
-                    setForm({ ...form, name: e.target.value });
-                    if (errors.name) setErrors(prev => ({ ...prev, name: "" }));
-                  }}
-                  placeholder="Enter your full name"
-                  className={`w-full border ${errors.name ? "border-red-500" : "border-gray-300"} rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent`}
-                />
-                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700">
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => {
-                    setForm({ ...form, email: e.target.value });
-                    if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
-                  }}
-                  placeholder="Enter your email"
-                  className={`w-full border ${errors.email ? "border-red-500" : "border-gray-300"} rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent`}
-                />
-                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-              </div>
-
-              {/* Mobile */}
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700">
-                  Mobile Number *
-                </label>
-                <input
-                  type="tel"
-                  value={form.mobile_number}
-                  onChange={(e) => {
-                    setForm({ ...form, mobile_number: e.target.value });
-                    if (errors.mobile_number) setErrors(prev => ({ ...prev, mobile_number: "" }));
-                  }}
-                  placeholder="Enter your 10-digit mobile number"
-                  className={`w-full border ${errors.mobile_number ? "border-red-500" : "border-gray-300"} rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent`}
-                />
-                {errors.mobile_number && <p className="text-red-500 text-xs mt-1">{errors.mobile_number}</p>}
-              </div>
-
-              {/* OTP */}
-              {otpSent && (
+              {/* Only show form fields if OTP hasn't been sent yet */}
+              {!otpSent ? (
                 <>
+                  {/* Full Name */}
                   <div>
                     <label className="block text-sm font-medium mb-2 text-gray-700">
-                      Enter the OTP sent to your mobile *
+                      Full Name *
                     </label>
                     <input
                       type="text"
-                      value={otp}
+                      value={form.name}
                       onChange={(e) => {
-                        setOtp(e.target.value);
-                        if (errors.otp) setErrors(prev => ({ ...prev, otp: "" }));
+                        setForm({ ...form, name: e.target.value });
+                        if (errors.name) setErrors(prev => ({ ...prev, name: "" }));
                       }}
-                      placeholder="6-digit OTP"
-                      className={`w-full border ${errors.otp ? "border-red-500" : "border-gray-300"} rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent`}
+                      placeholder="Enter your full name"
+                      className={`w-full border ${errors.name ? "border-red-500" : "border-gray-300"} rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent`}
                     />
-                    {errors.otp && <p className="text-red-500 text-xs mt-1">{errors.otp}</p>}
+                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                   </div>
 
-                  <div className="flex justify-between items-center">
-                    {otpTimer > 0 ? (
-                      <p className="text-sm text-gray-500">
-                        Resend OTP in {otpTimer}s
-                      </p>
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => {
+                        setForm({ ...form, email: e.target.value });
+                        if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
+                      }}
+                      placeholder="Enter your email"
+                      className={`w-full border ${errors.email ? "border-red-500" : "border-gray-300"} rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent`}
+                    />
+                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                  </div>
+
+                  {/* Mobile */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
+                      Mobile Number *
+                    </label>
+                    <input
+                      type="tel"
+                      value={form.mobile_number}
+                      onChange={(e) => {
+                        // Only allow numbers and limit to 10 digits
+                        const value = e.target.value.replace(/\D/g, '');
+
+                        if (value.length > 10) {
+                          // If user tries to enter more than 10 digits, show error
+                          setErrors(prev => ({ ...prev, mobile_number: "Mobile number cannot exceed 10 digits" }));
+                          // Keep only the first 10 digits
+                          setForm({ ...form, mobile_number: value.slice(0, 10) });
+                        } else {
+                          setForm({ ...form, mobile_number: value });
+                          if (errors.mobile_number) setErrors(prev => ({ ...prev, mobile_number: "" }));
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // Validate on blur to show error if not 10 digits
+                        if (e.target.value.length !== 10 && e.target.value.length > 0) {
+                          setErrors(prev => ({ ...prev, mobile_number: "Please enter exactly 10 digits" }));
+                        }
+                      }}
+                      placeholder="Enter your 10-digit mobile number"
+                      maxLength={10}
+                      className={`w-full border ${errors.mobile_number ? "border-red-500" : "border-gray-300"} rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent`}
+                    />
+                    {errors.mobile_number && <p className="text-red-500 text-xs mt-1">{errors.mobile_number}</p>}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex justify-between mt-6">
+                    <button
+                      onClick={goBack}
+                      className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                    >
+                      Back
+                    </button>
+
+                    {!otpSent ? (
+                      <button
+                        onClick={handleSendOtp}
+                        disabled={loading}
+                        className={`px-5 py-2.5 rounded-md text-white transition-colors ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'}`}
+                      >
+                        {loading ? "Sending OTP..." : "Send OTP"}
+                      </button>
                     ) : (
                       <button
-                        onClick={handleResendOtp}
-                        disabled={loading}
-                        className="text-sm text-teal-600 hover:underline"
+                        onClick={handleVerifyOtp}
+                        disabled={loading || otp.length !== 6}
+                        className={`px-5 py-2.5 rounded-md text-white transition-colors ${loading || otp.length !== 6 ? 'bg-gray-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'}`}
                       >
-                        Resend OTP
+                        {loading ? "Verifying..." : "Verify & Continue"}
                       </button>
                     )}
                   </div>
                 </>
+              ) : (
+                <>
+                  {/* OTP Verification Section */}
+                  {otpSent && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium mb-2 text-gray-700">
+                          Enter the OTP sent to your mobile *
+                        </label>
+                        <input
+                          type="text"
+                          value={otp}
+                          onChange={(e) => {
+                            setOtp(e.target.value);
+                            if (errors.otp) setErrors(prev => ({ ...prev, otp: "" }));
+                          }}
+                          placeholder="6-digit OTP"
+                          className={`w-full border ${errors.otp ? "border-red-500" : "border-gray-300"} rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent`}
+                        />
+                        {errors.otp && <p className="text-red-500 text-xs mt-1">{errors.otp}</p>}
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        {otpTimer > 0 ? (
+                          <p className="text-sm text-gray-500">
+                            Resend OTP in {otpTimer}s
+                          </p>
+                        ) : (
+                          <button
+                            onClick={handleResendOtp}
+                            disabled={loading}
+                            className="text-sm text-teal-600 hover:underline"
+                          >
+                            Resend OTP
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                  {/* Actions for OTP verification */}
+                  <div className="flex justify-between mt-6">
+                    <button
+                      onClick={() => {
+                        setOtpSent(false); // Go back to form
+                        setOtp(""); // Clear OTP
+                      }}
+                      className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                    >
+                      Back to Form
+                    </button>
+
+                    <button
+                      onClick={handleVerifyOtp}
+                      disabled={loading || otp.length !== 6}
+                      className={`px-5 py-2.5 rounded-md text-white transition-colors ${loading || otp.length !== 6 ? 'bg-gray-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'}`}
+                    >
+                      {loading ? "Verifying..." : "Verify & Continue"}
+                    </button>
+                  </div>
+                </>
               )}
-
-              {/* Actions */}
-              <div className="flex justify-between mt-6">
-                <button
-                  onClick={goBack}
-                  className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
-                >
-                  Back
-                </button>
-
-                {!otpSent ? (
-                  <button
-                    onClick={handleSendOtp}
-                    disabled={loading || !form.name || !form.email || !form.mobile_number}
-                    className={`px-5 py-2.5 rounded-md text-white transition-colors ${loading || !form.name || !form.email || !form.mobile_number ? 'bg-gray-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'}`}
-                  >
-                    {loading ? "Sending OTP..." : "Send OTP"}
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleVerifyOtp}
-                    disabled={loading || otp.length !== 6}
-                    className={`px-5 py-2.5 rounded-md text-white transition-colors ${loading || otp.length !== 6 ? 'bg-gray-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'}`}
-                  >
-                    {loading ? "Verifying..." : "Verify & Continue"}
-                  </button>
-                )}
-              </div>
             </div>
           )}
 

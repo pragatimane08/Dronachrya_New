@@ -154,6 +154,14 @@ export const apiUrl = {
     student: "/invoices/my",
     downloadPDF: (paymentId) => `/invoices/${paymentId}/pdf`,
   },
+
+  search: {
+    tutors: "/search/tutors",                 // GET with query params
+  },
+  recommendations: {
+    tutors: "/recommendations/tutors/recommended", // GET with query params, requires auth
+  },
+  
 };
 
 // ⚠️ This looks redundant. Keep only one (apiUrl). Remove this if not needed.
