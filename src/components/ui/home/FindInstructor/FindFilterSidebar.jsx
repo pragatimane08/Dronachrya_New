@@ -12,7 +12,7 @@ const chipCls = (active) =>
   `px-3 py-1 rounded-lg border text-sm transition-colors ${active ? "bg-teal-600 text-white border-teal-600" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"}`;
 
 const DropdownSection = ({ title, isOpen, toggleOpen, children }) => (
-  <div className="mb-4 border border-gray-200 rounded-xl overflow-hidden">
+  <div className="mb-4 border bordaer-gray-200 rounded-xl overflow-hidden">
     <button
       type="button"
       onClick={toggleOpen}

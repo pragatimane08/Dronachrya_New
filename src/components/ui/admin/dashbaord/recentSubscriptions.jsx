@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom"; // ✅ import Link
 
 const RecentSubscriptions = ({ recentSubscriptions = [] }) => {
   return (
@@ -29,8 +30,16 @@ const RecentSubscriptions = ({ recentSubscriptions = [] }) => {
                     </div>
                   </td>
                   <td>{sub?.SubscriptionPlan?.plan_name || "N/A"}</td>
-                  <td>{sub?.start_date ? new Date(sub.start_date).toLocaleDateString() : "-"}</td>
-                  <td>{sub?.end_date ? new Date(sub.end_date).toLocaleDateString() : "-"}</td>
+                  <td>
+                    {sub?.start_date
+                      ? new Date(sub.start_date).toLocaleDateString()
+                      : "-"}
+                  </td>
+                  <td>
+                    {sub?.end_date
+                      ? new Date(sub.end_date).toLocaleDateString()
+                      : "-"}
+                  </td>
                   <td className="font-semibold">
                     ₹{sub?.SubscriptionPlan?.price || "0.00"}
                   </td>
@@ -46,9 +55,14 @@ const RecentSubscriptions = ({ recentSubscriptions = [] }) => {
           </tbody>
         </table>
       </div>
-      <div className="mt-4 text-sm text-teal-600 hover:underline cursor-pointer">
+
+      {/* ✅ Changed div → Link */}
+      <Link
+        to="/admin_subscriptions"
+        className="mt-4 inline-block text-sm text-teal-600 hover:underline"
+      >
         View all subscriptions
-      </div>
+      </Link>
     </div>
   );
 };

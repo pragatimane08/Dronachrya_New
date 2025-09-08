@@ -95,7 +95,7 @@ const SendNotification = () => {
             className="mt-4 md:mt-0 flex items-end bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
           >
             <FiPlus className="mr-2" />
-            Send New Notification
+            Enquiry Form 
           </button>
         </div>
 

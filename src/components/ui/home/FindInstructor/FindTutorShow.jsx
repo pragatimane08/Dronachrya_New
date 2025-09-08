@@ -46,6 +46,7 @@ export default function FindTutorShow() {
     }
   }, [location.state]);
 
+  // In the runSearch function
   const runSearch = async (f) => {
     setLoading(true);
     setError("");
@@ -54,7 +55,9 @@ export default function FindTutorShow() {
       setTutors(data);
       setUsingRecommended(false);
     } catch (e) {
+      console.error("Search error:", e);
       setError(e?.response?.data?.message || e.message || "Failed to fetch tutors");
+      setTutors([]); // Clear tutors on error
     } finally {
       setLoading(false);
     }

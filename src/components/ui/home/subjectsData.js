@@ -148,57 +148,57 @@ const subjectsData = [
   {
     category: "School Tuition",
     class: "LKG",
-    subjects: ["Maths", "English", "EVS"]
+    subjects: ["Mathematics", "English", "EVS"]
   },
   {
     category: "School Tuition",
     class: "UKG",
-    subjects: ["Maths", "English", "EVS"]
+    subjects: ["Mathematics", "English", "EVS"]
   },
   {
     category: "School Tuition",
     class: "Class I-V Tuition",
-    subjects: ["Maths", "English", "Science", "Social Studies", "Hindi"]
+    subjects: ["Mathematics", "English", "Science", "Social Studies", "Hindi"]
   },
   {
     category: "School Tuition",
     class: "Class 6 Tuition",
-    subjects: ["Maths", "Science", "Social Studies", "English", "Hindi"]
+    subjects: ["Mathematics", "Science", "Social Studies", "English", "Hindi"]
   },
   {
     category: "School Tuition",
     class: "Class 7 Tuition",
-    subjects: ["Maths", "Science", "Social Studies", "English", "Hindi"]
+    subjects: ["Mathematics", "Science", "Social Studies", "English", "Hindi"]
   },
   {
     category: "School Tuition",
     class: "Class 8 Tuition",
-    subjects: ["Maths", "Science", "Social Studies", "English", "Hindi"]
+    subjects: ["Mathematics", "Science", "Social Studies", "English", "Hindi"]
   },
   {
     category: "School Tuition",
     class: "Class 9 Tuition",
-    subjects: ["Maths", "Science", "Social Studies", "English", "Hindi"]
+    subjects: ["Mathematics", "Science", "Social Studies", "English", "Hindi"]
   },
   {
     category: "School Tuition",
     class: "Class 10 Tuition",
-    subjects: ["Maths", "Science", "Social Studies", "English", "Hindi"]
+    subjects: ["Mathematics", "Science", "Social Studies", "English", "Hindi"]
   },
   {
     category: "School Tuition",
     class: "Class 11 Tuition",
-    subjects: ["Physics", "Chemistry", "Maths", "Biology", "Accountancy", "Business Studies", "Economics"]
+    subjects: ["Physics", "Chemistry", "Mathematics", "Biology", "Accountancy", "Business Studies", "Economics"]
   },
   {
     category: "School Tuition",
     class: "Class 12 Tuition",
-    subjects: ["Physics", "Chemistry", "Maths", "Biology", "Accountancy", "Business Studies", "Economics"]
+    subjects: ["Physics", "Chemistry", "Mathematics", "Biology", "Accountancy", "Business Studies", "Economics"]
   },
   {
     category: "Degree Programs",
     class: "B.Sc",
-    subjects: ["Physics", "Chemistry", "Biology", "Maths", "Computer Science"]
+    subjects: ["Physics", "Chemistry", "Biology", "Mathematics", "Computer Science"]
   },
   {
     category: "Degree Programs",

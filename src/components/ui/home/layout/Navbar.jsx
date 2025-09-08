@@ -408,6 +408,14 @@ const Navbar = () => {
             Find Tutors
           </li>
 
+          {/* Register as Tutor */}
+          <li
+            className="px-3 py-1.5 rounded-md flex items-center cursor-pointer hover:bg-[#E6FAF7] hover:text-[#35BAA3] transition"
+            onClick={() => navigate("/tutorreg")}
+          >
+            Signup as a Tutor
+          </li>
+
           {/* Plans Dropdown */}
           <li className="relative" ref={plansRef}>
             <div
@@ -441,38 +449,6 @@ const Navbar = () => {
             )}
           </li>
 
-          {/* Register Dropdown */}
-          <li className="relative" ref={registerRef}>
-            <div
-              onClick={() => setRegisterDropdownOpen(!registerDropdownOpen)}
-              className="px-3 py-1.5 rounded-md flex items-center cursor-pointer hover:bg-[#E6FAF7] hover:text-[#35BAA3] transition"
-            >
-              Register
-              <ChevronDownIcon className="h-4 w-4 ml-1" />
-            </div>
-            {registerDropdownOpen && (
-              <ul className="absolute top-full mt-2 w-40 bg-white border shadow-md rounded-md text-left z-10 text-sm md:text-base">
-                <li
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    setRegisterDropdownOpen(false);
-                    navigate("/studentreg");
-                  }}
-                >
-                  As Student
-                </li>
-                <li
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    setRegisterDropdownOpen(false);
-                    navigate("/tutorreg");
-                  }}
-                >
-                  As Tutor
-                </li>
-              </ul>
-            )}
-          </li>
 
           {/* Login */}
           <li>
@@ -510,9 +486,8 @@ const Navbar = () => {
             >
               <span>Plans</span>
               <ChevronDownIcon
-                className={`h-4 w-4 transition-transform ${
-                  mobilePlansOpen ? "rotate-180" : ""
-                }`}
+                className={`h-4 w-4 transition-transform ${mobilePlansOpen ? "rotate-180" : ""
+                  }`}
               />
             </div>
             {mobilePlansOpen && (
@@ -547,9 +522,8 @@ const Navbar = () => {
             >
               <span>Register</span>
               <ChevronDownIcon
-                className={`h-4 w-4 transition-transform ${
-                  mobileRegisterOpen ? "rotate-180" : ""
-                }`}
+                className={`h-4 w-4 transition-transform ${mobileRegisterOpen ? "rotate-180" : ""
+                  }`}
               />
             </div>
             {mobileRegisterOpen && (

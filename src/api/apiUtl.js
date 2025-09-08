@@ -88,7 +88,7 @@
 // };
 
 // export const apiUtl = {
-//   baseUrl: "http://192.168.1.39:3000/api", // <-- Updated too
+//   baseUrl: "http://192.168.1.39:3000/api", // <-- Updated too http://15.206.81.98:3000/api
 // };
 
 
@@ -96,7 +96,7 @@
 // src/api/apiUrl.js-after admin
 
 export const apiUrl = {
-  baseUrl: "http://15.206.81.98:3000/api",
+  baseUrl: "http://192.168.1.13:3000/api",
 
   auth: {
     login: "/auth/login",
@@ -107,8 +107,11 @@ export const apiUrl = {
 
     // ✅ Pre-registration already handles OTP
     preRegisterStudent: "/auth/signup",
-     verifyOtp: "/auth/login/verify-otp",   // ✅ add this
+    verifyOtp: "/auth/login/verify-otp",   // ✅ add this
     resendOtp: "/auth/signup/resend-otp",
+
+    // Admin
+    adminVerifyOtp: "/auth/verify-otp", // ✅ separate admin endpoint
   },
 
   user: {
@@ -161,10 +164,18 @@ export const apiUrl = {
   recommendations: {
     tutors: "/recommendations/tutors/recommended", // GET with query params, requires auth
   },
-  
+
+     groups: {
+    create: "/groups/create",
+    getUserGroups: "/groups/my-groups",
+    addMembers: "/groups/add-members",
+    getMembers: (id) => `/groups/${id}/members`,
+    scheduleClass: "/groups/schedule-class", // ✅ correct
+  }
+
 };
 
 // ⚠️ This looks redundant. Keep only one (apiUrl). Remove this if not needed.
 export const apiUtl = {
-  baseUrl: "http://15.206.81.98:3000/api",
+  baseUrl: "http://192.168.1.13:3000/api",
 };

@@ -111,7 +111,7 @@ const menuItems = [
   { icon: <FiClipboard />, label: "Subscriptions", route: "/admin_subscriptions" },
   { icon: <FiTag />, label: "Coupons & Offers", route: "/admin_coupon_offers" },
   { icon: <FiGift />, label: "Referral Codes", route: "/admin_referral_code" },
-  { icon: <FiSend />, label: "Send Notifications", route: "/admin_send_notifications" },
+  { icon: <FiSend />, label: "Enquiries", route: "/admin_send_notifications" },
   { icon: <FiBarChart2 />, label: "Analytics", route: "/admin_analysis" },
   { icon: <FiFileText />, label: "Invoices", route: "/admin_invoices" },
 ];
@@ -160,7 +160,8 @@ const AdminSidebar = ({ isOpen, toggleSidebar }) => {
         isOpen ? "w-64" : "w-20"
       }`}
     >
-      <style jsx>{`
+      {/* <style jsx>{` */}
+      <style>{`
         .hide-scrollbar {
           -ms-overflow-style: none;
           scrollbar-width: none;

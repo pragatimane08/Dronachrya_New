@@ -14,7 +14,6 @@ import TutorReg from "./components/ui/home/TutorReg";
 import Explorecategory_Home from "./components/ui/home/ExploreCategories";
 import Student_Plan from "./components/ui/home/Student_plan";
 import Tutor_Plan from "./components/ui/home/Tutor_Plan";
-import Book_Demo_StudentReg from "./components/ui/home/Book_Demo_StudentReg";
 import BookDemoReg from "./components/ui/home/BookDemoReg";
 import FindInstructor from "./components/ui/home/FindInstructor/FindTutorShow";
 import TutorProfile from "./components/ui/home/FindInstructor/TutorProfile";
@@ -61,6 +60,11 @@ import ReferalSignUp from "./Pages/tutor/ReferalSignUp";
 import SubscriptionDaysRemainingTutor from "./components/ui/Tutor/dashbaord/SubscriptionDaysRemainingTutor";
 import TutorReferralCodeStep from "./components/ui/Tutor/Registration/TutorReferralCodeStep";
 
+import GroupsPage from "./Pages/tutor/GroupClass";
+import AddMembersModal from "./components/ui/Tutor/MyClasses_Tutor/Groups/AddMembersModal";
+import ScheduleGroupClass from "./components/ui/Tutor/MyClasses_Tutor/Groups/ScheduleGroupClass";
+import GroupMembers from "./components/ui/Tutor/MyClasses_Tutor/Groups/GroupMembers";
+
 import StudentDashboard from "./Pages/student/student_dashboard";
 import Student_BillingHistory from "./Pages/student/BillingHistory";
 import LocationSelector from "./components/ui/Student_Front_End/Registration/LocationSelector";
@@ -106,11 +110,14 @@ const App = () => {
           <Route path="/explorecategory_home" element={<Explorecategory_Home />} />
           <Route path="/student-plan" element={<Student_Plan />} />
           <Route path="/tutor-plan" element={<Tutor_Plan />} />
-          <Route path="/book-demo-studentreg" element={<Book_Demo_StudentReg />} />
           <Route path="/book-demo" element={<BookDemoReg />} />
           <Route path="/find-instructor" element={<FindInstructor />} />
           <Route path="/TutorProfile/:id" element={<TutorProfile />} />
 
+          <Route path="/schedule-group-class" element={<ScheduleGroupClass />} />
+          <Route path="/groups" element={<GroupsPage />} />
+          <Route path="/add-members" element={<AddMembersModal />} />
+          <Route path="/group/:groupId" element={<GroupMembers />} />
 
           {/* Admin Login/Register */}
           <Route path="/admin-login" element={<AdminLogin />} />

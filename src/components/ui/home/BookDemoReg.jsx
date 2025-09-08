@@ -4,17 +4,18 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import LocationSearch from "./LocationSearch";
 import { authRepository } from "../../../api/repository/auth.repository";
 import Layout from "../../layout/MainLayout";
+import Backgroundimage from "../../../assets/img/bgform.jpg";
 
 export default function BookDemoReg() {
   const navigate = useNavigate();
   const locationHook = useLocation();
   const [step, setStep] = useState(1);
   const [location, setLocation] = useState(null);
-
+  const [backgroundImage, setBackgroundImage] = useState(Backgroundimage);
   const boards = [
     "CBSE",
     "ICSE",
-    "State",
+    "State Board",
     "International Baccalaureate (IB)",
     "Cambridge Assessment International Education (CAIE)",
     "NIOS",
@@ -61,7 +62,10 @@ export default function BookDemoReg() {
   const [availability, setAvailability] = useState("");
   const startTimelineOptions = ["Immediately", "Within a month", "Not sure, just exploring options"];
   const [startTimeline, setStartTimeline] = useState("");
-  const [selectedModes, setSelectedModes] = useState({ online: false, offline: false });
+  const [selectedModes, setSelectedModes] = useState({
+    main: "", // "online" or "offline"
+    offlineType: "" // "student_home", "tutor_home", or "both"
+  });
   const [genderPref, setGenderPref] = useState("");
   const [form, setForm] = useState({
     name: "",
@@ -134,7 +138,7 @@ export default function BookDemoReg() {
     const e = {};
     if (s === 1) {
       if (!location?.place_id) e.location = "Please select a city from suggestions (India only).";
-      if (location?.country && !/india/i.test(location.country)) e.location = "Please select a city in India.";
+      if (location?.country && location.country !== "IN") e.location = "Please select a city in India.";
     }
     if (s === 2) {
       if (!board) e.board = "Please select a board.";
@@ -150,7 +154,11 @@ export default function BookDemoReg() {
       if (!startTimeline) e.startTimeline = "Please select when you plan to start.";
     }
     if (s === 6) {
-      if (!selectedModes.online && !selectedModes.offline) e.modes = "Please select at least one class mode.";
+      if (!selectedModes.main) {
+        e.modes = "Please select a class mode.";
+      } else if (selectedModes.main === "offline" && !selectedModes.offlineType) {
+        e.modes = "Please select an offline class type.";
+      }
     }
     if (s === 7) {
       if (!genderPref) e.genderPref = "Please select a gender preference.";
@@ -183,7 +191,6 @@ export default function BookDemoReg() {
     }
     return e;
   };
-
   const goNext = async () => {
     const e = validateStep(step);
     if (Object.keys(e).length > 0) {
@@ -216,21 +223,24 @@ export default function BookDemoReg() {
   const handleClose = () => {
     navigate("/");
   };
-
   const handleSendOtp = async () => {
     const basicErrors = {};
     const name = (form.name || "").trim();
     const email = (form.email || "").trim();
     const mobile = (form.mobile_number || "").trim();
 
+    // 🔹 Basic validation
     if (!name) basicErrors.name = "Full name is required.";
-    else if (!isLettersSpaces(name)) basicErrors.name = "Name can only contain letters and spaces.";
+    else if (!isLettersSpaces(name))
+      basicErrors.name = "Name can only contain letters and spaces.";
 
     if (!email) basicErrors.email = "Email is required.";
-    else if (!isValidEmail(email)) basicErrors.email = "Please enter a valid email address.";
+    else if (!isValidEmail(email))
+      basicErrors.email = "Please enter a valid email address.";
 
     if (!mobile) basicErrors.mobile_number = "Mobile number is required.";
-    else if (!isValidMobile(mobile)) basicErrors.mobile_number = "Please enter a valid 10-digit mobile number.";
+    else if (!isValidMobile(mobile))
+      basicErrors.mobile_number = "Please enter a valid 10-digit mobile number.";
 
     if (Object.keys(basicErrors).length > 0) {
       setErrors(basicErrors);
@@ -239,23 +249,49 @@ export default function BookDemoReg() {
 
     setLoading(true);
     try {
+      // 🔹 Build class_modes
+      const classModes = [];
+      if (selectedModes.main === "online") classModes.push("Online");
+      if (selectedModes.main === "offline") {
+        if (selectedModes.offlineStudentHome)
+          classModes.push("Offline-StudentHome");
+        if (selectedModes.offlineTutorHome)
+          classModes.push("Offline-TutorHome");
+      }
+
+      // 🔹 Determine offline_type - ONLY FOR OFFLINE MODE
+      let offlineType = null;
+      if (selectedModes.main === "offline") {
+        if (selectedModes.offlineType === "student_home") {
+          offlineType = "home"; // Server expects 'home'
+        } else if (selectedModes.offlineType === "nearby") {
+          offlineType = "nearby"; // Server expects 'nearby'
+        } else if (selectedModes.offlineType === "both") {
+          // For "both" case, choose one or handle differently
+          offlineType = "home"; // Default to 'home'
+        }
+      }
+
+      // 🔹 Final payload - ONLY include offline_type for offline mode
       const payload = {
-        name: form.name.trim(),
-        email: form.email.trim(),
-        mobile_number: form.mobile_number.trim(),
+        name,
+        email,
+        mobile_number: mobile,
         role: "student",
         class: locationHook.state?.class || "",
         board: board === "Other" ? boardOtherText.trim() : board,
         subjects: selectedSubjects,
         availability: [availability],
         start_timeline: startTimeline,
-        class_modes: Object.keys(selectedModes)
-          .filter((k) => selectedModes[k])
-          .map((m) => (m === "online" ? "Online" : "Offline")),
+        class_modes: classModes,
+        // Only include offline_type if it's not null (offline mode)
+        ...(offlineType && { offline_type: offlineType }),
         tutor_gender_preference: genderPref,
         hourly_charges: Number(form.minPrice),
         place_id: location?.place_id || "",
-        school_name: "St. Xavier's High School",
+        pincode: location?.pincode || "000000",
+        country: location?.country || "IN",
+        school_name: "Pending student update",
         languages: [
           { language: "English", proficiency: "Fluent" },
           { language: "Hindi", proficiency: "Moderate" },
@@ -270,29 +306,33 @@ export default function BookDemoReg() {
         setOtpSent(true);
         setOtpTimer(60);
       } else {
-        throw new Error(res?.data?.message || "Failed to pre-register and send OTP.");
+        throw new Error(
+          res?.data?.message || "Failed to pre-register and send OTP."
+        );
       }
-
     } catch (err) {
       console.error("OTP Error:", err.response?.data || err.message);
 
       if (err.response?.data?.details) {
         const serverErrors = {};
-        err.response.data.details.forEach(detail => {
+        err.response.data.details.forEach((detail) => {
           if (detail.path && detail.message) {
             serverErrors[detail.path[0]] = detail.message;
           }
         });
-
-        setErrors({ ...serverErrors, submit: "Please fix the validation errors above." });
+        setErrors({
+          ...serverErrors,
+          submit: "Please fix the validation errors above.",
+        });
       } else {
-        setErrors({ submit: err?.response?.data?.message || "Failed to send OTP" });
+        setErrors({
+          submit: err?.response?.data?.message || "Failed to send OTP",
+        });
       }
     } finally {
       setLoading(false);
     }
   };
-
   // const handleVerifyOtp = async () => {
   //   const e = validateStep(9);
   //   if (Object.keys(e).length > 0) {
@@ -352,6 +392,7 @@ export default function BookDemoReg() {
       setErrors(e);
       return;
     }
+
     setLoading(true);
     try {
       const otpVerifyPayload = {
@@ -373,6 +414,28 @@ export default function BookDemoReg() {
         localStorage.setItem("user", JSON.stringify(otpVerifyRes.data.user));
       }
 
+      // 🔹 Determine offline_type
+      let offlineType = null;
+      if (selectedModes.main === "offline") {
+        if (selectedModes.offlineType === "student_home") {
+          offlineType = "home";
+        } else if (selectedModes.offlineType === "nearby") {
+          offlineType = "nearby";
+        } else if (selectedModes.offlineType === "both") {
+          offlineType = "home";
+        }
+      }
+
+      // 🔹 Build teaching_modes
+      const teachingModes = [];
+      if (selectedModes.main === "online") teachingModes.push("Online");
+      if (selectedModes.main === "offline") {
+        if (selectedModes.offlineStudentHome)
+          teachingModes.push("Offline-StudentHome");
+        if (selectedModes.offlineTutorHome)
+          teachingModes.push("Offline-TutorHome");
+      }
+
       // ✅ Build filters object for tutor search
       const filters = {
         name: "",
@@ -381,19 +444,19 @@ export default function BookDemoReg() {
         board: [board === "Other" ? boardOtherText.trim() : board],
         availability: [availability],
         languages: ["English", "Hindi"],
-        teaching_modes: Object.keys(selectedModes)
-          .filter((k) => selectedModes[k])
-          .map((m) => (m === "online" ? "Online" : "Offline")),
+        teaching_modes: teachingModes,
         experience: "",
         budgetMin: form.minPrice || "",
         budgetMax: form.maxPrice || "",
         location: location?.city || "",
+        pincode: location?.pincode || location?.raw_pincode || "",
+        country: location?.country || "IN",
         gender: genderPref === "No preference" ? "Any" : genderPref,
+        offline_type: offlineType,
       };
 
-      // ✅ Navigate with filters as state
+      // ✅ Navigate with filters
       navigate("/find-instructor", { state: { demoFilters: filters } });
-
     } catch (err) {
       console.error("OTP Verify Error:", err.response?.data || err.message);
       setErrors({
@@ -405,7 +468,6 @@ export default function BookDemoReg() {
       setLoading(false);
     }
   };
-
 
   const handleResendOtp = async () => {
     if (otpTimer > 0) return;
@@ -440,7 +502,16 @@ export default function BookDemoReg() {
 
   return (
     <Layout showNavbar={false}>
-      <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-30 z-50 p-4">
+      {/* <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-30 z-50 p-4"> */}
+      <div
+        className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-30 z-50 p-4"
+        style={{
+          backgroundImage: `url(${Backgroundimage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
         <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl relative max-h-[95vh] overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <style>{`
             .overflow-y-auto::-webkit-scrollbar {
@@ -739,21 +810,25 @@ export default function BookDemoReg() {
                 <label className="block text-sm font-medium mb-2 text-gray-700">
                   How would you like to attend your tuition classes? *
                 </label>
-                <p className="text-xs text-gray-500 mb-2">Select at least one option</p>
+                <p className="text-xs text-gray-500 mb-2">
+                  Select one mode. If offline, choose location options.
+                </p>
 
+                {/* Radio Buttons for Online vs Offline */}
                 <div className="space-y-3 mt-4">
                   {/* Online */}
                   <label
-                    className={`flex items-center justify-between w-full p-4 border rounded-lg cursor-pointer transition-colors ${selectedModes.online
+                    className={`flex items-center justify-between w-full p-4 border rounded-lg cursor-pointer transition-colors ${selectedModes.main === "online"
                       ? "border-teal-500 bg-teal-50"
                       : "border-gray-300 hover:border-teal-300"
                       }`}
                   >
                     <div className="flex items-center">
                       <input
-                        type="checkbox"
-                        checked={selectedModes.online}
-                        onChange={() => toggleMode("online")}
+                        type="radio"
+                        name="classMode"
+                        checked={selectedModes.main === "online"}
+                        onChange={() => setSelectedModes({ main: "online", offlineType: "" })}
                         className="h-4 w-4 text-teal-600 focus:ring-teal-500"
                       />
                       <span className="ml-3 text-sm text-gray-700">Online Classes</span>
@@ -762,21 +837,72 @@ export default function BookDemoReg() {
 
                   {/* Offline */}
                   <label
-                    className={`flex items-center justify-between w-full p-4 border rounded-lg cursor-pointer transition-colors ${selectedModes.offline
+                    className={`flex items-center justify-between w-full p-4 border rounded-lg cursor-pointer transition-colors ${selectedModes.main === "offline"
                       ? "border-teal-500 bg-teal-50"
                       : "border-gray-300 hover:border-teal-300"
                       }`}
                   >
                     <div className="flex items-center">
                       <input
-                        type="checkbox"
-                        checked={selectedModes.offline}
-                        onChange={() => toggleMode("offline")}
+                        type="radio"
+                        name="classMode"
+                        checked={selectedModes.main === "offline"}
+                        onChange={() =>
+                          setSelectedModes({
+                            main: "offline",
+                            offlineType: "nearby" // Default to nearby for offline
+                          })
+                        }
                         className="h-4 w-4 text-teal-600 focus:ring-teal-500"
                       />
-                      <span className="ml-3 text-sm text-gray-700">Offline Classes</span>
+                      <span className="ml-3 text-sm text-gray-700">
+                        Offline Classes (Nearby)
+                      </span>
                     </div>
                   </label>
+
+                  {/* Show radio options only if Offline is chosen */}
+                  {selectedModes.main === "offline" && (
+                    <div className="ml-6 mt-3 space-y-2">
+                      {/* At Student Home */}
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="offlineType"
+                          checked={selectedModes.offlineType === "home"} // Changed to "home"
+                          onChange={() =>
+                            setSelectedModes(prev => ({
+                              ...prev,
+                              offlineType: "home" // Changed to "home"
+                            }))
+                          }
+                          className="h-4 w-4 text-teal-600 focus:ring-teal-500"
+                        />
+                        <span className="ml-3 text-sm text-gray-700">
+                          At My Home
+                        </span>
+                      </label>
+
+                      {/* At Tutor Home (Nearby) */}
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="offlineType"
+                          checked={selectedModes.offlineType === "nearby"} // Keep as "nearby"
+                          onChange={() =>
+                            setSelectedModes(prev => ({
+                              ...prev,
+                              offlineType: "nearby" // Keep as "nearby"
+                            }))
+                          }
+                          className="h-4 w-4 text-teal-600 focus:ring-teal-500"
+                        />
+                        <span className="ml-3 text-sm text-gray-700">
+                          At Tutor's Home (Nearby)
+                        </span>
+                      </label>
+                    </div>
+                  )}
                 </div>
 
                 {errors.modes && (
@@ -784,6 +910,7 @@ export default function BookDemoReg() {
                 )}
               </div>
 
+              {/* Navigation buttons - MOVED OUTSIDE the inner div */}
               <div className="flex justify-between mt-6">
                 <button
                   onClick={goBack}
@@ -800,7 +927,6 @@ export default function BookDemoReg() {
               </div>
             </div>
           )}
-
 
           {/* STEP 7: Tutor Gender Preference */}
           {step === 7 && (

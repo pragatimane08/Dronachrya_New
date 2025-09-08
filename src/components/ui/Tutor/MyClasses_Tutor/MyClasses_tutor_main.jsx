@@ -1,337 +1,62 @@
-// import React, { useState, useEffect } from "react";
-// import { useNavigate } from "react-router-dom";
-// import FullCalendar from "@fullcalendar/react";
-// import dayGridPlugin from "@fullcalendar/daygrid";
-// import interactionPlugin from "@fullcalendar/interaction";
-// import { FaTrash } from "react-icons/fa";
-// import { apiClient } from "../../../../api/apiclient";
-// import { ToastContainer, toast } from "react-toastify";
-// import "react-toastify/dist/ReactToastify.css";
-
-// const MyClasses = () => {
-//   const navigate = useNavigate();
-//   const [events, setEvents] = useState([]);
-//   const [selectedEvent, setSelectedEvent] = useState(null);
-
-//   const fetchClassesFromAPI = async () => {
-//     try {
-//       const userId = localStorage.getItem("user_id");
-//       if (!userId) return console.error("User ID not found");
-
-//       const res = await apiClient.get("/classes", {
-//         params: { user_id: userId },
-//       });
-
-//       const classData = res.data.classes || [];
-
-//      const formatted = classData.map((cls) => {
-//   const isDemo = cls.type === "demo" || (!!cls.Student || !!cls.student_name);
-//   return {
-//     id: cls.id,
-//     title: isDemo ? "Demo Class" : "Regular Class",
-//     date: cls.date_time?.split("T")[0],
-//     extendedProps: {
-//       name: cls.name || cls.title || "Class",
-//       student: cls.Student?.name || cls.student_name || "N/A",
-//       tutor: cls.Tutor?.name || cls.tutor_name || "N/A",
-//       subject: cls.subject || "N/A",
-//       status: cls.status || "Scheduled",
-//       type: isDemo ? "demo" : "regular",
-//       zoomLink: cls.zoom_link || "#",
-//       mode: cls.mode || "online",
-//       time: cls.date_time
-//         ? new Date(cls.date_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-//         : "N/A",
-//     },
-//   };
-// });
-
-//       setEvents(formatted);
-//       toast.success("Classes loaded successfully");
-//     } catch (error) {
-//       console.error("Error fetching classes:", error);
-//       toast.error("Failed to load classes");
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchClassesFromAPI();
-//   }, []);
-
-//   useEffect(() => {
-//     const interval = setInterval(() => {
-//       const addBtn = document.querySelector(".fc-addClass-button");
-//       const todayBtn = document.querySelector(".fc-today-button");
-//       const prevBtn = document.querySelector(".fc-prev-button");
-//       const nextBtn = document.querySelector(".fc-next-button");
-
-//       const buttons = [prevBtn, todayBtn, nextBtn, addBtn];
-//       buttons.forEach((btn) => {
-//         if (btn) {
-//           btn.style.backgroundColor = "transparent";
-//           btn.style.color = "black";
-//           btn.style.border = "1px solid #ccc";
-//           btn.style.borderRadius = "9999px";
-//           btn.style.padding = "8px 20px";
-//           btn.style.marginRight = "10px";
-//           btn.style.fontWeight = "500";
-//           btn.style.fontSize = "14px";
-//           btn.style.cursor = "pointer";
-//           btn.style.transition = "all 0.2s ease";
-//           btn.style.display = "inline-flex";
-//           btn.style.alignItems = "center";
-//           btn.style.justifyContent = "center";
-//         }
-//       });
-
-//       if (addBtn) {
-//         addBtn.style.backgroundColor = "#2ec4b6";
-//         addBtn.style.color = "white";
-//         addBtn.style.border = "none";
-//         addBtn.onmouseover = () => (addBtn.style.backgroundColor = "#26b2a6");
-//         addBtn.onmouseleave = () => (addBtn.style.backgroundColor = "#2ec4b6");
-//       }
-
-//       clearInterval(interval);
-//     }, 100);
-//   }, []);
-
-//   const handleDelete = async (id) => {
-//     if (window.confirm("Are you sure you want to delete this class?")) {
-//       try {
-//         await apiClient.delete(`/classes/${id}`);
-//         setEvents((prev) => prev.filter((e) => e.id !== id));
-//         toast.success("Class deleted successfully");
-//       } catch (error) {
-//         console.error("Error deleting class:", error);
-//         toast.error("Failed to delete class");
-//       }
-//     }
-//   };
-
-//   const handleEventClick = (clickInfo) => {
-//     setSelectedEvent(clickInfo.event);
-//   };
-
-//   const closeModal = () => {
-//     setSelectedEvent(null);
-//   };
-
-//   const renderEventContent = (eventInfo) => {
-//     return (
-//       <div className="fc-event-content p-1">
-//         <div className="fc-event-main-frame">
-//           <div className="fc-event-time">{eventInfo.event.extendedProps.time}</div>
-//           <div className="fc-event-title-container">
-//             <div className="fc-event-title fc-sticky">
-//               {eventInfo.event.extendedProps.subject}
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   };
-
-//   return (
-//     <div className="p-6 bg-white min-h-screen">
-//       <ToastContainer position="top-right" autoClose={2000} />
-//       <div className="bg-white rounded-lg shadow p-4">
-//         <FullCalendar
-//           plugins={[dayGridPlugin, interactionPlugin]}
-//           initialView="dayGridMonth"
-//           events={events}
-//           height="auto"
-//           eventClick={handleEventClick}
-//           eventContent={renderEventContent}
-//           eventClassNames={(arg) => {
-//             return arg.event.extendedProps.type === "demo" 
-//               ? "demo-class-event" 
-//               : "regular-class-event";
-//           }}
-//           customButtons={{
-//             addClass: {
-//               text: "+Add",
-//               click: () => navigate("/add-class-form-tutor"),
-//             },
-//           }}
-//           headerToolbar={{
-//             left: "title",
-//             center: "",
-//             right: "prev today next addClass",
-//           }}
-//           buttonText={{
-//             today: "Today",
-//           }}
-//         />
-//       </div>
-
-//       {/* Modal */}
-//       {selectedEvent && (
-//         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-//           <div className="bg-white p-6 rounded-lg max-w-md w-full shadow-lg relative">
-//             <button
-//               onClick={closeModal}
-//               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-//             >
-//               ✕
-//             </button>
-//             <h2 className="text-lg font-bold mb-2">
-//               {selectedEvent.extendedProps.name}
-//             </h2>
-//             <p className="mb-1">
-//               <strong>Time:</strong> {selectedEvent.extendedProps.time}
-//             </p>
-//             <p className="mb-1">
-//               <strong>Subject:</strong> {selectedEvent.extendedProps.subject}
-//             </p>
-//             <p className="mb-1">
-//               <strong>Tutor:</strong> {selectedEvent.extendedProps.tutor}
-//             </p>
-//             {selectedEvent.extendedProps.type === "demo" && (
-//               <p className="mb-1">
-//                 <strong>Student:</strong> {selectedEvent.extendedProps.student}
-//               </p>
-//             )}
-//             <p className="mb-1">
-//               <strong>Type:</strong>{" "}
-//               {selectedEvent.extendedProps.type === "demo"
-//                 ? "Demo Class"
-//                 : "Regular Class"}
-//             </p>
-//             <p className="mb-1">
-//               <strong>Mode:</strong> {selectedEvent.extendedProps.mode}
-//             </p>
-//             <p className="mb-3">
-//               <strong>Status:</strong> {selectedEvent.extendedProps.status}
-//             </p>
-
-//             {selectedEvent.extendedProps.zoomLink &&
-//               selectedEvent.extendedProps.zoomLink !== "#" && (
-//                 <a
-//                   href={selectedEvent.extendedProps.zoomLink}
-//                   target="_blank"
-//                   rel="noopener noreferrer"
-//                   className="text-blue-600 underline block mb-3"
-//                 >
-//                   Join Zoom
-//                 </a>
-//               )}
-
-//             <div className="flex justify-end gap-4">
-//               <button
-//                 className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600"
-//                 onClick={() => {
-//                   handleDelete(selectedEvent.id);
-//                   closeModal();
-//                 }}
-//               >
-//                 Delete
-//               </button>
-//               <button
-//                 className="bg-gray-300 px-4 py-1 rounded hover:bg-gray-400"
-//                 onClick={closeModal}
-//               >
-//                 Close
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
-//       <style jsx global>{`
-//         .fc-event {
-//           cursor: pointer;
-//           border-radius: 4px;
-//           margin: 1px 2px;
-//           padding: 2px;
-//         }
-        
-//         .regular-class-event {
-//           background-color: #2ec4b6;
-//           border-color: #2ec4b6;
-//           color: white;
-//         }
-        
-//         .demo-class-event {
-//           background-color: #ff9f1c;
-//           border-color: #ff9f1c;
-//           color: white;
-//         }
-        
-//         .fc-event .fc-event-main {
-//           padding: 2px;
-//         }
-        
-//         .fc-event .fc-event-time {
-//           font-weight: bold;
-//           font-size: 0.8em;
-//           margin-bottom: 2px;
-//         }
-        
-//         .fc-event .fc-event-title {
-//           font-size: 0.8em;
-//           white-space: normal;
-//           line-height: 1.2;
-//         }
-        
-//         .fc-daygrid-event {
-//           white-space: normal !important;
-//         }
-//       `}</style>
-//     </div>
-//   );
-// };
-
-// export default MyClasses;
-
-
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { FaTrash } from "react-icons/fa";
 import { apiClient } from "../../../../api/apiclient";
+import { groupService } from "../../../../api/repository/groupService";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AddMembersModal from "../../Tutor/MyClasses_Tutor/Groups/AddMembersModal";
+import ScheduleGroupClass from "../../Tutor/MyClasses_Tutor/Groups/ScheduleGroupClass"; 
 
 const MyClasses = () => {
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [groups, setGroups] = useState([]);
+  const [loadingGroups, setLoadingGroups] = useState(true);
 
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+  const [groupName, setGroupName] = useState("");
+  const [groupType, setGroupType] = useState("");
+  const [loadingGroupCreate, setLoadingGroupCreate] = useState(false);
+
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState(null);
+  const [selectedGroupType, setSelectedGroupType] = useState(null);
+  const [selectedGroupName, setSelectedGroupName] = useState(null); // ✅ NEW
+
+  // ✅ Fetch classes
   const fetchClassesFromAPI = async () => {
     try {
       const userId = localStorage.getItem("user_id");
       if (!userId) return console.error("User ID not found");
 
-      const res = await apiClient.get("/classes", {
-        params: { user_id: userId },
-      });
-
+      const res = await apiClient.get("/classes", { params: { user_id: userId } });
       const classData = res.data.classes || [];
 
-     const formatted = classData.map((cls) => {
-  const isDemo = cls.type === "demo" || (!!cls.Student || !!cls.student_name);
-  return {
-    id: cls.id,
-    title: isDemo ? "Demo Class" : "Regular Class",
-    date: cls.date_time?.split("T")[0],
-    extendedProps: {
-      name: cls.name || cls.title || "Class",
-      student: cls.Student?.name || cls.student_name || "N/A",
-      tutor: cls.Tutor?.name || cls.tutor_name || "N/A",
-      subject: cls.subject || "N/A",
-      status: cls.status || "Scheduled",
-      type: isDemo ? "demo" : "regular",
-      zoomLink: cls.zoom_link || "#",
-      mode: cls.mode || "online",
-      time: cls.date_time
-        ? new Date(cls.date_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-        : "N/A",
-    },
-  };
-});
+      const formatted = classData.map((cls) => {
+        const isDemo = cls.type === "demo" || (!!cls.Student || !!cls.student_name);
+        return {
+          id: cls.id,
+          title: isDemo ? "Demo Class" : "Regular Class",
+          date: cls.date_time?.split("T")[0],
+          extendedProps: {
+            name: cls.name || cls.title || "Class",
+            student: cls.Student?.name || cls.student_name || "N/A",
+            tutor: cls.Tutor?.name || cls.tutor_name || "N/A",
+            subject: cls.subject || "N/A",
+            status: cls.status || "Scheduled",
+            type: isDemo ? "demo" : "regular",
+            zoomLink: cls.zoom_link || "#",
+            mode: cls.mode || "online",
+            time: cls.date_time
+              ? new Date(cls.date_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+              : "N/A",
+          },
+        };
+      });
 
       setEvents(formatted);
       toast.success("Classes loaded successfully");
@@ -341,113 +66,46 @@ const MyClasses = () => {
     }
   };
 
-  useEffect(() => {
-    fetchClassesFromAPI();
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const addBtn = document.querySelector(".fc-addClass-button");
-      const todayBtn = document.querySelector(".fc-today-button");
-      const prevBtn = document.querySelector(".fc-prev-button");
-      const nextBtn = document.querySelector(".fc-next-button");
-
-      const buttons = [prevBtn, todayBtn, nextBtn, addBtn];
-      buttons.forEach((btn) => {
-        if (btn) {
-          btn.style.backgroundColor = "transparent";
-          btn.style.color = "black";
-          btn.style.border = "1px solid #ccc";
-          btn.style.borderRadius = "9999px";
-          btn.style.padding = "8px 20px";
-          btn.style.marginRight = "10px";
-          btn.style.fontWeight = "500";
-          btn.style.fontSize = "14px";
-          btn.style.cursor = "pointer";
-          btn.style.transition = "all 0.2s ease";
-          btn.style.display = "inline-flex";
-          btn.style.alignItems = "center";
-          btn.style.justifyContent = "center";
-        }
-      });
-
-      if (addBtn) {
-        addBtn.style.backgroundColor = "#2ec4b6";
-        addBtn.style.color = "white";
-        addBtn.style.border = "none";
-        addBtn.onmouseover = () => (addBtn.style.backgroundColor = "#26b2a6");
-        addBtn.onmouseleave = () => (addBtn.style.backgroundColor = "#2ec4b6");
-      }
-
-      // Responsive styles for buttons based on screen size
-      const screenWidth = window.innerWidth;
-      if (screenWidth <= 320) {
-        // Very small phones (Nokia 3310, old iPhones)
-        buttons.forEach((btn) => {
-          if (btn) {
-            btn.style.padding = "4px 6px";
-            btn.style.fontSize = "10px";
-            btn.style.marginRight = "2px";
-          }
-        });
-      } else if (screenWidth <= 375) {
-        // Small phones (iPhone SE, small Androids)
-        buttons.forEach((btn) => {
-          if (btn) {
-            btn.style.padding = "5px 8px";
-            btn.style.fontSize = "11px";
-            btn.style.marginRight = "3px";
-          }
-        });
-      } else if (screenWidth <= 768) {
-        // Regular phones and small tablets
-        buttons.forEach((btn) => {
-          if (btn) {
-            btn.style.padding = "6px 12px";
-            btn.style.fontSize = "12px";
-            btn.style.marginRight = "5px";
-          }
-        });
-      }
-
-      clearInterval(interval);
-    }, 100);
-  }, []);
-
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this class?")) {
-      try {
-        await apiClient.delete(`/classes/${id}`);
-        setEvents((prev) => prev.filter((e) => e.id !== id));
-        toast.success("Class deleted successfully");
-      } catch (error) {
-        console.error("Error deleting class:", error);
-        toast.error("Failed to delete class");
-      }
+  // ✅ Fetch groups
+  const fetchGroups = async () => {
+    try {
+      setLoadingGroups(true);
+      const res = await groupService.getUserGroups();
+      setGroups(res?.data?.groups || []);
+    } catch (error) {
+      console.error("Error fetching groups:", error);
+      toast.error("Failed to load groups");
+    } finally {
+      setLoadingGroups(false);
     }
   };
 
-  const handleEventClick = (clickInfo) => {
-    setSelectedEvent(clickInfo.event);
-  };
+  useEffect(() => {
+    fetchClassesFromAPI();
+    fetchGroups();
+  }, []);
 
-  const closeModal = () => {
-    setSelectedEvent(null);
-  };
-
-  const renderEventContent = (eventInfo) => {
-    return (
-      <div className="fc-event-content p-1">
-        <div className="fc-event-main-frame">
-          <div className="fc-event-time">{eventInfo.event.extendedProps.time}</div>
-          <div className="fc-event-title-container">
-            <div className="fc-event-title fc-sticky">
-              {eventInfo.event.extendedProps.subject}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+  // ✅ Handle Create Group
+  const handleCreateGroup = async (e) => {
+    e.preventDefault();
+    if (!groupName.trim() || !groupType) {
+      toast.error("Please fill all fields");
+      return;
+    }
+    try {
+      setLoadingGroupCreate(true);
+      await groupService.createGroup({ name: groupName, type: groupType });
+      toast.success("Group created successfully");
+      setShowCreateGroupModal(false);
+      setGroupName("");
+      setGroupType("");
+      fetchGroups();
+    } catch (error) {
+      console.error("Error creating group:", error);
+      toast.error(error.response?.data?.message || "Failed to create group");
+    } finally {
+      setLoadingGroupCreate(false);
+    }
   };
 
   return (
@@ -459,234 +117,154 @@ const MyClasses = () => {
           initialView="dayGridMonth"
           events={events}
           height="auto"
-          eventClick={handleEventClick}
-          eventContent={renderEventContent}
-          eventClassNames={(arg) => {
-            return arg.event.extendedProps.type === "demo" 
-              ? "demo-class-event" 
-              : "regular-class-event";
-          }}
           customButtons={{
             addClass: {
               text: "+Add",
               click: () => navigate("/add-class-form-tutor"),
             },
+            createGroup: {
+              text: "Create Group",
+              click: () => setShowCreateGroupModal(true),
+            },
           }}
           headerToolbar={{
             left: "title",
             center: "",
-            right: "prev today next addClass",
-          }}
-          buttonText={{
-            today: "Today",
+            right: "prev today next addClass createGroup",
           }}
         />
       </div>
 
-      {/* Modal */}
-      {selectedEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-4 sm:p-6 rounded-lg max-w-md w-full shadow-lg relative max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={closeModal}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl sm:text-base"
-            >
-              ✕
-            </button>
-            <h2 className="text-lg font-bold mb-2 pr-6">
-              {selectedEvent.extendedProps.name}
-            </h2>
-            <div className="space-y-2 text-sm">
-              <p>
-                <strong>Time:</strong> {selectedEvent.extendedProps.time}
-              </p>
-              <p>
-                <strong>Subject:</strong> {selectedEvent.extendedProps.subject}
-              </p>
-              <p>
-                <strong>Tutor:</strong> {selectedEvent.extendedProps.tutor}
-              </p>
-              {selectedEvent.extendedProps.type === "demo" && (
-                <p>
-                  <strong>Student:</strong> {selectedEvent.extendedProps.student}
-                </p>
-              )}
-              <p>
-                <strong>Type:</strong>{" "}
-                {selectedEvent.extendedProps.type === "demo"
-                  ? "Demo Class"
-                  : "Regular Class"}
-              </p>
-              <p>
-                <strong>Mode:</strong> {selectedEvent.extendedProps.mode}
-              </p>
-              <p className="mb-3">
-                <strong>Status:</strong> {selectedEvent.extendedProps.status}
-              </p>
-            </div>
+      {/* ✅ Groups Section */}
+      <div className="mt-6">
+        <h2 className="text-xl font-semibold mb-4">My Groups</h2>
+        {loadingGroups ? (
+          <p>Loading groups...</p>
+        ) : groups.length === 0 ? (
+          <p>No groups created yet.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {groups.map((group) => (
+              <div
+                key={group.id}
+                className="border rounded-lg p-4 shadow hover:shadow-lg"
+              >
+                <h3 className="text-lg font-semibold">{group.name}</h3>
+                <p className="text-gray-500 capitalize">{group.type}</p>
 
-            {selectedEvent.extendedProps.zoomLink &&
-              selectedEvent.extendedProps.zoomLink !== "#" && (
-                <a
-                  href={selectedEvent.extendedProps.zoomLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline block mb-4 text-sm"
+                {/* ✅ Show Members */}
+                <div className="mt-2">
+                  <h4 className="text-sm font-medium mb-1">Members:</h4>
+                  {group.members && group.members.length > 0 ? (
+                    <ul className="list-disc list-inside text-sm text-gray-700 max-h-20 overflow-y-auto">
+                      {group.members.map((m) => (
+                        <li key={`${group.id}-${m.id}`}>
+                          {m.name} ({m.role})
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-gray-400 text-sm">No members yet</p>
+                  )}
+                </div>
+
+                {/* ✅ Action Buttons */}
+                <div className="flex gap-2 mt-3">
+                  <>
+                    <button
+                      onClick={() => {
+                        setSelectedGroupId(group.id);
+                        setSelectedGroupType(group.type);
+                        setSelectedGroupName(group.name); // ✅ save group name
+                        setShowAddMemberModal(true);
+                      }}
+                      className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                    >
+                      Add Members
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setSelectedGroupId(group.id);
+                        setSelectedGroupType(group.type);
+                        setSelectedGroupName(group.name); // ✅ save group name
+                        setShowScheduleModal(true);
+                      }}
+                      className="bg-teal-600 text-white px-3 py-1 rounded hover:bg-teal-700"
+                    >
+                      Schedule Class
+                    </button>
+                  </>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ✅ Create Group Modal */}
+      {showCreateGroupModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">Create Group</h2>
+            <form onSubmit={handleCreateGroup} className="flex flex-col gap-3">
+              <input
+                type="text"
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                placeholder="Enter group name"
+                className="border rounded px-4 py-2 w-full"
+              />
+              <select
+                value={groupType}
+                onChange={(e) => setGroupType(e.target.value)}
+                className="border rounded px-4 py-2 w-full"
+              >
+                <option value="">Select Type</option>
+                <option value="tutor">Tutor Group</option>
+                <option value="student">Student Group</option>
+              </select>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateGroupModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                 >
-                  Join Zoom
-                </a>
-              )}
-
-            <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">
-              <button
-                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 text-sm order-2 sm:order-1"
-                onClick={() => {
-                  handleDelete(selectedEvent.id);
-                  closeModal();
-                }}
-              >
-                Delete
-              </button>
-              <button
-                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 text-sm order-1 sm:order-2"
-                onClick={closeModal}
-              >
-                Close
-              </button>
-            </div>
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loadingGroupCreate}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  {loadingGroupCreate ? "Creating..." : "Create"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
-      <style jsx global>{`
-        .fc-event {
-          cursor: pointer;
-          border-radius: 4px;
-          margin: 1px 2px;
-          padding: 2px;
-        }
-        
-        .regular-class-event {
-          background-color: #2ec4b6;
-          border-color: #2ec4b6;
-          color: white;
-        }
-        
-        .demo-class-event {
-          background-color: #ff9f1c;
-          border-color: #ff9f1c;
-          color: white;
-        }
-        
-        .fc-event .fc-event-main {
-          padding: 2px;
-        }
-        
-        .fc-event .fc-event-time {
-          font-weight: bold;
-          font-size: 0.8em;
-          margin-bottom: 2px;
-        }
-        
-        .fc-event .fc-event-title {
-          font-size: 0.8em;
-          white-space: normal;
-          line-height: 1.2;
-        }
-        
-        .fc-daygrid-event {
-          white-space: normal !important;
-        }
+      {/* ✅ Add Members Modal */}
+      {showAddMemberModal && (
+        <AddMembersModal
+          groupId={selectedGroupId}
+          groupType={selectedGroupType}
+          onClose={() => setShowAddMemberModal(false)}
+          onMembersAdded={fetchGroups}
+        />
+      )}
 
-        /* Mobile responsive styles */
-        @media (max-width: 768px) {
-          .fc-header-toolbar {
-            flex-direction: column;
-            gap: 10px;
-          }
-          
-          .fc-toolbar-chunk {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 5px;
-          }
-          
-          .fc-button {
-            font-size: 12px !important;
-            padding: 4px 8px !important;
-            margin: 2px !important;
-          }
-          
-          .fc-title {
-            font-size: 16px !important;
-            margin: 5px 0;
-          }
-          
-          .fc-daygrid-day-number {
-            font-size: 12px;
-          }
-          
-          .fc-col-header-cell {
-            font-size: 12px;
-            padding: 4px 2px;
-          }
-          
-          .fc-daygrid-day-frame {
-            min-height: 40px;
-          }
-          
-          .fc-event {
-            font-size: 10px;
-            margin: 1px;
-            padding: 1px 2px;
-          }
-          
-          .fc-event .fc-event-time {
-            font-size: 10px;
-            margin-bottom: 1px;
-          }
-          
-          .fc-event .fc-event-title {
-            font-size: 10px;
-            line-height: 1.1;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .fc-button {
-            font-size: 10px !important;
-            padding: 3px 6px !important;
-          }
-          
-          .fc-title {
-            font-size: 14px !important;
-          }
-          
-          .fc-col-header-cell {
-            font-size: 10px;
-            padding: 2px 1px;
-          }
-          
-          .fc-daygrid-day-number {
-            font-size: 10px;
-          }
-          
-          .fc-daygrid-day-frame {
-            min-height: 35px;
-          }
-          
-          .fc-event {
-            font-size: 9px;
-          }
-          
-          .fc-event .fc-event-time,
-          .fc-event .fc-event-title {
-            font-size: 9px;
-          }
-        }
-      `}</style>
+      {/* ✅ Schedule Class Modal */}
+      {showScheduleModal && (
+        <ScheduleGroupClass
+          groupId={selectedGroupId}
+          groupType={selectedGroupType}
+          groupName={selectedGroupName} // ✅ pass group name
+          onClose={() => setShowScheduleModal(false)}
+          onClassScheduled={fetchClassesFromAPI}
+        />
+      )}
     </div>
   );
 };
