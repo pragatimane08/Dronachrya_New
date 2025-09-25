@@ -1,5 +1,15 @@
-// src/api/repository/class.repository.js
+// // src/api/repository/class.repository.js
 
+// import { apiClient } from "../apiclient";
+
+// export const classRepository = {
+//   createClass: (payload) => apiClient.post("/classes", payload),
+//   getMyClasses: (userId) => apiClient.get("/classes", {
+//     params: { user_id: userId }
+//   }),
+// };
+
+// src/api/repository/class.repository.js
 import { apiClient } from "../apiclient";
 
 export const classRepository = {
@@ -7,4 +17,5 @@ export const classRepository = {
   getMyClasses: (userId) => apiClient.get("/classes", {
     params: { user_id: userId }
   }),
+  getAllClasses: () => apiClient.get("/classes/all"), // Add this line
 };

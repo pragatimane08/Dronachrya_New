@@ -4,7 +4,7 @@ import FindFilterSidebar from "./FindFilterSidebar";
 import TutorCard from "./TutorCard";
 import { searchTutors, recommendedTutors } from "../../../../api/services/tutorService";
 import Layout from "../layout/MainLayout";
-import subjectsData from "../subjectsData";
+import subjectsData from "../../home/HomePageComponent/HomePage/subjectsData";
 import { useNavigate } from "react-router-dom";
 
 const initialFiltersFromYou = {

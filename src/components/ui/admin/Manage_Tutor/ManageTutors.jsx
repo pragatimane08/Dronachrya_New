@@ -1,4 +1,5 @@
 // src/pages/admin/tutors/ManageTutors.jsx
+
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   TrashIcon,
@@ -41,18 +42,18 @@ const ManageTutors = () => {
   const [filterSubject, setFilterSubject] = useState("");
   const [filterPlan, setFilterPlan] = useState("");
   const [exportOpen, setExportOpen] = useState(false);
+  const [viewExportOpen, setViewExportOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
-
   const exportRef = useRef(null);
+  const viewExportRef = useRef(null);
 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 640);
       setIsTablet(window.innerWidth >= 640 && window.innerWidth < 1024);
     };
-
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -65,7 +66,6 @@ const ManageTutors = () => {
       setAllTutors(tutorsData);
 
       const search = searchTerm.toLowerCase();
-
       const filtered = tutorsData.filter((t) => {
         const cityMatch = filterCity ? t.Location?.city === filterCity : true;
         const subjectMatch = filterSubject
@@ -82,6 +82,11 @@ const ManageTutors = () => {
           t.subjects?.some((s) => s.toLowerCase().includes(search)) ||
           t.teaching_modes?.some((m) => m.toLowerCase().includes(search)) ||
           t.plan_name?.toLowerCase().includes(search) ||
+          t.classes?.some((c) => c.toLowerCase().includes(search)) ||
+          t.degrees?.some((d) => d.toLowerCase().includes(search)) ||
+          t.languages?.some((l) => l.language?.toLowerCase().includes(search)) ||
+          String(t.experience)?.includes(search) ||
+          String(t.pricing_per_hour)?.includes(search) ||
           String(t.days_remaining)?.includes(search);
 
         return keywordMatch && cityMatch && subjectMatch && planMatch;
@@ -132,7 +137,6 @@ const ManageTutors = () => {
     if (!file) return;
     const formData = new FormData();
     formData.append("file", file);
-
     try {
       setUploading(true);
       await tutorRepository.uploadTutorDocument(
@@ -148,29 +152,45 @@ const ManageTutors = () => {
     }
   };
 
-  // CSV export with Registration Date
+  // CSV export with all fields
   const exportToCSV = () => {
     const csvContent = [
       [
         "ID",
         "Name",
+        "Email",
+        "Phone",
         "Location",
+        "Classes",
         "Subjects",
+        "Degrees",
         "Status",
+        "Experience",
+        "Pricing",
+        "Teaching Modes",
+        "Languages",
         "Subscription",
         "Ends In",
-        "Registration Date", // Added Registration Date
+        "Registration Date",
       ].join(","),
       ...allTutors.map((t) =>
         [
           t.user_id,
           t.name,
-          `${t.Location?.city}, ${t.Location?.state}`,
-          t.subjects?.join("; "),
+          t.User?.email || "N/A",
+          t.User?.mobile_number || "N/A",
+          `${t.Location?.city || "N/A"}, ${t.Location?.state || "N/A"}`,
+          t.classes?.join("; ") || "N/A",
+          t.subjects?.join("; ") || "N/A",
+          t.degrees?.join("; ") || "N/A",
           t.profile_status,
+          t.experience || "N/A",
+          t.pricing_per_hour || "N/A",
+          t.teaching_modes?.join("; ") || "N/A",
+          t.languages?.map(l => `${l.language} (${l.proficiency})`).join("; ") || "N/A",
           t.plan_name || "N/A",
           `${t.days_remaining ?? "N/A"} days`,
-          t.createdAt ? new Date(t.createdAt).toLocaleDateString() : "N/A", // Added Registration Date
+          t.createdAt ? new Date(t.createdAt).toLocaleDateString() : "N/A",
         ].join(",")
       ),
     ].join("\n");
@@ -180,7 +200,7 @@ const ManageTutors = () => {
     setExportOpen(false);
   };
 
-  // PDF export with Registration Date
+  // PDF export with all fields
   const exportToPDF = () => {
     const doc = new jsPDF();
     doc.text("Tutors Report", 14, 10);
@@ -188,25 +208,39 @@ const ManageTutors = () => {
     const tableColumn = [
       "ID",
       "Name",
+      "Email",
+      "Phone",
       "Location",
+      "Classes",
       "Subjects",
+      "Degrees",
       "Status",
+      "Exp",
+      "Pricing",
+      "Modes",
       "Subscription",
       "Ends In",
-      "Reg. Date", // Added Registration Date
+      "Reg. Date",
     ];
-    const tableRows = [];
 
+    const tableRows = [];
     allTutors.forEach((t) => {
       tableRows.push([
         t.user_id,
         t.name,
-        `${t.Location?.city}, ${t.Location?.state}`,
-        t.subjects?.join(", "),
+        t.User?.email || "N/A",
+        t.User?.mobile_number || "N/A",
+        `${t.Location?.city || "N/A"}, ${t.Location?.state || "N/A"}`,
+        t.classes?.join(", ") || "N/A",
+        t.subjects?.join(", ") || "N/A",
+        t.degrees?.join(", ") || "N/A",
         t.profile_status,
+        t.experience || "N/A",
+        t.pricing_per_hour ? `₹${t.pricing_per_hour}` : "N/A",
+        t.teaching_modes?.join(", ") || "N/A",
         t.plan_name || "N/A",
         (t.days_remaining ?? "N/A") + " days",
-        t.createdAt ? new Date(t.createdAt).toLocaleDateString() : "N/A", // Added Registration Date
+        t.createdAt ? new Date(t.createdAt).toLocaleDateString() : "N/A",
       ]);
     });
 
@@ -214,28 +248,33 @@ const ManageTutors = () => {
       startY: 20,
       head: [tableColumn],
       body: tableRows,
-      styles: { halign: "left", fontSize: 10 },
+      styles: { halign: "left", fontSize: 8 },
       headStyles: { fillColor: [59, 130, 246], textColor: 255 },
       alternateRowStyles: { fillColor: [241, 245, 249] },
     });
-
     doc.save("tutors.pdf");
     setExportOpen(false);
   };
 
-  // Excel export with Registration Date
+  // Excel export with all fields
   const exportToExcel = () => {
     const worksheetData = allTutors.map((t) => ({
       ID: t.user_id,
       Name: t.name,
-      Location: `${t.Location?.city}, ${t.Location?.state}`,
-      Subjects: t.subjects?.join(", "),
+      Email: t.User?.email || "N/A",
+      Phone: t.User?.mobile_number || "N/A",
+      Location: `${t.Location?.city || "N/A"}, ${t.Location?.state || "N/A"}`,
+      Classes: t.classes?.join(", ") || "N/A",
+      Subjects: t.subjects?.join(", ") || "N/A",
+      Degrees: t.degrees?.join(", ") || "N/A",
       Status: t.profile_status,
+      Experience: t.experience || "N/A",
+      Pricing: t.pricing_per_hour ? `₹${t.pricing_per_hour}` : "N/A",
+      TeachingModes: t.teaching_modes?.join(", ") || "N/A",
+      Languages: t.languages?.map(l => `${l.language} (${l.proficiency})`).join(", ") || "N/A",
       Subscription: t.plan_name || "N/A",
       EndsIn: `${t.days_remaining ?? "N/A"} days`,
-      RegistrationDate: t.createdAt
-        ? new Date(t.createdAt).toLocaleDateString()
-        : "N/A", // Added Registration Date
+      RegistrationDate: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : "N/A",
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
@@ -249,10 +288,140 @@ const ManageTutors = () => {
     setExportOpen(false);
   };
 
+  // Single tutor export functions for view modal
+  const exportSingleTutorCSV = () => {
+    if (!selectedTutor) return;
+
+    const csvContent = [
+      [
+        "ID",
+        "Name",
+        "Email",
+        "Phone",
+        "Location",
+        "Classes",
+        "Subjects",
+        "Degrees",
+        "Status",
+        "Experience",
+        "Pricing",
+        "Teaching Modes",
+        "Languages",
+        "Subscription",
+        "Ends In",
+        "Registration Date",
+      ].join(","),
+      [
+        selectedTutor.user_id,
+        selectedTutor.name,
+        selectedTutor.User?.email || "N/A",
+        selectedTutor.User?.mobile_number || "N/A",
+        `${selectedTutor.Location?.city || "N/A"}, ${selectedTutor.Location?.state || "N/A"}`,
+        selectedTutor.classes?.join("; ") || "N/A",
+        selectedTutor.subjects?.join("; ") || "N/A",
+        selectedTutor.degrees?.join("; ") || "N/A",
+        selectedTutor.profile_status,
+        selectedTutor.experience || "N/A",
+        selectedTutor.pricing_per_hour || "N/A",
+        selectedTutor.teaching_modes?.join("; ") || "N/A",
+        selectedTutor.languages?.map(l => `${l.language} (${l.proficiency})`).join("; ") || "N/A",
+        selectedTutor.plan_name || "N/A",
+        `${selectedTutor.days_remaining ?? "N/A"} days`,
+        selectedTutor.createdAt ? new Date(selectedTutor.createdAt).toLocaleDateString() : "N/A",
+      ].join(",")
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, `tutor_${selectedTutor.user_id}_${selectedTutor.name}.csv`);
+    setViewExportOpen(false);
+  };
+
+  const exportSingleTutorPDF = () => {
+    if (!selectedTutor) return;
+
+    const doc = new jsPDF();
+    doc.text(`Tutor Details - ${selectedTutor.name}`, 14, 10);
+
+    const tableColumn = [
+      "Field",
+      "Value",
+    ];
+
+    const tableRows = [
+      ["ID", selectedTutor.user_id],
+      ["Name", selectedTutor.name],
+      ["Email", selectedTutor.User?.email || "N/A"],
+      ["Phone", selectedTutor.User?.mobile_number || "N/A"],
+      ["Location", `${selectedTutor.Location?.city || "N/A"}, ${selectedTutor.Location?.state || "N/A"}`],
+      ["Classes", selectedTutor.classes?.join(", ") || "N/A"],
+      ["Subjects", selectedTutor.subjects?.join(", ") || "N/A"],
+      ["Degrees", selectedTutor.degrees?.join(", ") || "N/A"],
+      ["Status", selectedTutor.profile_status],
+      ["Experience", selectedTutor.experience ? `${selectedTutor.experience} years` : "N/A"],
+      ["Pricing", selectedTutor.pricing_per_hour ? `₹${selectedTutor.pricing_per_hour}/hr` : "N/A"],
+      ["Teaching Modes", selectedTutor.teaching_modes?.join(", ") || "N/A"],
+      ["Languages", selectedTutor.languages?.map(l => `${l.language} (${l.proficiency})`).join(", ") || "N/A"],
+      ["Subscription", selectedTutor.plan_name || "N/A"],
+      ["Days Remaining", `${selectedTutor.days_remaining ?? "N/A"} days`],
+      ["Registration Date", selectedTutor.createdAt ? new Date(selectedTutor.createdAt).toLocaleDateString() : "N/A"],
+    ];
+
+    autoTable(doc, {
+      startY: 20,
+      head: [tableColumn],
+      body: tableRows,
+      styles: { halign: "left", fontSize: 10 },
+      headStyles: { fillColor: [59, 130, 246], textColor: 255 },
+      alternateRowStyles: { fillColor: [241, 245, 249] },
+      columnStyles: {
+        0: { fontStyle: 'bold', cellWidth: 50 },
+        1: { cellWidth: 130 }
+      }
+    });
+    doc.save(`tutor_${selectedTutor.user_id}_${selectedTutor.name}.pdf`);
+    setViewExportOpen(false);
+  };
+
+  const exportSingleTutorExcel = () => {
+    if (!selectedTutor) return;
+
+    const worksheetData = [{
+      ID: selectedTutor.user_id,
+      Name: selectedTutor.name,
+      Email: selectedTutor.User?.email || "N/A",
+      Phone: selectedTutor.User?.mobile_number || "N/A",
+      Location: `${selectedTutor.Location?.city || "N/A"}, ${selectedTutor.Location?.state || "N/A"}`,
+      Classes: selectedTutor.classes?.join(", ") || "N/A",
+      Subjects: selectedTutor.subjects?.join(", ") || "N/A",
+      Degrees: selectedTutor.degrees?.join(", ") || "N/A",
+      Status: selectedTutor.profile_status,
+      Experience: selectedTutor.experience || "N/A",
+      Pricing: selectedTutor.pricing_per_hour ? `₹${selectedTutor.pricing_per_hour}` : "N/A",
+      TeachingModes: selectedTutor.teaching_modes?.join(", ") || "N/A",
+      Languages: selectedTutor.languages?.map(l => `${l.language} (${l.proficiency})`).join(", ") || "N/A",
+      Subscription: selectedTutor.plan_name || "N/A",
+      EndsIn: `${selectedTutor.days_remaining ?? "N/A"} days`,
+      RegistrationDate: selectedTutor.createdAt ? new Date(selectedTutor.createdAt).toLocaleDateString() : "N/A",
+    }];
+
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Tutor Details");
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    saveAs(
+      new Blob([excelBuffer], { type: "application/octet-stream" }),
+      `tutor_${selectedTutor.user_id}_${selectedTutor.name}.xlsx`
+    );
+    setViewExportOpen(false);
+  };
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (exportRef.current && !exportRef.current.contains(e.target)) {
         setExportOpen(false);
+      }
+      if (viewExportRef.current && !viewExportRef.current.contains(e.target)) {
+        setViewExportOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -299,7 +468,6 @@ const ManageTutors = () => {
                   <XMarkIcon className="h-6 w-6" />
                 </button>
               </div>
-
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
@@ -319,7 +487,6 @@ const ManageTutors = () => {
                     />
                   </div>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
                   <select
@@ -335,7 +502,6 @@ const ManageTutors = () => {
                     ))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
                   <select
@@ -351,7 +517,6 @@ const ManageTutors = () => {
                     ))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
                   <select
@@ -367,7 +532,6 @@ const ManageTutors = () => {
                     ))}
                   </select>
                 </div>
-
                 <button
                   onClick={() => {
                     setFilterCity("");
@@ -415,7 +579,7 @@ const ManageTutors = () => {
                 <select
                   onChange={(e) => setFilterCity(e.target.value)}
                   value={filterCity}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                  className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">All Cities</option>
                   {[...new Set(allTutors.map((t) => t.Location?.city))].filter(Boolean).map((city) => (
@@ -434,7 +598,7 @@ const ManageTutors = () => {
                 <select
                   onChange={(e) => setFilterSubject(e.target.value)}
                   value={filterSubject}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                  className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">All Subjects</option>
                   {[...new Set(allTutors.flatMap((t) => t.subjects || []))].map((sub) => (
@@ -453,7 +617,7 @@ const ManageTutors = () => {
                 <select
                   onChange={(e) => setFilterPlan(e.target.value)}
                   value={filterPlan}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                  className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">All Plans</option>
                   {[...new Set(allTutors.map((t) => t.plan_name || "N/A"))].map((plan) => (
@@ -463,51 +627,8 @@ const ManageTutors = () => {
                   ))}
                 </select>
               </div>
-            </div>
 
-            {/* Right Side: Export Button */}
-            <div className="flex justify-end">
-              <div className="relative" ref={exportRef}>
-                <button
-                  onClick={() => setExportOpen(!exportOpen)}
-                  className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-                >
-                  <ArrowDownTrayIcon className="w-5 h-5" />
-                  <span className="hidden sm:inline">Export</span>
-                </button>
-
-                {exportOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white shadow-xl border border-gray-200 rounded-lg z-[1000] overflow-hidden">
-                    <button
-                      onClick={exportToCSV}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
-                    >
-                      <TableCellsIcon className="w-5 h-5 mr-2 text-blue-500" />
-                      Export CSV
-                    </button>
-                    <button
-                      onClick={exportToPDF}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
-                    >
-                      <DocumentTextIcon className="w-5 h-5 mr-2 text-red-500" />
-                      Export PDF
-                    </button>
-                    <button
-                      onClick={exportToExcel}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
-                    >
-                      <DocumentArrowDownIcon className="w-5 h-5 mr-2 text-green-500" />
-                      Export Excel
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Clear Filters */}
-          {(filterCity || filterSubject || filterPlan || searchInput) && (
-            <div className="mt-4 flex justify-end">
+              {/* Clear Filters Button */}
               <button
                 onClick={() => {
                   setFilterCity("");
@@ -516,457 +637,320 @@ const ManageTutors = () => {
                   setSearchInput("");
                   setSearchTerm("");
                 }}
-                className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                className="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 whitespace-nowrap"
               >
-                <span>Clear all filters</span>
-                <XMarkIcon className="w-4 h-4 ml-1" />
+                Clear Filters
               </button>
             </div>
-          )}
+
+            {/* Export Button */}
+            <div className="relative" ref={exportRef}>
+              <button
+                onClick={() => setExportOpen(!exportOpen)}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 whitespace-nowrap"
+              >
+                <ArrowDownTrayIcon className="h-5 w-5" />
+                Export
+              </button>
+              {exportOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                  <button
+                    onClick={exportToCSV}
+                    className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <DocumentTextIcon className="h-4 w-4" />
+                    Export as CSV
+                  </button>
+                  <button
+                    onClick={exportToExcel}
+                    className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <TableCellsIcon className="h-4 w-4" />
+                    Export as Excel
+                  </button>
+                  <button
+                    onClick={exportToPDF}
+                    className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <DocumentArrowDownIcon className="h-4 w-4" />
+                    Export as PDF
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Table */}
-        <div className="w-full max-w-7xl mx-auto border border-gray-200 rounded-lg shadow-sm mb-6 overflow-x-auto">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+            <div className="text-sm text-blue-800 font-medium">Total Tutors</div>
+            <div className="text-2xl font-bold text-blue-900">{allTutors.length}</div>
+          </div>
+          <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
+            <div className="text-sm text-emerald-800 font-medium">Approved</div>
+            <div className="text-2xl font-bold text-emerald-900">
+              {allTutors.filter((t) => t.profile_status === "approved").length}
+            </div>
+          </div>
+          <div className="bg-amber-50 p-4 rounded-lg border border-amber-100">
+            <div className="text-sm text-amber-800 font-medium">Pending</div>
+            <div className="text-2xl font-bold text-amber-900">
+              {allTutors.filter((t) => t.profile_status === "pending").length}
+            </div>
+          </div>
+          <div className="bg-rose-50 p-4 rounded-lg border border-rose-100">
+            <div className="text-sm text-rose-800 font-medium">Rejected</div>
+            <div className="text-2xl font-bold text-rose-900">
+              {allTutors.filter((t) => t.profile_status === "rejected").length}
+            </div>
+          </div>
+        </div>
+
+        {/* Tutors Table */}
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                {[
-                  "ID",
-                  "Name",
-                  isMobile ? "" : "Location",
-                  isMobile ? "" : "Class Modes",
-                  isMobile ? "" : "Subjects",
-                  "Status",
-                  isTablet ? "Sub" : "Subscription",
-                  isMobile ? "" : "Ends In",
-                  isMobile ? "" : "Reg. Date", // Added Registration Date column header
-                  "Actions",
-                ].filter(Boolean).map((heading) => (
-                  <th
-                    key={heading}
-                    scope="col"
-                    className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {heading}
-                  </th>
-                ))}
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Classes & Subjects</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teaching Modes</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subscription</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-
             <tbody className="bg-white divide-y divide-gray-200">
-              {tutors.length > 0 ? (
-                tutors.map((tutor) => (
-                  <tr
-                    key={tutor.user_id}
-                    className="hover:bg-gray-50 transition-colors duration-150"
-                  >
-                    <td className="px-3 py-4 whitespace-nowrap">
-                      <div className="relative group max-w-[80px] truncate text-sm text-gray-500 cursor-default">
-                        {tutor.user_id.substring(0, 4)}...
-                        <div className="absolute hidden group-hover:block bg-white border border-gray-300 shadow-md rounded px-2 py-1 text-xs text-gray-800 z-20 left-0 top-full mt-1 w-max max-w-xs break-all">
-                          {tutor.user_id}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="px-3 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {tutor.name}
-                      </div>
-                    </td>
-
-                    {!isMobile && (
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {tutor.Location?.city || "N/A"},{" "}
-                        {tutor.Location?.state || ""}
-                      </td>
-                    )}
-
-                    {!isMobile && (
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {tutor.teaching_modes?.length > 0
-                          ? isTablet 
-                            ? tutor.teaching_modes.map(mode => mode.charAt(0)).join(", ")
-                            : tutor.teaching_modes.join(", ")
-                          : "N/A"}
-                      </td>
-                    )}
-
-                    {!isMobile && (
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {tutor.subjects?.length > 0
-                          ? isTablet 
-                            ? tutor.subjects.slice(0, 2).join(", ") + (tutor.subjects.length > 2 ? "..." : "")
-                            : tutor.subjects.join(", ")
-                          : "N/A"}
-                      </td>
-                    )}
-
-                    <td className="px-3 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusStyles[tutor.profile_status]}`}
-                      >
-                        {isMobile ? tutor.profile_status.substring(0, 1) : tutor.profile_status}
-                      </span>
-                    </td>
-
-                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {isMobile 
-                        ? tutor.plan_name?.substring(0, 3) || "N/A"
-                        : isTablet
-                          ? tutor.plan_name?.substring(0, 5) + (tutor.plan_name?.length > 5 ? "..." : "") || "N/A"
-                          : tutor.plan_name || "N/A"}
-                    </td>
-
-                    {!isMobile && (
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {tutor.days_remaining != null
-                          ? `${tutor.days_remaining}d`
-                          : "N/A"}
-                      </td>
-                    )}
-
-                    {!isMobile && (
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {tutor.createdAt
-                          ? new Date(tutor.createdAt).toLocaleDateString()
-                          : "N/A"} {/* Added Registration Date column data */}
-                      </td>
-                    )}
-
-                    <td className="px-3 py-4 whitespace-nowrap text-sm font-medium space-y-1">
-                      <select
-                        value={tutor.profile_status}
-                        onChange={(e) =>
-                          handleStatusChange(tutor.user_id, e.target.value)
-                        }
-                        className="block w-full pl-2 pr-8 py-1 text-xs sm:text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md"
-                      >
-                        <option value="" disabled hidden>
-                          {isMobile ? "Status" : "Change Status"}
-                        </option>
-                        <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                      </select>
-
+              {tutors.map((tutor) => (
+                <tr key={tutor.user_id} className="hover:bg-gray-50">
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{tutor.name}</div>
+                    <div className="text-sm text-gray-500">{tutor.User?.email || "N/A"}</div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {tutor.User?.mobile_number || "N/A"}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {tutor.Location?.city || "N/A"}, {tutor.Location?.state || "N/A"}
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="text-sm text-gray-900">
+                      <span className="font-medium">Classes:</span> {tutor.classes?.join(", ") || "N/A"}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      <span className="font-medium">Subjects:</span> {tutor.subjects?.join(", ") || "N/A"}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {tutor.teaching_modes?.join(", ") || "N/A"}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="font-medium">{tutor.plan_name || "N/A"}</div>
+                    <div className="text-xs text-gray-400">{tutor.days_remaining ?? "N/A"} days remaining</div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <select
+                      value={tutor.profile_status}
+                      onChange={(e) => handleStatusChange(tutor.user_id, e.target.value)}
+                      className={`text-xs px-2 py-1 rounded-full ${statusStyles[tutor.profile_status]}`}
+                    >
+                      <option value="approved">Approved</option>
+                      <option value="pending">Pending</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => setSelectedTutor(tutor)}
-                        className="text-blue-600 hover:text-blue-900 text-xs sm:text-sm"
+                        className="text-blue-600 hover:text-blue-900"
                       >
-                        {isMobile ? "View" : "View Details"}
+                        View
                       </button>
-
                       <button
                         onClick={() => handleDelete(tutor.user_id)}
-                        className="text-red-600 hover:text-red-900 text-xs sm:text-sm flex items-center"
+                        className="text-red-600 hover:text-red-900"
                       >
-                        {isMobile ? (
-                          <TrashIcon className="w-4 h-4" />
-                        ) : (
-                          <>
-                            <TrashIcon className="w-4 h-4 mr-1" />
-                            Delete
-                          </>
-                        )}
+                        <TrashIcon className="h-4 w-4" />
                       </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={isMobile ? 5 : 10} // Updated colspan to match new column count
-                    className="px-4 py-4 text-center text-sm text-gray-500"
-                  >
-                    No tutors found matching your criteria.
+                    </div>
                   </td>
                 </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-t border-gray-200 bg-white">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <button
-              onClick={() => setPage((p) => Math.max(p - 1, 1))}
-              disabled={page === 1}
-              className="relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-              disabled={page === totalPages}
-              className="ml-3 relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-            >
-              Next
-            </button>
+        <div className="flex items-center justify-between mt-4">
+          <div className="text-sm text-gray-700">
+            Showing <span className="font-medium">{(page - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
+            <span className="font-medium">{Math.min(page * ITEMS_PER_PAGE, allTutors.length)}</span> of{" "}
+            <span className="font-medium">{allTutors.length}</span> results
           </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{(page - 1) * ITEMS_PER_PAGE + 1}</span> to{' '}
-                <span className="font-medium">
-                  {Math.min(page * ITEMS_PER_PAGE, allTutors.length)}
-                </span>{' '}
-                of <span className="font-medium">{allTutors.length}</span> results
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button
-                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                  disabled={page === 1}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${page === 1 ? 'text-gray-300' : 'text-gray-500 hover:bg-gray-50'
-                    }`}
-                >
-                  <span className="sr-only">Previous</span>
-                  <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
-                </button>
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (page <= 3) {
-                    pageNum = i + 1;
-                  } else if (page >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = page - 2 + i;
-                  }
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setPage(pageNum)}
-                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${page === pageNum
-                        ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                        }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-                {totalPages > 5 && page < totalPages - 2 && (
-                  <span className="px-2 py-2">...</span>
-                )}
-                {totalPages > 5 && page < totalPages - 2 && (
-                  <button
-                    onClick={() => setPage(totalPages)}
-                    className="px-4 py-2 bg-white text-gray-700 hover:bg-gray-100 rounded-md"
-                  >
-                    {totalPages}
-                  </button>
-                )}
-                <button
-                  onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                  disabled={page === totalPages}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${page === totalPages ? 'text-gray-300' : 'text-gray-500 hover:bg-gray-50'
-                    }`}
-                >
-                  <span className="sr-only">Next</span>
-                  <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
-                </button>
-              </nav>
-            </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setPage(Math.max(1, page - 1))}
+              disabled={page === 1}
+              className="px-3 py-1 rounded-md border border-gray-300 bg-white text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              <ChevronLeftIcon className="h-4 w-4 inline" /> Previous
+            </button>
+            <button
+              onClick={() => setPage(Math.min(totalPages, page + 1))}
+              disabled={page === totalPages}
+              className="px-3 py-1 rounded-md border border-gray-300 bg-white text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              Next <ChevronRightIcon className="h-4 w-4 inline" />
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* View Details Modal */}
-        {selectedTutor && (
-          <div className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white p-4 sm:p-6 border-b border-gray-200 flex justify-between items-center">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
-                  {selectedTutor.name}'s Details
-                </h2>
+      {/* Tutor Details Modal */}
+      {selectedTutor && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h3 className="text-lg font-semibold">Tutor Details</h3>
+              <div className="flex items-center gap-4">
+                {/* Export Button in Modal */}
+                <div className="relative" ref={viewExportRef}>
+                  <button
+                    onClick={() => setViewExportOpen(!viewExportOpen)}
+                    className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 text-sm"
+                  >
+                    <ArrowDownTrayIcon className="h-4 w-4" />
+                    Export
+                  </button>
+                  {viewExportOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                      <button
+                        onClick={exportSingleTutorCSV}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <DocumentTextIcon className="h-4 w-4" />
+                        Export as CSV
+                      </button>
+                      <button
+                        onClick={exportSingleTutorExcel}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <TableCellsIcon className="h-4 w-4" />
+                        Export as Excel
+                      </button>
+                      <button
+                        onClick={exportSingleTutorPDF}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <DocumentArrowDownIcon className="h-4 w-4" />
+                        Export as PDF
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <button
-                  className="text-gray-500 hover:text-gray-700"
                   onClick={() => setSelectedTutor(null)}
+                  className="text-gray-400 hover:text-gray-600"
                 >
-                  <XMarkIcon className="w-6 h-6" />
+                  <XMarkIcon className="h-6 w-6" />
                 </button>
               </div>
-              <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                <div className="space-y-3 sm:space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Email</h3>
-                    <p className="mt-1 text-sm text-gray-900">{selectedTutor.User?.email || "N/A"}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Phone</h3>
-                    <p className="mt-1 text-sm text-gray-900">{selectedTutor.User?.mobile_number || "N/A"}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Subjects</h3>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {selectedTutor.subjects?.join(", ") || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Degrees</h3>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {selectedTutor.degrees?.join(", ") || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Experience</h3>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {selectedTutor.experience || "N/A"} years
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Registration Date</h3>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {selectedTutor.createdAt ? new Date(selectedTutor.createdAt).toLocaleDateString() : "N/A"}
-                    </p>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Personal Information</h4>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">ID:</span> {selectedTutor.user_id}</p>
+                    <p><span className="font-medium">Name:</span> {selectedTutor.name}</p>
+                    <p><span className="font-medium">Email:</span> {selectedTutor.User?.email || "N/A"}</p>
+                    <p><span className="font-medium">Phone:</span> {selectedTutor.User?.mobile_number || "N/A"}</p>
+                    <p><span className="font-medium">Location:</span> {selectedTutor.Location?.city || "N/A"}, {selectedTutor.Location?.state || "N/A"}</p>
                   </div>
                 </div>
-                <div className="space-y-3 sm:space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Pricing</h3>
-                    <p className="mt-1 text-sm text-gray-900">
-                      ₹{selectedTutor.pricing_per_hour || "N/A"} /hr
-                    </p>
+
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Professional Information</h4>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Experience:</span> {selectedTutor.experience || "N/A"} years</p>
+                    <p><span className="font-medium">Pricing:</span> {selectedTutor.pricing_per_hour ? `₹${selectedTutor.pricing_per_hour}/hr` : "N/A"}</p>
+                    <p><span className="font-medium">Teaching Modes:</span> {selectedTutor.teaching_modes?.join(", ") || "N/A"}</p>
+                    <p><span className="font-medium">Languages:</span> {selectedTutor.languages?.map(l => `${l.language} (${l.proficiency})`).join(", ") || "N/A"}</p>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Teaching Modes</h3>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {selectedTutor.teaching_modes?.join(", ") || "N/A"}
-                    </p>
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Education & Subjects</h4>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Degrees:</span> {selectedTutor.degrees?.join(", ") || "N/A"}</p>
+                    <p><span className="font-medium">Classes:</span> {selectedTutor.classes?.join(", ") || "N/A"}</p>
+                    <p><span className="font-medium">Subjects:</span> {selectedTutor.subjects?.join(", ") || "N/A"}</p>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Languages</h3>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {selectedTutor.languages
-                        ?.map((l) => `${l.language} (${l.proficiency})`)
-                        .join(", ") || "N/A"}
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Subscription Details</h4>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Plan:</span> {selectedTutor.plan_name || "N/A"}</p>
+                    <p><span className="font-medium">Days Remaining:</span> {selectedTutor.days_remaining ?? "N/A"}</p>
+                    <p><span className="font-medium">Status:</span>
+                      <select
+                        value={selectedTutor.profile_status}
+                        onChange={(e) => {
+                          handleStatusChange(selectedTutor.user_id, e.target.value);
+                          setSelectedTutor({ ...selectedTutor, profile_status: e.target.value });
+                        }}
+                        className={`ml-2 text-xs px-2 py-1 rounded-full ${statusStyles[selectedTutor.profile_status]}`}
+                      >
+                        <option value="approved">Approved</option>
+                        <option value="pending">Pending</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
                     </p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Location</h3>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {selectedTutor.Location?.city || "N/A"},{" "}
-                      {selectedTutor.Location?.state || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Subscription</h3>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {selectedTutor.plan_name || "N/A"} ({selectedTutor.days_remaining ?? "N/A"} days remaining)
-                    </p>
+                    <p><span className="font-medium">Registration Date:</span> {selectedTutor.createdAt ? new Date(selectedTutor.createdAt).toLocaleDateString() : "N/A"}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Document Upload & Download */}
-              <div className="p-4 sm:p-6 border-t border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900 mb-3 sm:mb-4">Documents</h3>
-
-                {/* Uploaded Documents */}
-                <div className="mb-4 space-y-2 bg-white">
-                  {selectedTutor.documents && Object.keys(selectedTutor.documents).length > 0 ? (
-                    Object.entries(selectedTutor.documents).map(([key, doc]) => (
-                      <div key={key} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-md">
-                        <span className="text-sm text-gray-800">{key.toUpperCase()}: {doc.name}</span>
+              {selectedTutor?.documents && Object.keys(selectedTutor.documents).length > 0 ? (
+                <div className="mt-4">
+                  <h3 className="text-sm font-medium text-gray-700">Uploaded Documents</h3>
+                  <ul className="mt-2 space-y-2">
+                    {Object.entries(selectedTutor.documents).map(([key, doc]) => (
+                      <li key={key} className="flex items-center justify-between border p-2 rounded-md">
+                        <span className="text-sm text-gray-600">{doc.name}</span>
                         <a
                           href={doc.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline text-sm"
+                          className="text-blue-600 hover:underline text-sm flex items-center gap-1"
                         >
-                          Download
+                          <DocumentTextIcon className="w-4 h-4" />
+                          View
                         </a>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-500">No documents uploaded.</p>
-                  )}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
+              ) : (
+                <p className="mt-4 text-sm text-gray-500">No documents uploaded</p>
+              )}
 
-              {/* Download Buttons */}
-              <div className="p-4 sm:p-6 border-t border-gray-200 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
-                <button
-                  onClick={() => {
-                    const doc = new jsPDF();
-                    doc.text(`${selectedTutor.name}'s Details`, 14, 10);
-                    autoTable(doc, {
-                      startY: 20,
-                      head: [["Field", "Value"]],
-                      body: [
-                        ["Email", selectedTutor.User?.email || "N/A"],
-                        ["Phone", selectedTutor.User?.mobile_number || "N/A"],
-                        ["Subjects", selectedTutor.subjects?.join(", ") || "N/A"],
-                        ["Degrees", selectedTutor.degrees?.join(", ") || "N/A"],
-                        ["Experience", selectedTutor.experience + " yrs" || "N/A"],
-                        ["Pricing", `₹${selectedTutor.pricing_per_hour}/hr` || "N/A"],
-                        ["Mode", selectedTutor.teaching_modes?.join(", ") || "N/A"],
-                        ["Languages", selectedTutor.languages?.map(l => `${l.language} (${l.proficiency})`).join(", ") || "N/A"],
-                        ["Location", `${selectedTutor.Location?.city}, ${selectedTutor.Location?.state}` || "N/A"],
-                        ["Subscription", selectedTutor.plan_name || "N/A"],
-                        ["Days Remaining", (selectedTutor.days_remaining ?? "N/A") + " days"],
-                        ["Registration Date", selectedTutor.createdAt ? new Date(selectedTutor.createdAt).toLocaleDateString() : "N/A"],
-                      ],
-                      styles: {
-                        halign: 'left',
-                        cellPadding: 3,
-                        fontSize: 10,
-                      },
-                      headStyles: {
-                        fillColor: [59, 130, 246],
-                        textColor: 255,
-                        fontStyle: 'bold'
-                      },
-                      alternateRowStyles: {
-                        fillColor: [241, 245, 249]
-                      }
-                    });
-                    doc.save(`${selectedTutor.name}_details.pdf`);
-                  }}
-                  className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  <DocumentTextIcon className="w-5 h-5 mr-2" />
-                  Download PDF
-                </button>
-
-                <button
-                  onClick={() => {
-                    const worksheetData = [{
-                      Name: selectedTutor.name,
-                      Email: selectedTutor.User?.email,
-                      Phone: selectedTutor.User?.mobile_number,
-                      Subjects: selectedTutor.subjects?.join(", "),
-                      Degrees: selectedTutor.degrees?.join(", "),
-                      Experience: selectedTutor.experience + " yrs",
-                      Pricing: `₹${selectedTutor.pricing_per_hour}/hr`,
-                      Mode: selectedTutor.teaching_modes?.join(", "),
-                      Languages: selectedTutor.languages?.map(l => `${l.language} (${l.proficiency})`).join(", "),
-                      Location: `${selectedTutor.Location?.city}, ${selectedTutor.Location?.state}`,
-                      Subscription: selectedTutor.plan_name || "N/A",
-                      DaysRemaining: `${selectedTutor.days_remaining ?? "N/A"} days`,
-                      RegistrationDate: selectedTutor.createdAt ? new Date(selectedTutor.createdAt).toLocaleDateString() : "N/A",
-                    }];
-                    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
-                    const workbook = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(workbook, worksheet, "Tutor Details");
-                    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-                    const file = new Blob([excelBuffer], { type: "application/octet-stream" });
-                    saveAs(file, `${selectedTutor.name}_details.xlsx`);
-                  }}
-                  className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  <TableCellsIcon className="w-5 h-5 mr-2" />
-                  Download Excel
-                </button>
-              </div>
+            </div>
+            <div className="flex justify-end p-6 border-t">
+              <button
+                onClick={() => setSelectedTutor(null)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+              >
+                Close
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

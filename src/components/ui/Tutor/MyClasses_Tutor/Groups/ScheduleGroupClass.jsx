@@ -1,42 +1,56 @@
 import React, { useState, useEffect } from "react";
-import { groupService } from "../../../../../api/repository/groupService";
+import { groupService } from "../../../../../api/repository/groupService.repository";
 import { toast } from "react-toastify";
+import { X, Calendar, Video, Users, MapPin, Clock, AlertCircle } from "lucide-react";
 
 export default function ScheduleGroupClass({
   groupId,
   groupType,
-  groupName,   // ✅ passed from parent
+  groupName,
   onClose,
   onClassScheduled,
+  existingEvents = [],
 }) {
-  const [tutorId, setTutorId] = useState("");
   const [meetingLink, setMeetingLink] = useState("");
   const [dateTime, setDateTime] = useState("");
   const [classType, setClassType] = useState("regular");
   const [mode, setMode] = useState("online");
+  const [duration, setDuration] = useState("60");
   const [loading, setLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
-  const [tutors, setTutors] = useState([]);
-
-  // ✅ fetch tutors only if student is scheduling
-  useEffect(() => {
-    const fetchTutors = async () => {
-      if (groupType !== "student") return;
-      try {
-        const res = await groupService.getAvailableTutors?.();
-        if (res?.data) setTutors(res.data);
-      } catch (err) {
-        console.error("Error fetching tutors:", err);
-      }
-    };
-    fetchTutors();
-  }, [groupType]);
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!dateTime) errors.dateTime = "Date and time is required";
+    
+    if (mode === "online" && !meetingLink) {
+      errors.meetingLink = "Meeting link is required for online classes";
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
 
-    if (!dateTime) {
-      toast.error("Date/time is required");
+    // Check for conflicts with existing events
+    const selectedTime = new Date(dateTime).getTime();
+    const selectedEndTime = selectedTime + (parseInt(duration) * 60 * 1000);
+    
+    const conflict = existingEvents.some((evt) => {
+      const evtStart = new Date(evt.start).getTime();
+      const evtEnd = new Date(evt.end).getTime();
+      
+      // Check if the new event overlaps with any existing event
+      return (selectedTime < evtEnd && selectedEndTime > evtStart);
+    });
+
+    if (conflict) {
+      toast.error("This time slot conflicts with an existing class. Please choose another time.");
       return;
     }
 
@@ -45,10 +59,10 @@ export default function ScheduleGroupClass({
 
       const payload = {
         group_id: String(groupId),
-        name: groupName || "Group Class",   // ✅ always use group name
-        tutor_id: groupType === "student" ? tutorId : undefined,
+        name: groupName || "Group Class", 
         meeting_link: meetingLink || "",
         date_time: dateTime,
+        duration: parseInt(duration),
         type: classType,
         mode,
       };
@@ -60,89 +74,185 @@ export default function ScheduleGroupClass({
       onClose();
     } catch (error) {
       console.error("Error scheduling class:", error);
-      toast.error(error.response?.data?.message || "Failed to schedule class");
+
+      if (error.response?.status === 409) {
+        toast.error(error.response.data.message || "Time slot conflict! Choose another time.");
+      } else {
+        toast.error("Failed to schedule class. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Schedule Group Class</h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-
-          {/* ✅ Show group name instead of asking again */}
-          <p className="text-gray-700 font-medium">
-            Class will be scheduled for: <span className="font-bold">{groupName}</span>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white relative">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Calendar size={24} />
+            Schedule Group Class
+          </h2>
+          <p className="text-blue-100 mt-1 text-sm">
+            Schedule a new class session for your group
           </p>
-
-          {groupType === "student" && (
-            <select
-              value={tutorId}
-              onChange={(e) => setTutorId(e.target.value)}
-              className="border rounded px-4 py-2"
-            >
-              <option value="">Select Tutor</option>
-              {tutors.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
-          )}
-
-          <input
-            type="url"
-            value={meetingLink}
-            onChange={(e) => setMeetingLink(e.target.value)}
-            placeholder="Meeting Link (optional)"
-            className="border rounded px-4 py-2"
-          />
-
-          <input
-            type="datetime-local"
-            value={dateTime}
-            onChange={(e) => setDateTime(e.target.value)}
-            className="border rounded px-4 py-2"
-          />
-
-          <select
-            value={classType}
-            onChange={(e) => setClassType(e.target.value)}
-            className="border rounded px-4 py-2"
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white hover:bg-white/20 p-1 rounded-full"
           >
-            <option value="regular">Regular</option>
-            <option value="demo">Demo</option>
-          </select>
+            <X size={20} />
+          </button>
+        </div>
 
-          <select
-            value={mode}
-            onChange={(e) => setMode(e.target.value)}
-            className="border rounded px-4 py-2"
-          >
-            <option value="online">Online</option>
-            <option value="offline">Offline</option>
-          </select>
+        {/* Group Info */}
+        <div className="p-6 border-b border-gray-100 bg-gray-50">
+          <div className="flex items-center gap-2 text-gray-700">
+            <Users size={18} className="text-blue-600" />
+            <span className="font-medium">Group:</span>
+            <span className="font-semibold text-gray-900">{groupName}</span>
+          </div>
+        </div>
 
-          <div className="flex justify-end gap-2 mt-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+              <Video size={16} className="text-blue-600" />
+              Meeting Link {mode === "online" && "(required)"}
+            </label>
+            <div className={`relative rounded-md ${formErrors.meetingLink ? 'border-red-500' : ''}`}>
+              <input
+                type="url"
+                value={meetingLink}
+                onChange={(e) => setMeetingLink(e.target.value)}
+                placeholder="https://meet.example.com/room-id"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Video size={18} className="text-gray-400" />
+              </div>
+            </div>
+            {formErrors.meetingLink && (
+              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                <AlertCircle size={14} />
+                {formErrors.meetingLink}
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                <Calendar size={16} className="text-blue-600" />
+                Date & Time
+              </label>
+              <div className={`relative rounded-md ${formErrors.dateTime ? 'border-red-500' : ''}`}>
+                <input
+                  type="datetime-local"
+                  value={dateTime}
+                  onChange={(e) => setDateTime(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Calendar size={18} className="text-gray-400" />
+                </div>
+              </div>
+              {formErrors.dateTime && (
+                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                  <AlertCircle size={14} />
+                  {formErrors.dateTime}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                <Clock size={16} className="text-blue-600" />
+                Duration (minutes)
+              </label>
+              <div className="relative rounded-md">
+                <select
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+                >
+                  <option value="30">30 min</option>
+                  <option value="45">45 min</option>
+                  <option value="60">60 min</option>
+                  <option value="90">90 min</option>
+                  <option value="120">120 min</option>
+                </select>
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Clock size={18} className="text-gray-400" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Class Type
+              </label>
+              <select
+                value={classType}
+                onChange={(e) => setClassType(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="regular">Regular</option>
+                <option value="demo">Demo</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                <MapPin size={16} className="text-blue-600" />
+                Mode
+              </label>
+              <div className="relative">
+                <select
+                  value={mode}
+                  onChange={(e) => setMode(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                >
+                  <option value="online">Online</option>
+                  <option value="offline">Offline</option>
+                </select>
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <MapPin size={18} className="text-gray-400" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              className="px-5 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-lg font-medium hover:from-blue-700 hover:to-indigo-800 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading ? "Scheduling..." : "Schedule"}
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Scheduling...
+                </>
+              ) : (
+                <>
+                  <Calendar size={18} />
+                  Schedule Class
+                </>
+              )}
             </button>
           </div>
         </form>
       </div>
-    </div>
-  );
+    </div>
+  );
 }

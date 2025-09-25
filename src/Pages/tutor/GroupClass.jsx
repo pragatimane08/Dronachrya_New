@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { groupService } from "../../api/repository/groupService";
+import { groupService } from "../../api/repository/groupService.repository";
 
 export default function GroupsPage() {
   const [groups, setGroups] = useState([]);
