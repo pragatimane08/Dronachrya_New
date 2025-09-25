@@ -68,7 +68,7 @@
 import axios from "axios";
 import { apiUrl } from "./apiUtl";
 
-// ✅ Token utils
+// Token utils
 export const getToken = () => {
   return (
     localStorage.getItem("authToken") ||
@@ -85,7 +85,7 @@ export const clearToken = () => {
   sessionStorage.removeItem("authToken");
 };
 
-// ✅ Axios instance
+// Axios instance
 const axiosInstance = axios.create({
   baseURL: apiUrl.baseUrl,
   timeout: 120000,
@@ -94,7 +94,7 @@ const axiosInstance = axios.create({
   },
 });
 
-// 🔐 Attach JWT automatically
+// Attach JWT automatically
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = getToken();
@@ -106,7 +106,7 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 🚫 Auto logout on 401
+// Auto logout on 401
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -120,7 +120,7 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-// 🌐 Export reusable HTTP methods
+// Export reusable HTTP methods
 export const apiClient = {
   get: (url, config = {}) => axiosInstance.get(url, config),
   post: (url, data, config = {}) => axiosInstance.post(url, data, config),
