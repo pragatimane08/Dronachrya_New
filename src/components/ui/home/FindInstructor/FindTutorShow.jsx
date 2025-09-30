@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import FindFilterSidebar from "./FindFilterSidebar";
 import TutorCard from "./TutorCard";
 import { searchTutors, recommendedTutors } from "../../../../api/services/tutorService";
 import Layout from "../layout/MainLayout";
-import subjectsData from "../subjectsData";
-import { useNavigate } from "react-router-dom";
+import subjectsData from "../../home/HomePageComponent/HomePage/subjectsData";
 
 const initialFiltersFromYou = {
   name: "",
@@ -29,24 +28,21 @@ export default function FindTutorShow() {
   const [usingRecommended, setUsingRecommended] = useState(false);
   const [error, setError] = useState("");
   const location = useLocation();
-  const [demoFilters, setDemoFilters] = useState(null); // Add this state
+  const [demoFilters, setDemoFilters] = useState(null);
   const navigate = useNavigate();
-  // Check for demo filters from BookDemo registration
+
   useEffect(() => {
     if (location.state?.demoFilters) {
       const demoData = location.state.demoFilters;
       setDemoFilters(demoData);
       setFilters(demoData);
       runSearch(demoData);
-
-      // Clear the state to avoid reapplying on refresh
       window.history.replaceState({}, document.title);
     } else {
       runSearch(filters);
     }
   }, [location.state]);
 
-  // In the runSearch function
   const runSearch = async (f) => {
     setLoading(true);
     setError("");
@@ -57,7 +53,7 @@ export default function FindTutorShow() {
     } catch (e) {
       console.error("Search error:", e);
       setError(e?.response?.data?.message || e.message || "Failed to fetch tutors");
-      setTutors([]); // Clear tutors on error
+      setTutors([]);
     } finally {
       setLoading(false);
     }
@@ -90,62 +86,42 @@ export default function FindTutorShow() {
 
   const onApplyFilters = (next) => {
     setFilters(next);
-    setDemoFilters(null); // Clear demo filters when user applies new filters
+    setDemoFilters(null);
     runSearch(next);
   };
 
   const onClearFilters = (cleared) => {
     setFilters(cleared);
-    setDemoFilters(null); // Clear demo filters when user clears all filters
+    setDemoFilters(null);
     runSearch(cleared);
   };
 
   return (
-    <Layout showNavbar={false}>
-      <div className="min-h-screen bg-gray-50">
+    <Layout>
+      <div className="min-h-screen bg-gray-50 pt-10"> 
+        {/* added pt-20 so content starts below navbar */}
         <div className="max-w-7xl mx-auto p-4 md:p-6">
-          {/* header */}
-          {/* <div className="bg-gray-50 rounded-2xl shadow-sm p-8 mb-6 text-center">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Find Your Perfect Tutor
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Browse through our verified tutors and find the best match for your learning needs
-            </p>
-          </div> */}
-          <div className="bg-gray-50 rounded-2xl shadow-sm p-6 mb-6">
+          {/* Header */}
+          <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-              {/* Left Side - Dashboard Shortcut */}
               <div className="mb-4 md:mb-0 flex items-center">
                 <button
                   onClick={() => navigate("/student-dashboard")}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg border border-teal-600 text-teal-600 text-sm font-medium hover:bg-teal-50 transition"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-4 h-4"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M5 10v10h14V10"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"
+                    className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6" />
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M5 10v10h14V10" />
                   </svg>
                   <span>Go to Dashboard</span>
                 </button>
               </div>
 
-              {/* Center - Title & Subtitle */}
-              <div className="flex-1 flex flex-col items-center justify-center text-center">
+              <div className="flex-1 flex flex-col items-center text-center">
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
                   Find Your Perfect Tutor
                 </h1>
@@ -156,21 +132,20 @@ export default function FindTutorShow() {
             </div>
           </div>
 
-          {/* main content */}
-
+          {/* Main content */}
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* sidebar */}
+            {/* Sidebar */}
             <div className="lg:w-80">
               <FindFilterSidebar
                 defaultFilters={initialFiltersFromYou}
                 onApplyFilters={onApplyFilters}
                 onClearFilters={onClearFilters}
                 subjectsData={subjectsData}
-                demoData={demoFilters} // Pass demo filters to sidebar
+                demoData={demoFilters}
               />
             </div>
 
-            {/* results */}
+            {/* Results */}
             <div className="flex-1">
               <div className="bg-white rounded-2xl shadow-md p-5 mb-4">
                 <div className="flex items-center justify-between">
@@ -198,11 +173,14 @@ export default function FindTutorShow() {
               <div className="grid gap-4">
                 {!loading && tutors.length === 0 && !error && (
                   <div className="bg-white rounded-2xl shadow-md p-8 text-center">
-                    <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-16 h-16 text-gray-300 mx-auto mb-4"
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                         d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <h3 className="text-xl font-medium text-gray-700 mb-2">No tutors found</h3>
+                    <h3 className="text-xl font-medium text-gray-700 mb-2">
+                      No tutors found
+                    </h3>
                     <p className="text-gray-500">Try adjusting your filters</p>
                   </div>
                 )}
@@ -212,7 +190,9 @@ export default function FindTutorShow() {
                 ))}
 
                 {loading && (
-                  <div className="bg-white rounded-2xl shadow-md p-6 text-gray-600">Fetching tutors…</div>
+                  <div className="bg-white rounded-2xl shadow-md p-6 text-gray-600">
+                    Fetching tutors…
+                  </div>
                 )}
               </div>
             </div>

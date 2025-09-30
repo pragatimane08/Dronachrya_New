@@ -16,4 +16,10 @@ export const tutorRepository = {
   // ✅ Admin - Get tutor's uploaded documents
   getTutorDocuments: (tutorId) =>
     apiClient.get(`/admin/tutors/${tutorId}/documents`),
+  bulkUploadTutors: (formData) =>
+    apiClient.post('/admin/tutors/bulk', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
 };

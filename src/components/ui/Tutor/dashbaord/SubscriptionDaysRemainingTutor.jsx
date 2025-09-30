@@ -91,7 +91,7 @@ const SubscriptionStatusCard = () => {
 
         {/* Right - Button */}
         <button
-          onClick={() => navigate("/upgradeplan_tutor")}
+          onClick={() => navigate("/tutor_subscription_plan")}
           className={`w-full md:w-auto text-center ${
             isExpired
               ? "bg-[#EF5350] hover:bg-[#D32F2F]"
