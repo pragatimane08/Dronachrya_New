@@ -333,8 +333,12 @@
 // };
 
 // export default TutorSidebar;
+<<<<<<< HEAD
 
 
+=======
+// src/components/tutor/TutorSidebar.jsx
+>>>>>>> cac235298da95deccf6cd953a03454e3e250d1f3
 // src/components/tutor/TutorSidebar.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import { FiActivity, FiUser, FiUsers, FiCalendar, FiCheckSquare, FiSettings, FiHelpCircle, FiDollarSign, FiMail, FiMessageSquare } from "react-icons/fi";
@@ -357,7 +361,11 @@ const accountSubmenu = [
   { label: "Billing History", icon: <FiCheckSquare />, route: "/billing_history_tutor" },
   { label: "Subscription Plan", icon: <FiUsers />, route: "/tutor_subscription_plan" },
   { label: "Bookmark", icon: <FiUsers />, route: "/bookmark_tutor" },
+<<<<<<< HEAD
   { label: "Refer Friends", icon: <FiUsers />, route: "/refer_tutor" },
+=======
+  // { label: "Refer Friends", icon: <FiUsers />, route: "/refer_tutor" },
+>>>>>>> cac235298da95deccf6cd953a03454e3e250d1f3
 ];
 
 const TutorSidebar = ({ isOpen, toggleSidebar }) => {

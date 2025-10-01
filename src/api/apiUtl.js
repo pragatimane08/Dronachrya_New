@@ -190,13 +190,13 @@ export const apiUrl = {
     resetPassword: "/auth/reset-password",
     changePassword: "/auth/change-password",
 
-    // ✅ Pre-registration already handles OTP
+    // Pre-registration already handles OTP
     preRegisterStudent: "/auth/signup",
     verifyOtp: "/auth/login/verify-otp", // ✅ add this
     resendOtp: "/auth/signup/resend-otp",
 
     // Admin
-    adminVerifyOtp: "/auth/verify-otp", // ✅ separate admin endpoint
+    adminVerifyOtp: "/auth/verify-otp", // separate admin endpoint
   },
 
   user: {
@@ -220,7 +220,7 @@ export const apiUrl = {
   referrals: {
     all: "/referrals/all",
     generate: "/referrals/generate",
-    apply: "/referrals/apply", // ✅ Added missing apply endpoint
+    apply: "/referrals/apply", // Added missing apply endpoint
     reward: (id) => `/referrals/reward/${id}`,
     delete: (id) => `/referrals/${id}`,
   },

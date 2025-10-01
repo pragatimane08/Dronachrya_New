@@ -503,6 +503,35 @@ const FilterSidebar = ({ onApply, isOpen, onClose, isMobile, showHeading }) => {
     ? 'fixed top-16 left-0 right-0 bottom-0 bg-black bg-opacity-50 z-40' 
     : 'hidden';
 
+  const toggleArrayFilter = (filterName, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [filterName]: prev[filterName].includes(value)
+        ? prev[filterName].filter((item) => item !== value)
+        : [...prev[filterName], value],
+    }));
+  };
+
+  const clearLanguages = () => {
+    setFilters((prev) => ({ ...prev, languages: [] }));
+    setLanguageSearch("");
+  };
+
+  const filteredLanguages = languageOptions.filter((lang) =>
+    lang.toLowerCase().includes(languageSearch.toLowerCase())
+  );
+
+  // Mobile overlay and sidebar styles - Updated to account for top bar
+  const sidebarClass = isMobile 
+    ? `fixed top-16 left-0 bottom-0 z-50 w-full max-w-[320px] transform transition-transform duration-300 ease-in-out bg-white ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      }`
+    : 'relative w-full max-w-full lg:max-w-[340px] h-[calc(100vh-4rem)]';
+
+  const overlayClass = isMobile && isOpen 
+    ? 'fixed top-16 left-0 right-0 bottom-0 bg-black bg-opacity-50 z-40' 
+    : 'hidden';
+
   return (
     <>
       {/* Mobile Overlay */}

@@ -12,8 +12,54 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LocationSearch from "./LocationSearch";
 
-const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-const validateMobile = (mobile) => /^[0-9]{10}$/.test(mobile);
+// Enhanced validation functions
+const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length >= 5 && email.length <= 100;
+};
+
+const validateMobile = (mobile) => {
+  const mobileRegex = /^[6-9][0-9]{9}$/; // Indian mobile number format
+  return mobileRegex.test(mobile);
+};
+
+const validateName = (name) => {
+  const nameRegex = /^[a-zA-Z\s.'-]{2,50}$/;
+  return nameRegex.test(name.trim());
+};
+
+const validateStringField = (value, minLength = 2, maxLength = 100) => {
+  const stringRegex = /^[a-zA-Z\s,.-]+$/;
+  const trimmed = value.trim();
+  return trimmed.length >= minLength && trimmed.length <= maxLength && stringRegex.test(trimmed);
+};
+
+const validateNumberField = (value, min = 0, max = 100) => {
+  const num = parseInt(value);
+  return !isNaN(num) && num >= min && num <= max;
+};
+
+const validateCommaSeparatedList = (value, minLength = 2, maxLength = 100) => {
+  if (!value.trim()) return false;
+  const items = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
+  return items.length > 0 && items.every(item => validateStringField(item, 1, 30));
+};
+
+const validateUrl = (url) => {
+  if (!url || url.trim() === '') return true; // Optional field
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const validateTextArea = (text, minLength = 10, maxLength = 1000) => {
+  if (!text || text.trim() === '') return true; // Optional field
+  const trimmed = text.trim();
+  return trimmed.length >= minLength && trimmed.length <= maxLength;
+};
 
 // Auto-resizing textarea component
 const AutoResizeTextarea = ({ value, onChange, placeholder, ...props }) => {
@@ -204,14 +250,28 @@ const Whole_Profile_tutor = () => {
 
   const handleSave = async (field) => {
     try {
-      if (field === "email" && !validateEmail(tempValue))
-        return toast.error("Invalid email");
-      if (field === "mobile" && !validateMobile(tempValue))
-        return toast.error("Invalid mobile number");
+      let valueToSave = tempValue;
+     
+      // Handle "Other" board option
+      if (field === "board" && tempValue === "Other") {
+        if (!otherBoardValue.trim()) {
+          setValidationErrors(prev => ({ ...prev, [field]: "Please specify the board name" }));
+          toast.error("Please specify the board name");
+          return;
+        }
+        valueToSave = otherBoardValue.trim();
+      }
+     
+      const error = validateField(field, valueToSave);
+      if (error) {
+        setValidationErrors(prev => ({ ...prev, [field]: error }));
+        toast.error(error);
+        return;
+      }
 
       if (["email", "mobile"].includes(field)) {
         const fieldToSend = field === "mobile" ? "mobile_number" : field;
-        await updateUserContact(fieldToSend, tempValue);
+        await updateUserContact(fieldToSend, valueToSave);
       } else if (field === "location") {
         return;
       } else {
@@ -253,9 +313,11 @@ const Whole_Profile_tutor = () => {
         await updateTutorProfile(payload);
       }
 
-      setProfile((prev) => ({ ...prev, [field]: tempValue }));
+      setProfile((prev) => ({ ...prev, [field]: valueToSave }));
       toast.success(`${field.replace("_", " ")} updated successfully`);
       setEditField(null);
+      setValidationErrors({});
+      setOtherBoardValue("");
     } catch {
       toast.error(`Failed to update ${field}`);
     }
@@ -280,6 +342,19 @@ const Whole_Profile_tutor = () => {
 
   const handleDocumentUpload = async (e) => {
     const files = Array.from(e.target.files);
+   
+    // Validate files
+    for (let file of files) {
+      if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+        toast.error("Only image and PDF files are allowed");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`File ${file.name} is too large. Maximum size is 5MB`);
+        return;
+      }
+    }
+
     const formattedFiles = files.map((file, index) => ({
       field: `document_${index}`,
       file,

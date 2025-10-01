@@ -120,7 +120,7 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-// 🌐 Export reusable HTTP methods
+// Export reusable HTTP methods
 export const apiClient = {
   get: (url, config = {}) => axiosInstance.get(url, config),
   post: (url, data, config = {}) => axiosInstance.post(url, data, config),

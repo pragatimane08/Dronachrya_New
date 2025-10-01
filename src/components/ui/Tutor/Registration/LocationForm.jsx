@@ -14,6 +14,18 @@
 //   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 //   const navigate = useNavigate();
 
+//   const handleInputChange = (e) => {
+//     setLocationInput(e.target.value);
+//     // Clear previous selection if user starts typing again
+//     if (placeId) {
+//       setPlaceId("");
+//       setAddress("");
+//       setCity("");
+//       setState("");
+//       setCountry("");
+//     }
+//   };
+
 //   const handleSubmit = async () => {
 //     setHasAttemptedSubmit(true);
 

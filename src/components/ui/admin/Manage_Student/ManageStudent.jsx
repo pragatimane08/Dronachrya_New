@@ -18,6 +18,7 @@ import autoTable from "jspdf-autotable";
 
 import LocationSearch from "./LocationSearch";
 
+
 const ManageStudent = () => {
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
