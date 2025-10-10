@@ -34,7 +34,7 @@ const MyClasses = () => {
       // Format individual classes
       const formattedIndividualClasses = individualClasses.map((cls, index) => {
         const isDemo = cls.type === "demo";
-        
+
         // Get tutor name from multiple possible sources
         let tutorName = "Tutor not assigned";
         if (cls.tutor_name) {
@@ -58,7 +58,7 @@ const MyClasses = () => {
         } else if (cls.zoom_link && cls.zoom_link !== "https://zoom.us/j/your_meeting_id") {
           meetingLink = cls.zoom_link;
         }
-        
+
         return {
           id: cls.id || `class-${index}-${cls.date_time}`,
           title: isDemo ? "Demo Class" : "Regular Class",
@@ -76,9 +76,9 @@ const MyClasses = () => {
             mode: cls.mode || "online",
             time: cls.date_time
               ? new Date(cls.date_time).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
+                hour: "2-digit",
+                minute: "2-digit",
+              })
               : "N/A",
             date: cls.date_time
               ? new Date(cls.date_time).toLocaleDateString()
@@ -90,7 +90,7 @@ const MyClasses = () => {
       // Format group classes
       const formattedGroupClasses = groupClasses.map((cls, index) => {
         console.log("Processing group class:", cls);
-        
+
         // Get tutor name from multiple possible sources
         let tutorName = "Tutor not assigned";
         if (cls.tutor_name) {
@@ -140,7 +140,7 @@ const MyClasses = () => {
         } else if (cls.scheduled_date) {
           displayDate = new Date(cls.scheduled_date).toLocaleDateString();
         }
-        
+
         return {
           id: cls.id || `group-class-${index}-${cls.date_time || cls.scheduled_date}`,
           title: groupName, // Use group name as title
@@ -167,10 +167,10 @@ const MyClasses = () => {
       // Combine both individual and group classes
       const allEvents = [...formattedIndividualClasses, ...formattedGroupClasses];
 
-      console.log("Formatted individual classes:", formattedIndividualClasses); 
-      console.log("Formatted group classes:", formattedGroupClasses); 
-      console.log("All events:", allEvents); 
-      
+      console.log("Formatted individual classes:", formattedIndividualClasses);
+      console.log("Formatted group classes:", formattedGroupClasses);
+      console.log("All events:", allEvents);
+
       setEvents(allEvents);
     } catch (error) {
       console.error("Error fetching classes:", error);
@@ -189,8 +189,8 @@ const MyClasses = () => {
 
   return (
     <div className="p-3 sm:p-6 bg-gray-50 min-h-screen">
-      <ToastContainer 
-        position="top-right" 
+      <ToastContainer
+        position="top-right"
         autoClose={3000}
         hideProgressBar={false}
         newestOnTop
@@ -518,6 +518,10 @@ const MyClasses = () => {
           <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-center min-h-full">
               <AddClassForm
+                onClose={() => {
+                  setShowAddClassForm(false);
+                  navigate("/student_classes"); // ✅ Navigate to /student_classes on close
+                }}
                 onSuccess={() => {
                   setShowAddClassForm(false);
                   fetchClassesFromAPI(); // refresh after adding new class
@@ -528,6 +532,7 @@ const MyClasses = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

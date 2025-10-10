@@ -175,7 +175,14 @@ const SubscriptionPlans = ({ userType = "student" }) => {
                 user_id: userId,
               });
               toast.success("🎉 Payment Successful!");
-              setTimeout(() => navigate(`/${userType}/dashboard`), 2000);
+              // Redirect after success
+              setTimeout(() => {
+                if (userType === "tutor") {
+                  navigate("/tutor-dashboard");
+                } else {
+                  navigate("/student-dashboard");
+                }
+              }, 2000);
             } catch {
               toast.error("Payment verification failed. Contact support.");
             }
@@ -201,22 +208,11 @@ const SubscriptionPlans = ({ userType = "student" }) => {
     [selectedPlan, checkUserAuthentication, navigate, extractUserId, getRazorpayKey, loadRazorpayScript, userType]
   );
 
-  const handleClose = () => {
-    const redirectPage = userType === "tutor" ? "/tutor/dashboard" : "/student/dashboard";
-    navigate(redirectPage);
-  };
-
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center px-4 py-8">
       <ToastContainer position="top-center" />
       <div className="bg-white rounded-xl border border-gray-300 p-6 w-full max-w-6xl relative">
         {/* Cross Button */}
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 font-bold text-lg"
-        >
-          ×
-        </button>
 
         <h2 className="text-center text-[#0E2D63] text-2xl font-semibold mb-2">
           {userType === "tutor"

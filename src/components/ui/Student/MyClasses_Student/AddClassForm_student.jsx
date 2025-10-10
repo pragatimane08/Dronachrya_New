@@ -1,6 +1,6 @@
-// src/pages/student/classes/ScheduleClassForm_Student.jsx
+// src/pages/student/classes/MyClasses_Student/ScheduleClassForm_Student.jsx
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../../../api/apiclient";
 import { classRepository } from "../../../../api/repository/class.repository";
@@ -8,7 +8,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FiX } from "react-icons/fi";
 
-const ScheduleClassForm_Student = () => {
+const ScheduleClassForm_Student = ({ onClose }) => {
   const navigate = useNavigate();
   const [tutors, setTutors] = useState([]);
   const [loadingTutors, setLoadingTutors] = useState(true);
@@ -23,7 +23,7 @@ const ScheduleClassForm_Student = () => {
     mode: "",
   });
 
-  // ✅ Fetch tutors
+  // Fetch tutors
   useEffect(() => {
     const fetchTutors = async () => {
       try {
@@ -44,7 +44,7 @@ const ScheduleClassForm_Student = () => {
     fetchTutors();
   }, []);
 
-  // ✅ Handle form change
+  // Handle form change
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "tutor_id") {
@@ -62,7 +62,7 @@ const ScheduleClassForm_Student = () => {
     }
   };
 
-  // ✅ Submit
+  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -107,7 +107,11 @@ const ScheduleClassForm_Student = () => {
 
       toast.success("Class scheduled successfully!");
       setTimeout(() => {
-        navigate("/student_classes", { state: { refresh: true } });
+        if (typeof onClose === "function") {
+          onClose();
+        } else {
+          navigate("/student_classes");
+        }
       }, 1500);
     } catch (err) {
       console.error("❌ Submit error:", err);
@@ -120,13 +124,19 @@ const ScheduleClassForm_Student = () => {
   return (
     <>
       <ToastContainer />
-      <div className="relative bg-white border rounded-lg shadow w-full max-w-md">
+      <div className="relative bg-white border rounded-lg w-full max-w-md">
         {/* Header Bar */}
         <div className="bg-teal-500 text-white flex items-center justify-between px-4 py-2 rounded-t-lg">
           <h2 className="text-lg font-semibold">Schedule Class</h2>
           <button
             type="button"
-            onClick={() => navigate("/my_classes_student")}
+            onClick={() => {
+              if (typeof onClose === "function") {
+                onClose();
+              } else {
+                navigate("/student_classes");
+              }
+            }}
             className="text-white hover:text-gray-200"
           >
             <FiX size={20} />
@@ -234,3 +244,4 @@ const ScheduleClassForm_Student = () => {
 };
 
 export default ScheduleClassForm_Student;
+

@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { apiClient } from "../../../../api/apiclient";
 import { apiUrl } from "../../../../api/apiUtl";
 import { useNavigate } from "react-router-dom";
+import DefaultProfile from "../../../../assets/img/user3.png";
 
 const Bookmark = () => {
   const [bookmarkedTutors, setBookmarkedTutors] = useState([]);
@@ -14,7 +15,20 @@ const Bookmark = () => {
   const [contactInfo, setContactInfo] = useState(null);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const tutorsPerPage = 5;
+
   const navigate = useNavigate();
+
+  // Helper to correctly format image URLs or fallback to default
+  const getImageUrl = (profilePhoto) => {
+    if (!profilePhoto || profilePhoto === "null" || profilePhoto.trim() === "") {
+      return DefaultProfile; // fallback to fake profile icon
+    }
+    if (profilePhoto.startsWith("http")) return profilePhoto;
+    return `${apiUrl.baseUrl}${profilePhoto}`;
+  };
 
   const fetchBookmarks = async () => {
     try {
@@ -31,9 +45,7 @@ const Bookmark = () => {
           classes: tutor?.classes || [],
           subjects: tutor?.subjects || [],
           verified: tutor?.profile_status === "approved",
-          image: tutor?.profile_photo
-            ? `${apiUrl.baseUrl}${tutor.profile_photo}`
-            : "https://via.placeholder.com/150",
+          image: getImageUrl(tutor?.profile_photo),
           location: {
             city: location.city || "N/A",
             state: location.state || "N/A",
@@ -109,6 +121,21 @@ const Bookmark = () => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
+  // Pagination Logic
+  const totalPages = Math.ceil(bookmarkedTutors.length / tutorsPerPage);
+  const indexOfLastTutor = currentPage * tutorsPerPage;
+  const indexOfFirstTutor = indexOfLastTutor - tutorsPerPage;
+  const currentTutors = bookmarkedTutors.slice(
+    indexOfFirstTutor,
+    indexOfLastTutor
+  );
+
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
+
   return (
     <div className="w-full px-6 py-6 bg-gray-100 min-h-screen mt-10">
       <ToastContainer />
@@ -118,81 +145,127 @@ const Bookmark = () => {
       ) : bookmarkedTutors.length === 0 ? (
         <p>No bookmarks found.</p>
       ) : (
-        bookmarkedTutors.map((tutor) => (
-          <div
-            key={tutor.id}
-            className="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col sm:flex-row shadow-sm mb-6"
-          >
-            <div className="w-full sm:w-40 h-40 sm:h-auto">
-              <img
-                src={tutor.image}
-                alt={tutor.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
+        <>
+          {currentTutors.map((tutor) => (
+            <div
+              key={tutor.id}
+              className="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col sm:flex-row shadow-sm mb-6"
+            >
+              <div className="w-full sm:w-40 h-40 sm:h-auto">
+                <img
+                  src={getImageUrl(tutor.image)}
+                  alt={tutor.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => (e.target.src = DefaultProfile)} // fallback on load error
+                />
+              </div>
 
-            <div className="flex flex-col justify-between flex-1 p-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-md font-semibold text-gray-800">
-                      {tutor.name}
-                    </h3>
-                    {tutor.verified && (
-                      <span className="bg-teal-100 text-teal-600 text-xs px-2 py-0.5 rounded-full">
-                        Verified
-                      </span>
-                    )}
+              <div className="flex flex-col justify-between flex-1 p-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-md font-semibold text-gray-800">
+                        {tutor.name}
+                      </h3>
+                      {tutor.verified && (
+                        <span className="bg-teal-100 text-teal-600 text-xs px-2 py-0.5 rounded-full">
+                          Verified
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                      <FiMapPin className="text-gray-500" />
+                      {tutor.location.city}, {tutor.location.state}
+                    </p>
+                    <p className="text-sm text-gray-800 mt-1">
+                      Experience: {tutor.experience}
+                    </p>
+                    <p className="text-sm text-gray-800">
+                      Classes: {tutor.classes.join(", ") || "N/A"}
+                    </p>
+                    <p className="text-sm text-gray-800">
+                      Subjects: {tutor.subjects.join(", ") || "N/A"}
+                    </p>
                   </div>
 
-                  <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
-                    <FiMapPin className="text-gray-500" />
-                    {tutor.location.city}, {tutor.location.state}
-                  </p>
-                  <p className="text-sm text-gray-800 mt-1">
-                    Experience: {tutor.experience}
-                  </p>
-                  <p className="text-sm text-gray-800">
-                    Classes: {tutor.classes.join(", ") || "N/A"}
-                  </p>
-                  <p className="text-sm text-gray-800">
-                    Subjects: {tutor.subjects.join(", ") || "N/A"}
-                  </p>
+                  <div className="flex items-center font-medium text-sm ml-4">
+                    <button
+                      className="ml-3 text-teal-600"
+                      onClick={() => handleBookmarkToggle(tutor.id)}
+                    >
+                      <FiBookmark size={18} />
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex items-center font-medium text-sm ml-4">
+                <div className="flex flex-col sm:flex-row sm:justify-start gap-2 mt-4">
                   <button
-                    className="ml-3 text-teal-600"
-                    onClick={() => handleBookmarkToggle(tutor.id)}
+                    className="bg-teal-500 hover:bg-teal-600 text-white text-sm px-4 py-1.5 rounded-md flex items-center justify-center gap-1"
+                    onClick={() => handleViewContact(tutor.id)}
                   >
-                    <FiBookmark size={18} />
+                    <PiUser className="text-white" /> View Contact
+                  </button>
+                  <button
+                    className="border border-gray-300 text-sm px-4 py-1.5 rounded-md hover:bg-gray-100"
+                    onClick={() =>
+                      handleRaiseEnquiry(
+                        tutor.id,
+                        tutor.subjects?.[0],
+                        tutor.classes?.[0]
+                      )
+                    }
+                  >
+                    Raise Enquiry
                   </button>
                 </div>
               </div>
-
-              <div className="flex flex-col sm:flex-row sm:justify-start gap-2 mt-4">
-                <button
-                  className="bg-teal-500 hover:bg-teal-600 text-white text-sm px-4 py-1.5 rounded-md flex items-center justify-center gap-1"
-                  onClick={() => handleViewContact(tutor.id)}
-                >
-                  <PiUser className="text-white" /> View Contact
-                </button>
-                <button
-                  className="border border-gray-300 text-sm px-4 py-1.5 rounded-md hover:bg-gray-100"
-                  onClick={() =>
-                    handleRaiseEnquiry(
-                      tutor.id,
-                      tutor.subjects?.[0],
-                      tutor.classes?.[0]
-                    )
-                  }
-                >
-                  Raise Enquiry
-                </button>
-              </div>
             </div>
-          </div>
-        ))
+          ))}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center mt-6 gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`px-3 py-1 rounded ${
+                  currentPage === 1
+                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    : "bg-teal-500 text-white hover:bg-teal-600"
+                }`}
+              >
+                Prev
+              </button>
+
+              {[...Array(totalPages)].map((_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => handlePageChange(index + 1)}
+                  className={`px-3 py-1 rounded ${
+                    currentPage === index + 1
+                      ? "bg-teal-600 text-white"
+                      : "bg-gray-200 hover:bg-gray-300"
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1 rounded ${
+                  currentPage === totalPages
+                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    : "bg-teal-500 text-white hover:bg-teal-600"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Contact Info Modal */}

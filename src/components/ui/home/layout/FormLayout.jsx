@@ -35,8 +35,9 @@
 // export default FormLayout;
 
 import React from "react";
+import { Link } from "react-router-dom";
 import Backgroundimage from "../../../../assets/img/Background.png";
-import Logo from "../../../../assets/img/logo.jpg";
+import Logo from "../../../../../public/logo-r.png";
 
 const FormLayout = ({ children }) => {
   return (
@@ -46,16 +47,16 @@ const FormLayout = ({ children }) => {
     >
       {/* Logo */}
       <div className="absolute top-4 sm:top-6 left-4 sm:left-6">
-        <div className="flex items-center">
+        <Link to="/" className="flex items-center">
           <img
             src={Logo}
             alt="Dronachrya Logo"
-            className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 object-cover mr-3"
+            className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 object-cover mr-2"
           />
-          <h1 className="text-white text-lg sm:text-xl md:text-2xl font-bold drop-shadow-lg">
+          <h1 className="text-white text-base sm:text-lg md:text-xl font-bold drop-shadow-lg">
             Dronachrya
           </h1>
-        </div>
+        </Link>
       </div>
 
       {/* Fixed card for forms */}

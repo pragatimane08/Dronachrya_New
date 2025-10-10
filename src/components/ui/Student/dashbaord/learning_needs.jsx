@@ -7,11 +7,13 @@ import { PiChalkboardTeacherDuotone } from "react-icons/pi";
 import { LuCalendarDays } from "react-icons/lu";
 import { BiBookBookmark } from "react-icons/bi";
 import { getStudentProfile } from "../../../../api/repository/LearningNeed.repository";
+import AddClassForm from "../../Student/MyClasses_Student/AddClassForm_student"; // ✅ Import form
 
 const LearningProfilePage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showAddClassForm, setShowAddClassForm] = useState(false); // ✅ For modal visibility
   const [studentInfo, setStudentInfo] = useState({
     subjects: [],
     class_modes: [],
@@ -34,9 +36,10 @@ const LearningProfilePage = () => {
     fetchStudentData();
   }, []);
 
+  // ✅ Open demo form as modal
   const handleBookDemo = () => {
-    toast.success("Redirecting to demo booking form...");
-    setTimeout(() => navigate("/add_class-form_student"), 1200);
+    toast.info("Opening demo booking form...");
+    setShowAddClassForm(true);
   };
 
   return (
@@ -49,8 +52,12 @@ const LearningProfilePage = () => {
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h2 className="text-lg md:text-xl font-semibold text-blue-900">My Learning Profile</h2>
-              <p className="text-sm text-gray-500">Your personalized learning preferences</p>
+              <h2 className="text-lg md:text-xl font-semibold text-blue-900">
+                My Learning Profile
+              </h2>
+              <p className="text-sm text-gray-500">
+                Your personalized learning preferences
+              </p>
             </div>
             <span className="text-green-600 text-xs md:text-sm font-medium bg-green-100 px-3 py-1 rounded-full">
               ● Active Profile
@@ -61,18 +68,25 @@ const LearningProfilePage = () => {
           <div className="mb-2 border border-blue-100 rounded-xl p-3">
             <div className="flex justify-between items-center mb-1">
               <h3 className="text-blue-900 font-medium">Subjects</h3>
-              <span className="text-xs text-blue-500">{studentInfo.subjects.length} selected</span>
+              <span className="text-xs text-blue-500">
+                {studentInfo.subjects.length} selected
+              </span>
             </div>
             <div className="flex flex-wrap gap-2">
               {studentInfo.subjects.length ? (
                 studentInfo.subjects.map((subj, idx) => (
-                  <span key={idx} className="text-sm text-blue-700 bg-blue-100 rounded-full px-3 py-1 flex items-center gap-1">
+                  <span
+                    key={idx}
+                    className="text-sm text-blue-700 bg-blue-100 rounded-full px-3 py-1 flex items-center gap-1"
+                  >
                     <BiBookBookmark className="text-base" />
                     {subj}
                   </span>
                 ))
               ) : (
-                <span className="text-gray-500 italic text-sm">No subjects selected yet</span>
+                <span className="text-gray-500 italic text-sm">
+                  No subjects selected yet
+                </span>
               )}
             </div>
           </div>
@@ -81,18 +95,25 @@ const LearningProfilePage = () => {
           <div className="mb-2 border border-green-100 rounded-xl p-3">
             <div className="flex justify-between items-center mb-1">
               <h3 className="text-green-800 font-medium">Learning Modes</h3>
-              <span className="text-xs text-green-600">{studentInfo.class_modes.length} available</span>
+              <span className="text-xs text-green-600">
+                {studentInfo.class_modes.length} available
+              </span>
             </div>
             <div className="flex flex-wrap gap-2">
               {studentInfo.class_modes.length ? (
                 studentInfo.class_modes.map((mode, idx) => (
-                  <span key={idx} className="text-sm text-green-800 bg-green-100 rounded-full px-3 py-1 flex items-center gap-1">
+                  <span
+                    key={idx}
+                    className="text-sm text-green-800 bg-green-100 rounded-full px-3 py-1 flex items-center gap-1"
+                  >
                     <PiChalkboardTeacherDuotone className="text-base" />
                     {mode} Class
                   </span>
                 ))
               ) : (
-                <span className="text-gray-500 italic text-sm">No class mode selected yet</span>
+                <span className="text-gray-500 italic text-sm">
+                  No class mode selected yet
+                </span>
               )}
             </div>
           </div>
@@ -106,12 +127,13 @@ const LearningProfilePage = () => {
                 {studentInfo.location.city}, {studentInfo.location.state}
               </span>
             ) : (
-              <span className="text-gray-500 italic text-sm">Location not selected yet</span>
+              <span className="text-gray-500 italic text-sm">
+                Location not selected yet
+              </span>
             )}
           </div>
         </div>
 
-        {/* CTA Section - Right */}
         {/* CTA Section - Right */}
         <div className="w-full md:w-1/3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl p-4 mt-8 text-center shadow-md self-start">
           <h4 className="text-base font-semibold mb-2">Ready to Start?</h4>
@@ -128,13 +150,29 @@ const LearningProfilePage = () => {
           <div className="mt-3 text-sm">
             ⭐ 4.9/5 Rating
             <br />
-            <span className="text-xs">No commitment • Cancel anytime • 100% Free trial</span>
+            <span className="text-xs">
+              No commitment • Cancel anytime • 100% Free trial
+            </span>
           </div>
         </div>
-
       </div>
+
+      {/* ✅ Modal Popup for AddClassForm */}
+      {showAddClassForm && (
+        <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-40 z-50 p-4">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-xl p-4">
+            <AddClassForm
+              onSuccess={() => {
+                setShowAddClassForm(false);
+                toast.success("Demo class request submitted successfully!");
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default LearningProfilePage;
+

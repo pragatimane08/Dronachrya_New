@@ -95,7 +95,7 @@ export default function HomeSubscriptionPlans() {
   return (
     <PlanSelectorTemplate
       apiEndpoint="/subscriptions/student"
-      redirectPath="/studentreg"
+      redirectPath="/book-demo"
       skipPath="/home1"
       role="student"
     />

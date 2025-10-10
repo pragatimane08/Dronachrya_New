@@ -209,6 +209,7 @@
 
 // export default FindStudents;
 
+
 import React, { useState, useEffect } from "react";
 import { searchStudents } from "../../../../api/repository/Filter_student.repository";
 import FilterSidebar from "./FilterSidebar";
@@ -220,13 +221,14 @@ import { Filter, X } from "lucide-react";
 const getUserBookmarksKey = (userId) => `studentBookmarks_${userId}`;
 
 const getCurrentUserId = () => {
-  // Replace this with your actual user ID retrieval logic
-  // This could be from auth context, localStorage, Redux store, etc.
+  // Get user ID from authentication context or localStorage
+  // This should return the same ID for the same user across sessions
   const userData = localStorage.getItem('userData');
   if (userData) {
     try {
       const user = JSON.parse(userData);
-      return user.id || user.userId || user._id;
+      // Use a consistent identifier - prefer user ID over session-specific tokens
+      return user.id || user.userId || user._id || 'anonymous';
     } catch (error) {
       console.error('Error parsing user data:', error);
     }
@@ -278,14 +280,26 @@ const FindStudents = () => {
     initializeUser();
     window.addEventListener('resize', checkDevice);
     
-    return () => window.removeEventListener('resize', checkDevice);
+    // Listen for authentication changes
+    window.addEventListener('storage', initializeUser);
+    
+    return () => {
+      window.removeEventListener('resize', checkDevice);
+      window.removeEventListener('storage', initializeUser);
+    };
   }, []);
 
   // Load bookmarks for current user when component mounts or user changes
   useEffect(() => {
     if (currentUserId) {
       const bookmarks = getUserBookmarks(currentUserId);
-      // You can use this to pre-populate bookmarked students if needed
+      // Update students with bookmark status when user changes
+      setStudents(prevStudents => 
+        prevStudents.map(student => ({
+          ...student,
+          isBookmarked: bookmarks.some(bm => bm.user_id === student.user_id)
+        }))
+      );
     }
   }, [currentUserId]);
 

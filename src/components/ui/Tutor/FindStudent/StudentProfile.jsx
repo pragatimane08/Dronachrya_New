@@ -101,6 +101,8 @@
 
 import React from "react";
 import { X, MapPin, BookOpen, School, Languages, Calendar, Bookmark as BookmarkIcon } from "lucide-react";
+import { apiClient } from "../../../../api/apiclient";
+import { toast } from "react-toastify";
 
 const StudentProfile = ({ student, onClose, onBookmark }) => {
   if (!student) return null;
@@ -125,9 +127,31 @@ const StudentProfile = ({ student, onClose, onBookmark }) => {
     ? student.availability.join(", ")
     : student.availability || "N/A";
 
-  const handleBookmark = () => {
-    if (onBookmark) {
-      onBookmark(student.user_id, student.name);
+  const handleBookmark = async () => {
+    try {
+      // API call to toggle bookmark
+      await apiClient.post("/bookmarks/toggle", {
+        bookmarked_user_id: student.user_id
+      });
+      
+      // Call parent callback if provided
+      if (onBookmark) {
+        await onBookmark(student.user_id, student.name);
+      }
+      
+      // Show success message
+      if (student.isBookmarked) {
+        toast.info("Student removed from bookmarks");
+      } else {
+        toast.success("Student added to bookmarks");
+      }
+      
+      // Trigger storage event to update other components
+      window.dispatchEvent(new Event('storage'));
+      
+    } catch (error) {
+      console.error("Failed to update bookmark:", error);
+      toast.error("Failed to update bookmark");
     }
   };
 

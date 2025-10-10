@@ -5,13 +5,14 @@ const menuItems = [
   { icon: <FiHome />, label: "Dashboard", route: "/admin-dashboard" },
   { icon: <FiUsers />, label: "Manage Tutors", route: "/admin_manage_tutor" },
   { icon: <FiUser />, label: "Manage Students", route: "/admin_manage_students" },
+   { icon: <FiClipboard />, label: "Student Enquiries", route: "/admin_student_enquiries" },
   { icon: <FiClipboard />, label: "Subscriptions", route: "/admin_subscriptions" },
   { icon: <FiTag />, label: "Coupons & Offers", route: "/admin_coupon_offers" },
   { icon: <FiGift />, label: "Referral Codes", route: "/admin_referral_code" },
   { icon: <FiSend />, label: "Enquiries", route: "/admin_send_notifications" },
   { icon: <FiBarChart2 />, label: "Analytics", route: "/admin_analysis" },
   { icon: <FiFileText />, label: "Invoices", route: "/admin_invoices" },
-   { icon: <FiUsers />, label: "Clases", route: "/admin_group_clases" },
+  { icon: <FiUsers />, label: "Clases", route: "/admin_group_clases" },
 ];
 
 

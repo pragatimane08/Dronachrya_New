@@ -41,6 +41,7 @@ import AboutUs from "./components/ui/home/Footer/AboutUs";
 import ContactUs from "./components/ui/home/Footer/Contactus";
 import Privacypolicy from "./components/ui/home/Footer/Privacypolicy";
 import TermsAndConditions from "./components/ui/home/Footer/TermsAndConditions";
+import ShowAllTutors from "./components/ui/home/HomePageComponent/HomePage/ShowEnquiry";
 
 {/*Plan Dropdown Component Import */ }
 import PlanDropdown from "./components/ui/home/HomePageComponent/HomePage/Plan/PlanDropdown";
@@ -64,6 +65,7 @@ import AdminAnalysis from "./Pages/admin/admin_analytics";
 import AdminInvoices from "./Pages/admin/admin_invoices";
 import AdminForgotPassword from "./components/ui/admin/Registration/ForgotPassword";
 import AdminGroupClases from "./Pages/admin/admin_classes";
+import AdminStudentEnquiries from "./Pages/admin/admin_studentenquiries";
 
 {/*Tutor Component Imports */ }
 import TutorDashboard from "./Pages/tutor/tutor_dashboard";
@@ -117,7 +119,7 @@ import My_Bookmark_Student_Folder from "./components/ui/Student/Bookmark/Bookmar
 import BookMark from "./components/ui/Student/Bookmark/Bookmark";
 import MyPlanUpgrader_Student from "./components/ui/Student/account/Billing_History/MyPlan_Student";
 import EnquiryForm_Student from "./components/ui/Student/dashbaord/EnquiryForm_Student";
-import Upgrade_Plan_Student from "./components/ui/Student/account/Billing_History/Upgrade_Plan";
+import Upgrade_Plan_Student from "./components/ui/Student/account/Upgrade_Plan/Upgrade_now_student";
 import Student_invoice from "./Pages/student/Student_invoice";
 import Student_Referal from "./Pages/student/student_referal";
 import RefralDashbaord_student from "./components/ui/Student/ReferStudent/ReferralDashboard_Student";
@@ -166,7 +168,8 @@ const App = () => {
           <Route path="/Privacypolicy" element={<Privacypolicy />} />
           <Route path="/TermsAndConditions" element={<TermsAndConditions />} />
           <Route path="/plan-dropdown" element={<PlanDropdown />} />
-
+          <Route path="/show-all-tutors" element={<ShowAllTutors />} />
+          
           {/*For testing purpose */}
           <Route path="/schedule-group-class" element={<ScheduleGroupClass />} />
           <Route path="/groups" element={<GroupsPage />} />
@@ -190,6 +193,7 @@ const App = () => {
           <Route path="/admin_analysis" element={<ProtectedRoute allowedRoles={["admin"]}><AdminAnalysis /></ProtectedRoute>} />
           <Route path="/admin_invoices" element={<ProtectedRoute allowedRoles={["admin"]}><AdminInvoices /></ProtectedRoute>} />
            <Route path="/admin_group_clases" element={<ProtectedRoute allowedRoles={["admin"]}><AdminGroupClases /></ProtectedRoute>} />
+          <Route path="/admin_student_enquiries" element={<ProtectedRoute allowedRoles={["admin"]}><AdminStudentEnquiries /></ProtectedRoute>} />
 
           {/* Protected Tutor Routes */}
           <Route path="/tutor-dashboard" element={<ProtectedRoute allowedRoles={["tutor"]}><TutorDashboard /></ProtectedRoute>} />
