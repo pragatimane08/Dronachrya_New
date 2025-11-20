@@ -4,7 +4,6 @@ import ChatInput from './ChatInput';
 const ChatWindow = ({ contact, onSendMessage }) => {
   const messageEndRef = useRef(null);
 
-  // Scroll to bottom when messages update
   useEffect(() => {
     if (messageEndRef.current) {
       messageEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -28,10 +27,10 @@ const ChatWindow = ({ contact, onSendMessage }) => {
       {/* Header */}
       <div className="flex items-center border-b px-4 py-2">
         <div className="bg-teal-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm uppercase mr-3">
-          {contact.name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
+          {contact.displayName?.split(' ').map(n => n[0]).join('').slice(0, 2)}
         </div>
         <div>
-          <p className="text-sm font-semibold">{contact.name}</p>
+          <p className="text-sm font-semibold">{contact.displayName}</p>
           <p className="text-xs text-green-500">Online</p>
         </div>
       </div>
@@ -43,7 +42,7 @@ const ChatWindow = ({ contact, onSendMessage }) => {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 py-2 space-y-2">
-        {contact.messages && contact.messages.length > 0 ? (
+        {contact.messages?.length > 0 ? (
           contact.messages.map((msg, index) => (
             <div
               key={index}

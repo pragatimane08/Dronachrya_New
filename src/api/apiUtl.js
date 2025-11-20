@@ -128,19 +128,29 @@ export const apiUrl = {
   referrals: {
     all: "/referrals/all",
     generate: "/referrals/generate",
-    reward: (id) => `/referrals/reward/${id}`,
+    reward: (id) => `/referrals/reward/${id}`, // <-- function
     delete: (id) => `/referrals/${id}`,
   },
-
   notifications: {
     list: "/notifications/admin/all",
     sendSingle: "/admin/users/send-message",
     sendBulk: "/admin/users/send-bulk-message",
   },
 
-  analytics: {
-    summary: "/analytics/summary",
+
+ analytics: {
+    summary: '/analytics/summary',
+    classesChart: '/analytics/classes/chart',
+    enquiriesChart: '/analytics/enquiries/chart',
+    usersChart: '/analytics/users/chart'
   },
+
+  invoices: {
+  student: "/invoices/my",
+  downloadPDF: (paymentId) => `/invoices/${paymentId}/pdf`,
+}
+
+
 };
 
 export const apiUtl = {

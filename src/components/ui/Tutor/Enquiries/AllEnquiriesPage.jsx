@@ -1,4 +1,3 @@
-// src/pages/AllEnquiriesPage.jsx
 import React, { useEffect, useState } from "react";
 import { enquiryRepository } from "../../../../api/repository/enquiry.repository";
 import { toast } from "react-toastify";
@@ -10,20 +9,41 @@ import {
   FiHome,
   FiMail,
   FiPhone,
+  FiBookOpen,
+  FiDollarSign,
   FiBook,
-  FiDollarSign
+  FiMessageSquare,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
+// ✅ Reusable EnquiryCard
 const EnquiryCard = ({
-  name, subject, location, time, learningMode,
-  email, phone, grade, budget, onRespond
+  name,
+  subject,
+  className,
+  location,
+  time,
+  learningMode,
+  email,
+  phone,
+  grade,
+  budget,
+  onRespond,
 }) => {
+  const formatLocation = () => {
+    if (typeof location === "object" && location !== null) {
+      const { city, state, country } = location;
+      return [city, state, country].filter(Boolean).join(", ") || "Location not specified";
+    }
+    return location || "Location not specified";
+  };
+
   return (
-    <div className="bg-white rounded-2xl shadow-md hover:shadow-lg p-6 transition-all border border-gray-100 w-full h-full flex flex-col justify-between">
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-md p-5 border border-gray-100 transition-all w-full flex flex-col justify-between">
       <div className="space-y-4">
+        {/* Name + Subject */}
         <div className="flex items-start gap-4">
-          <div className="bg-green-100 text-green-600 p-3 rounded-full">
+          <div className="bg-teal-100 text-teal-600 p-3 rounded-full">
             <FiUser size={20} />
           </div>
           <div>
@@ -35,18 +55,21 @@ const EnquiryCard = ({
           </div>
         </div>
 
+        {/* Details */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
           <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <FiBookOpen size={16} />
+              <span>Class: {className || "N/A"}</span>
+            </div>
             <div className="flex items-center gap-2">
               {learningMode === "online" ? <FiMonitor size={16} /> : <FiHome size={16} />}
               <span>{learningMode === "online" ? "Online Classes" : "Offline Classes"}</span>
             </div>
-            {location && (
-              <div className="flex items-center gap-2">
-                <FiMapPin size={16} />
-                <span>{location}</span>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <FiMapPin size={16} />
+              <span>{formatLocation()}</span>
+            </div>
             <div className="flex items-center gap-2">
               <FiClock size={16} />
               <span>{time}</span>
@@ -87,15 +110,15 @@ const EnquiryCard = ({
           onClick={onRespond}
           className="bg-teal-600 hover:bg-teal-700 text-white px-5 py-2 rounded-md text-sm font-medium transition"
         >
-          <FiMail className="inline-block mr-2" size={16} />
-          Respond
+          <FiMessageSquare className="inline-block mr-2" size={16} />
+          Respond Now
         </button>
       </div>
     </div>
   );
 };
 
-
+// ✅ Main Page
 const AllEnquiriesPage = () => {
   const [enquiries, setEnquiries] = useState([]);
   const navigate = useNavigate();
@@ -103,10 +126,40 @@ const AllEnquiriesPage = () => {
   const fetchAll = async () => {
     try {
       const res = await enquiryRepository.getAll();
-      const { sent = [], received = [] } = res.data;
-      const role = localStorage.getItem("role");
-      const data = role === "tutor" ? received : sent;
-      setEnquiries(data);
+      const allEnquiries = res?.data?.enquiries || [];
+
+      const role = localStorage.getItem("role")?.toLowerCase();
+      const userId = localStorage.getItem("user_id");
+
+      // ✅ Filter enquiries for logged-in user
+      const filtered = allEnquiries.filter((enquiry) =>
+        role === "tutor"
+          ? enquiry.receiver?.id === userId
+          : enquiry.sender?.id === userId
+      );
+
+      const processed = filtered.map((enquiry) => {
+        const isTutor = role === "tutor";
+        const user = isTutor ? enquiry.sender : enquiry.receiver;
+
+        return {
+          id: enquiry.id,
+          name: user?.name || "Unknown",
+          subject: enquiry.subject || "N/A",
+          className: enquiry.class || "N/A",
+          location: user?.location || null,
+          time: new Date(enquiry.created_at).toLocaleString(),
+          learningMode: enquiry.learning_mode || "offline",
+          email: user?.email,
+          phone: user?.phone,
+          grade: enquiry.gradeLevel,
+          budget: enquiry.budget,
+          sender_id: enquiry.sender?.id,
+          receiver_id: enquiry.receiver?.id,
+        };
+      });
+
+      setEnquiries(processed);
     } catch (error) {
       toast.error("Failed to load enquiries");
     }
@@ -116,15 +169,20 @@ const AllEnquiriesPage = () => {
     fetchAll();
   }, []);
 
-  const handleRespond = (id) => {
-    navigate(`/message_tutor/${id}`);
+  const handleRespond = (enquiry) => {
+    navigate(`/message_tutor?id=${enquiry.id}&sender=${enquiry.sender_id}&receiver=${enquiry.receiver_id}`);
   };
 
   return (
-    <div className="py-8 bg-gray-50 min-h-screen">
+    <div className="py-10 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
         <div className="mb-8 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Manage Enquiries</h1>
+          <h1 className="text-2xl font-bold text-gray-800">
+            {localStorage.getItem("role")?.toLowerCase() === "tutor"
+              ? "All Student Enquiries"
+              : "All Tutor Enquiries"}
+          </h1>
           <div className="flex gap-3">
             <button
               onClick={() => navigate(-1)}
@@ -133,7 +191,7 @@ const AllEnquiriesPage = () => {
               Back
             </button>
             <button
-              onClick={() => fetchAll()}
+              onClick={fetchAll}
               className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition flex items-center gap-2"
             >
               <FiClock size={16} />
@@ -142,31 +200,18 @@ const AllEnquiriesPage = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Enquiries */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {enquiries.length > 0 ? (
-            enquiries.map((enquiry) => {
-              const isTutor = localStorage.getItem("role") === "tutor";
-              const sender = enquiry?.Sender?.Student || enquiry?.Sender?.Tutor;
-              const receiver = enquiry?.Receiver?.Tutor || enquiry?.Receiver?.Student;
-
-              return (
-                <EnquiryCard
-                  key={enquiry.id}
-                  name={isTutor ? sender?.name || "Unknown Student" : receiver?.name || "Unknown Tutor"}
-                  subject={enquiry.subject || "No Subject"}
-                  location={enquiry?.location || "Location not specified"}
-                  time={new Date(enquiry.createdAt).toLocaleString()}
-                  learningMode={enquiry?.learningMode || "offline"}
-                  email={sender?.email}
-                  phone={sender?.phone}
-                  grade={enquiry?.gradeLevel}
-                  budget={enquiry?.budget}
-                  onRespond={() => handleRespond(enquiry.id)}
-                />
-              );
-            })
+            enquiries.map((enquiry) => (
+              <EnquiryCard
+                key={enquiry.id}
+                {...enquiry}
+                onRespond={() => handleRespond(enquiry)}
+              />
+            ))
           ) : (
-            <div className="col-span-full py-12 text-center">
+            <div className="col-span-full py-16 text-center">
               <div className="bg-white p-8 rounded-xl shadow-sm max-w-md mx-auto">
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No enquiries found</h3>
                 <p className="text-gray-500">You don't have any enquiries yet.</p>

@@ -235,27 +235,27 @@ const MyClasses = () => {
 
       const classData = res.data.classes || [];
 
-      const formatted = classData
-        .filter((cls) => cls.status === "Scheduled" || cls.type === "demo")
-        .map((cls) => {
-          const isDemo = cls.type === "demo" || (!!cls.Student || !!cls.student_name);
-          return {
-            id: cls.id,
-            title: isDemo ? "Demo Class" : "Regular Class",
-            date: cls.date_time?.split("T")[0],
-            extendedProps: {
-              name: cls.name || cls.title || "Class",
-              student: cls.Student?.name || cls.student_name || "N/A",
-              tutor: cls.Tutor?.name || cls.tutor_name || "N/A",
-              subject: cls.subject || "N/A",
-              status: cls.status || "Scheduled",
-              type: isDemo ? "demo" : "regular",
-              zoomLink: cls.zoom_link || "#",
-              mode: cls.mode || "online",
-              time: cls.date_time ? new Date(cls.date_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "N/A"
-            },
-          };
-        });
+     const formatted = classData.map((cls) => {
+  const isDemo = cls.type === "demo" || (!!cls.Student || !!cls.student_name);
+  return {
+    id: cls.id,
+    title: isDemo ? "Demo Class" : "Regular Class",
+    date: cls.date_time?.split("T")[0],
+    extendedProps: {
+      name: cls.name || cls.title || "Class",
+      student: cls.Student?.name || cls.student_name || "N/A",
+      tutor: cls.Tutor?.name || cls.tutor_name || "N/A",
+      subject: cls.subject || "N/A",
+      status: cls.status || "Scheduled",
+      type: isDemo ? "demo" : "regular",
+      zoomLink: cls.zoom_link || "#",
+      mode: cls.mode || "online",
+      time: cls.date_time
+        ? new Date(cls.date_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        : "N/A",
+    },
+  };
+});
 
       setEvents(formatted);
       toast.success("Classes loaded successfully");
