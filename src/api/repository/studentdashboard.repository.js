@@ -6,7 +6,7 @@ const getTutors = () =>
       const profile = tutor.profile || {};
       return {
         name: profile.name || tutor.name || "Unnamed Tutor",
-        image: profile.image || "/default-avatar.png", // Fallback image
+        image: profile.image || "/default-avatar.png", 
         subjects: profile.subjects?.join(", ") || "N/A",
         classes: profile.classes?.join(", ") || "N/A",
         experience: profile.experience || "N/A",

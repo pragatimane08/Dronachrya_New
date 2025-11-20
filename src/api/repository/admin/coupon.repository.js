@@ -7,4 +7,6 @@ export const CouponRepository = {
   toggle: (id) => apiClient.patch(apiUrl.admin.coupons.toggle(id)),
   remove: (id) => apiClient.delete(apiUrl.admin.coupons.delete(id)),
   apply: ({ code, plan }) => apiClient.post(apiUrl.coupon.apply, { code, plan }),
+  getUsage: () => apiClient.get(apiUrl.admin.coupons.usage),
+  getAvailable: () => apiClient.get(apiUrl.coupons.available),
 };

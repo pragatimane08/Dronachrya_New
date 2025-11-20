@@ -1,8 +1,9 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../../../api/apiclient";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import FormLayout from "../../home/layout/FormLayout";
 
 const availableLanguages = ["English", "Hindi", "Telugu", "Tamil"];
 
@@ -13,41 +14,60 @@ const CreateProfile = () => {
   const [university, setUniversity] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
+  // Add language from predefined buttons
   const handleLanguageSelect = (lang) => {
-    if (!languages.find((l) => l.name === lang)) {
+    if (!languages.find((l) => l.name.toLowerCase() === lang.toLowerCase())) {
       setLanguages([...languages, { name: lang, proficiency: "" }]);
+      setErrors((prev) => ({ ...prev, languages: "" }));
     }
   };
 
-  const handleLanguageChange = (index, value) => {
+  // Update language name or proficiency
+  const handleLanguageChange = (index, field, value) => {
     const updated = [...languages];
-    updated[index].proficiency = value;
+    updated[index][field] = value;
     setLanguages(updated);
+    setErrors((prev) => ({ ...prev, languages: "" }));
   };
 
+  // Add new empty language row for custom input
   const handleAddMore = () => {
     setLanguages([...languages, { name: "", proficiency: "" }]);
+    setErrors((prev) => ({ ...prev, languages: "" }));
   };
 
+  // Remove language row
+  const handleRemoveLanguage = (index) => {
+    const updated = [...languages];
+    updated.splice(index, 1);
+    setLanguages(updated);
+    setErrors((prev) => ({ ...prev, languages: "" }));
+  };
+
+  // Validation
   const validate = () => {
-    const errors = [];
-    if (languages.length === 0 || languages.some((l) => !l.name || !l.proficiency)) {
-      errors.push("⚠ Please select at least one language and its proficiency.");
+    const newErrors = {};
+    if (
+      languages.length === 0 ||
+      languages.some((l) => !l.name || !l.proficiency)
+    ) {
+      newErrors.languages =
+        "Please select at least one language and its proficiency.";
     }
-    if (!degree) errors.push("⚠ Degree is required.");
-    if (!university.trim()) errors.push("⚠ University name is required.");
-    if (!status) errors.push("⚠ Please select education status (Completed/Pursuing).");
-    return errors;
+    if (!degree) newErrors.degree = "Degree is required.";
+    if (!university.trim())
+      newErrors.university = "University name is required.";
+    if (!status)
+      newErrors.status = "Please select education status (Completed/Pursuing).";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
+  // Handle submit
   const handleNext = async () => {
-    const errors = validate();
-    if (errors.length > 0) {
-      errors.forEach((error) => toast.error(error));
-      console.warn("Validation errors:", errors);
-      return;
-    }
+    if (!validate()) return;
 
     const payload = {
       languages,
@@ -56,133 +76,186 @@ const CreateProfile = () => {
       school_name: university,
     };
 
-    console.log("📤 Submitting tutor profile data:", payload);
-
     try {
       setLoading(true);
       await apiClient.put("/profile/tutor", payload);
-      toast.success("✅ Profile updated successfully.");
-      console.log("✅ API success. Redirecting to next section...");
-      setTimeout(() => navigate("/create-profile-tutor2"), 1500); // Slight delay to show toast
+      navigate("/create-profile-tutor2");
     } catch (err) {
-      console.error("❌ Profile submission failed:", err);
-      toast.error("❌ Submission failed. Please try again later.");
+      setErrors((prev) => ({
+        ...prev,
+        submit: "Submission failed. Please try again later.",
+      }));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
-      <div className="min-h-screen flex items-center justify-center bg-white px-4">
-        <div className="max-w-xl w-full border rounded-md p-8 shadow">
-          <h2 className="text-center text-xl md:text-2xl font-semibold text-[#1E3A8A] mb-6">
-            Create Your Profile
-          </h2>
+    <FormLayout>
+      {/* ❌ Cross button */}
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
+      >
+        <XMarkIcon className="w-6 h-6" />
+      </button>
 
-          {/* Languages */}
-          <div>
-            <p className="text-base md:text-lg font-medium text-gray-700 mb-1">
-              Languages you speak? <span className="text-red-500">*</span>
-            </p>
-            <div className="flex flex-wrap gap-2 text-sm md:text-base text-[#3C3C3C] mb-3">
-              {availableLanguages.map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => handleLanguageSelect(lang)}
-                  className="text-blue-700 hover:underline"
-                  type="button"
-                >
-                  {lang}
-                </button>
-              ))}
-            </div>
+      {/* Heading */}
+      <h2 className="text-center text-xl sm:text-2xl font-bold text-[#1E3A8A] mb-6">
+        Create Your Profile
+      </h2>
 
-            {languages.map((lang, idx) => (
-              <div key={idx} className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  value={lang.name}
-                  readOnly
-                  className="border border-gray-300 rounded px-3 py-2 w-1/2 bg-gray-100 text-sm md:text-base"
-                />
-                <select
-                  value={lang.proficiency}
-                  onChange={(e) => handleLanguageChange(idx, e.target.value)}
-                  className="border border-gray-300 rounded px-3 py-2 w-1/2 text-gray-700 text-sm md:text-base"
-                >
-                  <option value="">Select Proficiency</option>
-                  <option value="Basic">Basic</option>
-                  <option value="Conversational">Conversational</option>
-                  <option value="Fluent">Fluent</option>
-                  <option value="Native">Native</option>
-                </select>
-              </div>
-            ))}
+      {/* Languages Section */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Languages you speak <span className="text-red-500">*</span>
+        </label>
 
-            <button
-              type="button"
-              onClick={handleAddMore}
-              className="text-blue-600 underline mb-4 text-sm md:text-base"
-            >
-              + Add More
-            </button>
-          </div>
+        {/* Predefined buttons */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {availableLanguages.map((lang) => {
+            const isSelected = languages.find(
+              (l) => l.name.toLowerCase() === lang.toLowerCase()
+            );
+            return (
+              <button
+                key={lang}
+                onClick={() => handleLanguageSelect(lang)}
+                type="button"
+                className={`px-3 py-1.5 rounded-full border text-xs transition ${
+                  isSelected
+                    ? "bg-[#35BAA3] text-white border-[#35BAA3]"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                {lang}
+              </button>
+            );
+          })}
+        </div>
 
-          {/* Education Details */}
-          <div className="mt-4">
-            <p className="text-base md:text-lg font-medium text-gray-700 mb-2">
-              Highest Education <span className="text-red-500">*</span>
-            </p>
-
-            <select
-              value={degree}
-              onChange={(e) => setDegree(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 mb-3 text-sm md:text-base"
-            >
-              <option value="">Select Degree</option>
-              <option value="Bachelors">Bachelors</option>
-              <option value="Masters">Masters</option>
-              <option value="PhD">PhD</option>
-              <option value="Diploma">Diploma</option>
-            </select>
-
+        {/* Added languages list */}
+        {languages.map((lang, idx) => (
+          <div
+            key={idx}
+            className="flex items-center gap-2 mb-2 border border-gray-200 p-2 rounded-lg"
+          >
             <input
               type="text"
-              placeholder="School/University Name"
-              value={university}
-              onChange={(e) => setUniversity(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 mb-3 text-sm md:text-base"
+              value={lang.name}
+              onChange={(e) =>
+                handleLanguageChange(idx, "name", e.target.value)
+              }
+              placeholder="Enter language"
+              className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm"
             />
-
             <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 mb-6 text-sm md:text-base"
+              value={lang.proficiency}
+              onChange={(e) =>
+                handleLanguageChange(idx, "proficiency", e.target.value)
+              }
+              className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm"
             >
-              <option value="">Completed/Pursuing</option>
-              <option value="Completed">Completed</option>
-              <option value="Pursuing">Pursuing</option>
+              <option value="">Select Proficiency</option>
+              <option value="Basic">Basic</option>
+              <option value="Conversational">Conversational</option>
+              <option value="Fluent">Fluent</option>
+              <option value="Native">Native</option>
             </select>
-          </div>
-
-          {/* Submit Button */}
-          <div className="text-center">
             <button
-              onClick={handleNext}
-              disabled={loading}
-              className="bg-[#35BAA3] hover:bg-[#2ea18e] text-white px-6 py-2 rounded font-medium text-base md:text-lg"
+              type="button"
+              onClick={() => handleRemoveLanguage(idx)}
+              className="text-red-500 hover:text-red-700"
+              title="Remove"
             >
-              {loading ? "Submitting..." : "Next"}
+              <XMarkIcon className="w-5 h-5" />
             </button>
           </div>
-        </div>
+        ))}
+        {errors.languages && (
+          <p className="text-xs text-red-500 mt-1">{errors.languages}</p>
+        )}
+
+        {/* Add more button */}
+        <button
+          type="button"
+          onClick={handleAddMore}
+          className="bg-[#35BAA3] hover:bg-[#2ea18e] disabled:opacity-60 text-white px-4 py-1.5 rounded-lg text-sm transition mt-2"
+        >
+          + Add More
+        </button>
       </div>
 
-      {/* Toast container */}
-      <ToastContainer position="top-right" autoClose={3000} />
-    </>
+      {/* Education Section */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Highest Education <span className="text-red-500">*</span>
+        </label>
+
+        <select
+          value={degree}
+          onChange={(e) => setDegree(e.target.value)}
+          className="w-full border border-gray-300 rounded px-2 py-1.5 mb-1 text-sm"
+        >
+          <option value="">Select Degree</option>
+          <option value="Bachelors">Bachelors</option>
+          <option value="Masters">Masters</option>
+          <option value="PhD">PhD</option>
+          <option value="Diploma">Diploma</option>
+        </select>
+        {errors.degree && (
+          <p className="text-xs text-red-500 mb-1">{errors.degree}</p>
+        )}
+
+        <input
+          type="text"
+          placeholder="School/University Name"
+          value={university}
+          onChange={(e) => setUniversity(e.target.value)}
+          className="w-full border border-gray-300 rounded px-2 py-1.5 mb-1 text-sm"
+        />
+        {errors.university && (
+          <p className="text-xs text-red-500 mb-1">{errors.university}</p>
+        )}
+
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+        >
+          <option value="">Completed/Pursuing</option>
+          <option value="Completed">Completed</option>
+          <option value="Pursuing">Pursuing</option>
+        </select>
+        {errors.status && (
+          <p className="text-xs text-red-500 mt-1">{errors.status}</p>
+        )}
+      </div>
+
+      {/* Submit Errors */}
+      {errors.submit && (
+        <p className="text-xs text-red-500 mb-3">{errors.submit}</p>
+      )}
+
+      {/* Buttons */}
+      <div className="flex justify-between mt-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-1.5 rounded-lg text-sm transition"
+        >
+          Back
+        </button>
+        <button
+          onClick={handleNext}
+          disabled={loading}
+          className="bg-[#35BAA3] hover:bg-[#2ea18e] disabled:opacity-60 text-white px-4 py-1.5 rounded-lg text-sm transition"
+        >
+          {loading ? "Submitting..." : "Save & Continue"}
+        </button>
+      </div>
+    </FormLayout>
   );
 };
 
 export default CreateProfile;
+

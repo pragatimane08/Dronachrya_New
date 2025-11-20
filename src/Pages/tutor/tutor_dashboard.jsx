@@ -2,7 +2,7 @@ import React from 'react';
 import Mainlayout from '../../components/layout/MainLayout';
 // import ProfileCompletion from '../../components/ui/Tutor/dashbaord/profilecompletion';
 import BoostProfile from '../../components/ui/Tutor/dashbaord/boostprofile';
-import EnquiryList from '../../components/ui/Tutor/dashbaord/enquirycard';
+import EnquiryOptions from '../../components/ui/Tutor/dashbaord/Enquiry/EnquiryOptions';
 import SubscriptionDaysRemainingTutor from '../../components/ui/Tutor/dashbaord/SubscriptionDaysRemainingTutor';
 
 const Tutordashboard = () => {
@@ -18,7 +18,7 @@ const Tutordashboard = () => {
 
         <SubscriptionDaysRemainingTutor />
         {/* <ProfileCompletion /> */}
-        <EnquiryList />
+        <EnquiryOptions />
         <BoostProfile />
       </div>
     </Mainlayout>
@@ -26,4 +26,5 @@ const Tutordashboard = () => {
 };
 
 export default Tutordashboard;
+
 

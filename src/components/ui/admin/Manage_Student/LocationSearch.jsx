@@ -1,8 +1,8 @@
+
 // src/components/LocationSearch.jsx
 import React, { useEffect, useState } from "react";
 import { Autocomplete, LoadScriptNext } from "@react-google-maps/api";
-
-const GOOGLE_MAPS_API_KEY = "AIzaSyB2fZzo4kGI7K1iOW_o1QkRItwScC4Ma-I";
+import { GOOGLE_MAPS_API_KEY } from "../../../../api/config/googleMapsConfig"; // ✅ import key from config
 
 const LocationSearch = ({ onSelect, value }) => {
   const [autocomplete, setAutocomplete] = useState(null);
@@ -16,21 +16,25 @@ const LocationSearch = ({ onSelect, value }) => {
     if (autocomplete) {
       const place = autocomplete.getPlace();
       if (place && place.place_id && place.formatted_address) {
-        const city = place.address_components?.find(comp =>
-          comp.types.includes("locality") || comp.types.includes("administrative_area_level_2")
+        const city = place.address_components?.find((comp) =>
+          comp.types.includes("locality") ||
+          comp.types.includes("administrative_area_level_2")
         )?.long_name;
 
         onSelect({
           name: place.formatted_address,
           place_id: place.place_id,
-          city: city || place.formatted_address
+          city: city || place.formatted_address,
         });
       }
     }
   };
 
   return (
-    <LoadScriptNext googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
+    <LoadScriptNext
+      googleMapsApiKey={GOOGLE_MAPS_API_KEY}
+      libraries={["places"]}
+    >
       <Autocomplete onLoad={setAutocomplete} onPlaceChanged={handlePlaceChanged}>
         <input
           type="text"

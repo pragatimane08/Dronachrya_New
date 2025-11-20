@@ -16,3 +16,4 @@ const ChatMessage = ({ text, from }) => {
 };
 
 export default ChatMessage;
+

@@ -297,20 +297,20 @@ if (filters.rewardGiven) {
 
     {isExportOpen && (
       <div className="absolute right-0 mt-2 bg-white text-gray-700 shadow-lg rounded z-10 w-40">
-        <PDFDownloadLink
+        {/* <PDFDownloadLink
           document={<ReferralPDF data={filteredData} />}
           fileName="referrals.pdf"
           className="block px-4 py-2 text-sm hover:bg-gray-100"
         >
           {({ loading }) => (loading ? "Preparing PDF..." : "As PDF")}
-        </PDFDownloadLink>
-
+        </PDFDownloadLink> */}
+{/* 
         <button
           onClick={exportToCSV}
           className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
         >
           As CSV
-        </button>
+        </button> */}
 
         <button
           onClick={exportToExcel}
