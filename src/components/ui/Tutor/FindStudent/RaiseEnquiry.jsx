@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // // src/components/ui/Tutor/TutorCard.jsx
 
 // import React, { useState } from "react";
@@ -412,6 +413,8 @@
 
 // export default TutorCard;
 
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 import React, { useState } from "react";
 import { X, Send } from "lucide-react";
 import { toast } from "react-toastify";
@@ -609,3 +612,7 @@ const EnquiryModal = ({
 
 export default EnquiryModal;
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed

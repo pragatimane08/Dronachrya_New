@@ -8,12 +8,18 @@ import {
   UserCheck,
   X,
   Send,
+<<<<<<< HEAD
   Users,
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 } from "lucide-react";
 import EnquiryModal from "./RaiseEnquiry";
 import { apiClient } from "../../../../api/apiclient";
 import { useNavigate } from "react-router-dom";
+<<<<<<< HEAD
 import DefaultProfile from "../../../../assets/img/user3.png";
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 
 const StudentCard = ({ student, onConnectionRequest, onBookmark, onViewProfile }) => {
   const [showContact, setShowContact] = useState(false);
@@ -141,6 +147,7 @@ const StudentCard = ({ student, onConnectionRequest, onBookmark, onViewProfile }
         {/* Profile Photo */}
         <div className="w-full sm:w-32 lg:w-40 flex-shrink-0">
           <img
+<<<<<<< HEAD
             src={student.profile_photo || DefaultProfile}
             alt={student.name}
             className="w-full h-32 sm:h-36 lg:h-40 object-cover rounded-lg border cursor-pointer"
@@ -148,6 +155,12 @@ const StudentCard = ({ student, onConnectionRequest, onBookmark, onViewProfile }
             onError={(e) => {
               e.target.src = DefaultProfile;
             }}
+=======
+            src={student.profile_photo || "/default-user.png"}
+            alt={student.name}
+            className="w-full h-32 sm:h-36 lg:h-40 object-cover rounded-lg border cursor-pointer"
+            onClick={handleViewProfileClick}
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
           />
         </div>
 
@@ -188,6 +201,7 @@ const StudentCard = ({ student, onConnectionRequest, onBookmark, onViewProfile }
             </button>
           </div>
 
+<<<<<<< HEAD
           {/* Tutor Contact Count */}
           {/* <div className="mt-2 flex items-center text-sm text-gray-600">
             <Users className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
@@ -196,6 +210,8 @@ const StudentCard = ({ student, onConnectionRequest, onBookmark, onViewProfile }
             </span>
           </div> */}
 
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
           {/* Contact Info */}
           {showContact && student.User && (
             <div className="mt-3 p-3 bg-teal-50 rounded-lg border border-teal-200 relative">
@@ -296,7 +312,11 @@ const StudentCard = ({ student, onConnectionRequest, onBookmark, onViewProfile }
               className="bg-[#0E2D63] hover:bg-[#0a1f45] text-white px-3 sm:px-4 py-2 rounded-md text-sm font-medium w-full sm:w-auto flex items-center justify-center gap-2 transition-colors"
             >
               <Send className="w-4 h-4" />
+<<<<<<< HEAD
               Send Message
+=======
+              Send Enquiry
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
             </button>
 
             <button
@@ -350,3 +370,5 @@ const StudentCard = ({ student, onConnectionRequest, onBookmark, onViewProfile }
 };
 
 export default StudentCard;
+
+

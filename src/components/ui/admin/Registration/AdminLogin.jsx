@@ -119,6 +119,7 @@
 // };
 
 // export default AdminLogin;
+<<<<<<< HEAD
 // import React, { useState, useEffect } from "react";
 // import { useNavigate } from "react-router-dom";
 
@@ -347,6 +348,8 @@
 // export default AdminLogin;
 
 
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 
 
 import React, { useState, useEffect } from "react";
@@ -448,6 +451,7 @@ const AdminLogin = () => {
       });
     }
   };
+
 
   return (
     <FormLayout>

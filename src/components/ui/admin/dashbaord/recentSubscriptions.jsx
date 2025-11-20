@@ -61,7 +61,7 @@ const RecentSubscriptions = ({ recentSubscriptions = [] }) => {
         to="/admin_invoices"
         className="mt-4 inline-block text-sm text-teal-600 hover:underline"
       >
-        View all subscriptions
+        View all invoices
       </Link>
     </div>
   );

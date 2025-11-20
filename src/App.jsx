@@ -120,7 +120,7 @@ import My_Bookmark_Student_Folder from "./components/ui/Student/Bookmark/Bookmar
 import BookMark from "./components/ui/Student/Bookmark/Bookmark";
 import MyPlanUpgrader_Student from "./components/ui/Student/account/Billing_History/MyPlan_Student";
 import EnquiryForm_Student from "./components/ui/Student/dashbaord/EnquiryForm_Student";
-import Upgrade_Plan_Student from "./components/ui/Student/account/Billing_History/Upgrade_Plan";
+import Upgrade_Plan_Student from "./components/ui/Student/account/Upgrade_Plan/Upgrade_now_student";
 import Student_invoice from "./Pages/student/Student_invoice";
 import Student_Referal from "./Pages/student/student_referal";
 import RefralDashbaord_student from "./components/ui/Student/ReferStudent/ReferralDashboard_Student";

@@ -70,3 +70,4 @@ const ChatWindow = ({ contact, onSendMessage }) => {
 };
 
 export default ChatWindow;
+

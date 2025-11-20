@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // // import React, { useEffect, useState } from "react";
 // // import { studentInvoiceRepository } from "../../../../api/repository/tutor_invoices.repository";
 // // import { toast } from "react-toastify";
@@ -517,6 +518,10 @@
 
 import React, { useEffect, useState } from "react";
 import { Mail, Phone, Download, ChevronDown, ChevronUp, Eye } from "lucide-react";
+=======
+          import React, { useEffect, useState } from "react";
+import { Mail, Phone, Download } from "lucide-react";
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 import Logo from "../../../../assets/img/logo.jpg";
 import { tutorInvoiceRepository } from "../../../../api/repository/tutor_invoices.repository";
 import jsPDF from "jspdf";
@@ -526,13 +531,16 @@ const InvoicePreview = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+<<<<<<< HEAD
   const [expandedInvoices, setExpandedInvoices] = useState(new Set());
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
         setLoading(true);
-        const data = await tutorInvoiceRepository.getMyInvoices();
+        const data = await tutorInvoiceRepository .getMyInvoices();
         if (data?.invoices?.length > 0) {
           setInvoices(data.invoices);
           // Select the most recent invoice by default
@@ -540,8 +548,12 @@ const InvoicePreview = () => {
           // Expand the first invoice by default
           setExpandedInvoices(new Set([data.invoices[0]?.payment_id]));
         } else {
+<<<<<<< HEAD
           setInvoices([]);
           setSelectedInvoice(null);
+=======
+          setInvoice(null); // no invoice available
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
         }
       } catch (error) {
         console.error("Error fetching invoices:", error);
@@ -554,6 +566,7 @@ const InvoicePreview = () => {
     fetchInvoices();
   }, []);
 
+<<<<<<< HEAD
   const toggleInvoiceExpansion = (invoiceId) => {
     const newExpanded = new Set(expandedInvoices);
     if (newExpanded.has(invoiceId)) {
@@ -569,6 +582,9 @@ const InvoicePreview = () => {
   };
 
   const downloadInvoice = (invoice = selectedInvoice) => {
+=======
+  const downloadInvoice = () => {
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
     if (!invoice) return;
     const pdf = new jsPDF("p", "mm", "a4");
     const pageWidth = pdf.internal.pageSize.getWidth();
@@ -637,7 +653,11 @@ const InvoicePreview = () => {
 
     yPosition += 35;
 
+<<<<<<< HEAD
     // Table and Totals
+=======
+    // Table and Totals (same as your existing implementation)
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
     const tableStartY = yPosition;
     const rowHeight = 15;
     const headerHeight = 15;
@@ -708,6 +728,7 @@ const InvoicePreview = () => {
   };
 
   // Format helpers
+<<<<<<< HEAD
  const formatDate = (dateString) => {
   try {
     // Handle the format "29/10/2025, 4:11:00 pm"
@@ -747,6 +768,15 @@ const InvoicePreview = () => {
     return dateString;
   }
 };
+=======
+  const formatDate = (dateString) => {
+    try {
+      return new Date(dateString).toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" });
+    } catch {
+      return dateString;
+    }
+  };
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amount);
@@ -765,6 +795,7 @@ const InvoicePreview = () => {
     return <div className="text-center py-10 text-red-600">{error}</div>;
   }
 
+<<<<<<< HEAD
   // Friendly message when no invoices exist
   if (invoices.length === 0) {
     return (
@@ -775,6 +806,18 @@ const InvoicePreview = () => {
         </p>
         <a
           href="/tutor_subscription_plan"
+=======
+  // Friendly message when no invoice exists
+  if (!invoice) {
+    return (
+      <div className="text-center py-20 space-y-4">
+        <h2 className="text-2xl font-bold text-gray-800">No Active Subscription</h2>
+        <p className="text-gray-600">
+          You currently do not have an active subscription plan. Once you purchase a plan, your invoice will appear here.
+        </p>
+        <a
+          href="/tutor_subscription_plan" // Adjust this link to your subscription page
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
           className="inline-block bg-[#35BAA3] hover:bg-[#35BAA3] text-white px-6 py-3 rounded-lg transition-colors"
         >
           View Plans
@@ -783,6 +826,10 @@ const InvoicePreview = () => {
     );
   }
 
+<<<<<<< HEAD
+=======
+  // Invoice display if invoice exists
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
       {/* Selected Invoice Preview Section - MOVED TO TOP */}

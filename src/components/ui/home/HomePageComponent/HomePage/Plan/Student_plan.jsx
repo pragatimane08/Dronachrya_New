@@ -27,6 +27,7 @@ import {
 import { apiUrl } from "../../../../../../api/apiUtl";
 import Layout from "../../../layout/MainLayout";
 
+<<<<<<< HEAD
 const Student_Plan = ({ userType = "student" }) => {
   const navigate = useNavigate();
   const [plans, setPlans] = useState([]);
@@ -524,6 +525,16 @@ const Student_Plan = ({ userType = "student" }) => {
       extractUserId,
       getRazorpayKey,
     ]
+=======
+export default function HomeSubscriptionPlans() {
+  return (
+    <PlanSelectorTemplate
+      apiEndpoint="/subscriptions/student"
+      redirectPath="/book-demo"
+      skipPath="/home1"
+      role="student"
+    />
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
   );
 
   // Separate function to process payment with existing order

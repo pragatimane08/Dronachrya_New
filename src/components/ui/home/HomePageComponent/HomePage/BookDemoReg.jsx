@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 // import React, { useEffect, useState } from "react";
 // import { useNavigate, useLocation } from "react-router-dom";
 // import { XMarkIcon } from "@heroicons/react/24/outline";
@@ -1279,10 +1282,13 @@
 //   );
 // }
 
+<<<<<<< HEAD
 
 
 
 
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { XMarkIcon } from "@heroicons/react/24/outline";
@@ -1354,8 +1360,13 @@ export default function BookDemoReg() {
   const [tempStudentId, setTempStudentId] = useState(null);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+<<<<<<< HEAD
   const [resendLoading, setResendLoading] = useState(false); // New loading state for resend
   const [accountExistsNotVerified, setAccountExistsNotVerified] = useState(false); // New state for account exists but not verified
+=======
+  const [resendLoading, setResendLoading] = useState(false);
+  const [accountExistsNotVerified, setAccountExistsNotVerified] = useState(false);
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 
   const subjectFromState = locationHook.state?.subject || localStorage.getItem("selectedSubject");
 
@@ -1454,8 +1465,8 @@ export default function BookDemoReg() {
   const validateStep = (s) => {
     const e = {};
     if (s === 1) {
-      if (!location?.place_id) e.location = "Please select a city from suggestions (India only).";
-      if (location?.country && location.country !== "IN") e.location = "Please select a city in India.";
+      // ✅ UPDATED - Removed India-only restriction
+      if (!location?.place_id) e.location = "Please select a location from the suggestions.";
     }
     if (s === 2) {
       if (!board) e.board = "Please selected a board.";
@@ -1640,8 +1651,13 @@ export default function BookDemoReg() {
       if (res?.data?.user_id) {
         setTempStudentId(res.data.user_id);
         setOtpSent(true);
+<<<<<<< HEAD
         setOtpTimer(60); // Start 60 second timer
         setAccountExistsNotVerified(false); // Reset this flag for new registration
+=======
+        setOtpTimer(60);
+        setAccountExistsNotVerified(false);
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
       } else {
         throw new Error(
           res?.data?.message || "Failed to pre-register and send OTP."
@@ -1653,13 +1669,19 @@ export default function BookDemoReg() {
       if (err.response?.status === 409) {
         const errorMessage = err.response.data?.message || "Email or mobile number already registered.";
        
+<<<<<<< HEAD
         // Check if this is an "account exists but not verified" case
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
         if (errorMessage.toLowerCase().includes("not verified") || errorMessage.toLowerCase().includes("already exists but not verified")) {
           setAccountExistsNotVerified(true);
           setOtpSent(true);
           setOtpTimer(60);
          
+<<<<<<< HEAD
           // Extract user_id from error response if available
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
           if (err.response.data?.user_id) {
             setTempStudentId(err.response.data.user_id);
           }
@@ -1727,6 +1749,11 @@ export default function BookDemoReg() {
           offlineType = "home";
         } else if (selectedModes.offlineType === "nearby") {
           offlineType = "nearby";
+<<<<<<< HEAD
+=======
+        } else if (selectedModes.offlineType === "both") {
+          offlineType = "home";
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
         }
       }
 
@@ -1773,7 +1800,6 @@ export default function BookDemoReg() {
     }
   };
 
-  // Enhanced Resend OTP function with better error handling and user feedback
   const handleResendOtp = async () => {
     if (otpTimer > 0 || resendLoading) return;
 
@@ -1783,21 +1809,18 @@ export default function BookDemoReg() {
         throw new Error("Cannot resend OTP without user ID");
       }
 
-      // Call the resend endpoint with the correct payload structure
       const response = await authRepository.resendPreRegisterOTP({
         user_id: tempStudentId
       });
 
       if (response?.data) {
-        setOtpTimer(60); // Reset timer to 60 seconds
-        setErrors(prev => ({ ...prev, submit: "" })); // Clear any previous errors
+        setOtpTimer(60);
+        setErrors(prev => ({ ...prev, submit: "" }));
 
-        // Show success message briefly
         setErrors({
           submit: "OTP resent successfully! Please check your email and SMS."
         });
 
-        // Clear success message after 3 seconds
         setTimeout(() => {
           setErrors(prev => ({ ...prev, submit: "" }));
         }, 3000);
@@ -1814,7 +1837,6 @@ export default function BookDemoReg() {
     }
   };
 
-  // Format timer display (MM:SS)
   const formatTimer = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -1889,13 +1911,17 @@ export default function BookDemoReg() {
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium mb-2 text-gray-700">Where are you located? *</label>
-                <p className="text-xs text-gray-500 mb-2">We currently serve students across India</p>
+                {/* ✅ UPDATED - Changed text to worldwide */}
+                <p className="text-xs text-gray-500 mb-2">We serve students worldwide</p>
                 <div className="relative">
+                  {/* ✅ UPDATED - Removed "India only" from placeholder */}
                   <LocationSearch
                     value={location?.name || ""}
-                    placeholder="Start typing your city (India only)..."
+                    placeholder="Start typing your city..."
                     onSelect={handleLocationSelect}
                     hasError={!!errors.location}
+                  // ✅ OPTIONAL - Add this line to restrict to specific countries, or remove it to allow all 20 countries
+                    allowedCountries={["IN", "US", "GB", "CA", "AU", "AE", "SA", "SG", "NZ", "FR", "DE", "IT", "ES"]}
                   />
                 </div>
                 {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location}</p>}
@@ -2031,9 +2057,7 @@ export default function BookDemoReg() {
                         <input
                           type="checkbox"
                           checked={selectedSubjects.includes(subj.name)}
-                          onChange={() => {
-                            // This is now handled by the parent div onClick
-                          }}
+                          onChange={() => {}}
                           className="h-4 w-4 text-teal-600 border-gray-300 rounded"
                         />
                       </div>
@@ -2467,13 +2491,15 @@ export default function BookDemoReg() {
                 </>
               ) : (
                 <>
+<<<<<<< HEAD
                   {/* OTP Verification Section - Shows for both normal OTP flow and account exists but not verified case */}
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
                   <div>
                     <label className="block text-sm font-medium mb-2 text-gray-700">
                       Enter OTP *
                     </label>
 
-                    {/* ✅ Normal styled info text */}
                     <p className="text-sm text-gray-600 mb-3">
                       We've sent a 6-digit verification code to{" "}
                       <span className="font-semibold">{form.mobile_number}</span> and{" "}
@@ -2500,7 +2526,6 @@ export default function BookDemoReg() {
                     {errors.otp && <p className="text-red-500 text-xs mt-1">{errors.otp}</p>}
                   </div>
 
-                  {/* Timer and Resend Section */}
                   <div className="flex justify-between items-center text-sm text-gray-600">
                     {otpTimer > 0 ? (
                       <p>
@@ -2525,7 +2550,6 @@ export default function BookDemoReg() {
                     </button>
                   </div>
 
-                  {/* Actions for OTP verification */}
                   <div className="flex justify-between mt-6">
                     <button
                       onClick={() => {
@@ -2554,11 +2578,8 @@ export default function BookDemoReg() {
               )}
             </div>
           )}
-
-
         </div>
       </div>
-
     </Layout>
   );
 }

@@ -1,6 +1,10 @@
 // StudentEnquiriesApp.js
 import React, { useState, useEffect } from 'react';
+<<<<<<< HEAD
 import { Search, Filter, RefreshCw, Users, User, Clock, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Download, Mail, Phone, Calendar, Trash2 } from 'lucide-react';
+=======
+import { Search, Filter, RefreshCw, Users, User, Clock, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Download, Mail, Phone, Calendar } from 'lucide-react';
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 import { EnquiryRepository } from '../../../../api/repository/admin/enquiryRepository';
 
 // Stats Card Component
@@ -459,6 +463,7 @@ const exportToPDF = (enquiries) => {
   }, 250);
 };
 
+<<<<<<< HEAD
 // Delete Button Component
 const DeleteButton = ({ enquiryId, onDelete, loading }) => (
   <button
@@ -472,6 +477,8 @@ const DeleteButton = ({ enquiryId, onDelete, loading }) => (
   </button>
 );
 
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 // Main Application Component
 export default function StudentEnquiriesApp() {
   const [enquiries, setEnquiries] = useState([]);
@@ -479,7 +486,10 @@ export default function StudentEnquiriesApp() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+<<<<<<< HEAD
   const [deletingId, setDeletingId] = useState(null);
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
  
   const [filters, setFilters] = useState({
     search: '',
@@ -514,6 +524,7 @@ export default function StudentEnquiriesApp() {
     }
   };
 
+<<<<<<< HEAD
   // Add delete enquiry handler
   const handleDeleteEnquiry = async (enquiryId) => {
     if (!window.confirm('Are you sure you want to delete this enquiry? This action cannot be undone.')) {
@@ -537,6 +548,8 @@ export default function StudentEnquiriesApp() {
     }
   };
 
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
   useEffect(() => {
     loadEnquiries();
   }, []);
@@ -657,11 +670,29 @@ export default function StudentEnquiriesApp() {
                 </button>
                 <div className="absolute left-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
                   <button
+<<<<<<< HEAD
+=======
+                    onClick={handleExportPDF}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg border-b border-gray-100"
+                  >
+                    Export as PDF
+                  </button>
+                  <button
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
                     onClick={handleExportExcel}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 border-b border-gray-100"
                   >
                     Export as Excel
                   </button>
+<<<<<<< HEAD
+=======
+                  {/* <button
+                    onClick={handleExportCSV}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-lg"
+                  >
+                    Export as CSV
+                  </button> */}
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
                 </div>
               </div>
             )}
@@ -866,9 +897,12 @@ export default function StudentEnquiriesApp() {
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Date
                       </th>
+<<<<<<< HEAD
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -937,6 +971,7 @@ export default function StudentEnquiriesApp() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {formatDate(enquiry.created_at)}
                         </td>
+<<<<<<< HEAD
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <DeleteButton 
                             enquiryId={enquiry.id}
@@ -944,6 +979,8 @@ export default function StudentEnquiriesApp() {
                             loading={deletingId === enquiry.id}
                           />
                         </td>
+=======
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
                       </tr>
                     ))}
                   </tbody>
@@ -1051,4 +1088,8 @@ export default function StudentEnquiriesApp() {
       </div>
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed

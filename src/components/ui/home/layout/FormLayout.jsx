@@ -37,7 +37,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import Backgroundimage from "../../../../assets/img/Background.png";
+<<<<<<< HEAD
 import Logo from "../../../../assets/img/logo-r.png";
+=======
+import Logo from "../../../../../public/logo-r.png";
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 
 const FormLayout = ({ children }) => {
   return (
@@ -50,11 +54,19 @@ const FormLayout = ({ children }) => {
         <Link to="/" className="flex items-center">
           <img
             src={Logo}
+<<<<<<< HEAD
             alt="Dronacharya Logo"
             className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 object-cover mr-2"
           />
           <h1 className="text-white text-base sm:text-lg md:text-xl font-bold drop-shadow-lg">
           Dronacharya
+=======
+            alt="Dronachrya Logo"
+            className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 object-cover mr-2"
+          />
+          <h1 className="text-white text-base sm:text-lg md:text-xl font-bold drop-shadow-lg">
+            Dronachrya
+>>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
           </h1>
         </Link>
       </div>
