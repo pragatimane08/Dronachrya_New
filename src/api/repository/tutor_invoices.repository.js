@@ -1,7 +1,7 @@
 import { apiClient } from "../apiclient";
 import { apiUrl } from "../apiUtl";
 
-export const studentInvoiceRepository = {
+export const tutorInvoiceRepository = {
   getMyInvoices: async () => {
     try {
       const response = await apiClient.get(apiUrl.invoices.student);
@@ -22,3 +22,4 @@ export const studentInvoiceRepository = {
     }
   },
 };
+

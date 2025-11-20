@@ -1,0 +1,326 @@
+import React, { useEffect, useState, useRef } from "react";
+import { Autocomplete, LoadScriptNext } from "@react-google-maps/api";
+import { GOOGLE_MAPS_API_KEY } from "../../api/config/googleMapsConfig";
+
+const LocationSearch = ({
+  onSelect,
+  value,
+  placeholder,
+  hasError,
+  allowedCountries,
+  requiredCountry,
+}) => {
+  const [autocomplete, setAutocomplete] = useState(null);
+  const [inputValue, setInputValue] = useState(value || "");
+  const [selectedCountry, setSelectedCountry] = useState("India");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [postcodeLocalities, setPostcodeLocalities] = useState([]);
+  const [geocodeFallbackData, setGeocodeFallbackData] = useState(null);
+  const [countryError, setCountryError] = useState("");
+  const autocompleteRef = useRef(null);
+  const countryDropdownRef = useRef(null);
+
+  useEffect(() => {
+    if (value !== inputValue) setInputValue(value || "");
+  }, [value]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        countryDropdownRef.current &&
+        !countryDropdownRef.current.contains(event.target)
+      ) {
+        setShowCountryDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Helper: pick component by type
+  const getComponent = (components, type) =>
+    components.find((c) => c.types.includes(type));
+
+  // Extract formatted data
+  const extractLocationData = (placeOrResult) => {
+    const components = placeOrResult.address_components || [];
+    const cityComp =
+      getComponent(components, "locality") ||
+      getComponent(components, "postal_town") ||
+      getComponent(components, "administrative_area_level_2") ||
+      getComponent(components, "sublocality_level_1");
+
+    const stateComp = getComponent(components, "administrative_area_level_1");
+    const pincodeComp = getComponent(components, "postal_code");
+    const countryComp = getComponent(components, "country");
+
+    return {
+      name: placeOrResult.formatted_address || "",
+      place_id: placeOrResult.place_id || "",
+      city: cityComp?.long_name || "",
+      state: stateComp?.long_name || "",
+      pincode: pincodeComp?.long_name || "",
+      country: countryComp?.short_name || "",
+      countryName: countryComp?.long_name || "",
+      postcode_localities: placeOrResult.postcode_localities || [],
+      raw: placeOrResult,
+    };
+  };
+
+  // ✅ Validation — allows multiple countries, no India-only restriction
+  const validateCountry = (locationData) => {
+    if (allowedCountries && allowedCountries.length > 0) {
+      const allowedCodes = allowedCountries.map((c) => c.toUpperCase());
+      if (!allowedCodes.includes(locationData.country.toUpperCase())) {
+        setCountryError("This country is not allowed.");
+        return false;
+      }
+    }
+    setCountryError("");
+    return true;
+  };
+
+  const handlePlaceChanged = () => {
+    if (autocomplete) {
+      const place = autocomplete.getPlace();
+      if (!place || !place.place_id) return;
+      const locationData = extractLocationData(place);
+
+      // Validate selected country
+      if (!validateCountry(locationData)) {
+        onSelect(null);
+        setInputValue("");
+        return;
+      }
+
+      onSelect(locationData);
+      setInputValue(place.formatted_address || inputValue);
+      setPostcodeLocalities([]);
+      setGeocodeFallbackData(null);
+    }
+  };
+
+  // 🌍 Country List
+  const countries = [
+    { name: "India", code: "IN" },
+    { name: "United States", code: "US" },
+    { name: "United Kingdom", code: "GB" },
+    { name: "Canada", code: "CA" },
+    { name: "Australia", code: "AU" },
+    { name: "Germany", code: "DE" },
+    { name: "France", code: "FR" },
+    { name: "Japan", code: "JP" },
+    { name: "China", code: "CN" },
+    { name: "Brazil", code: "BR" },
+    { name: "South Africa", code: "ZA" },
+    { name: "Singapore", code: "SG" },
+    { name: "United Arab Emirates", code: "AE" },
+    { name: "Saudi Arabia", code: "SA" },
+    { name: "New Zealand", code: "NZ" },
+    { name: "Italy", code: "IT" },
+    { name: "Spain", code: "ES" },
+    { name: "Netherlands", code: "NL" },
+    { name: "Switzerland", code: "CH" },
+    { name: "Sweden", code: "SE" },
+  ];
+
+  const availableCountries = allowedCountries
+    ? countries.filter((c) => allowedCountries.includes(c.code))
+    : countries;
+
+  const selectedCountryCode =
+    availableCountries.find((c) => c.name === selectedCountry)?.code ||
+    countries.find((c) => c.name === selectedCountry)?.code ||
+    "";
+
+  const handleCountryChange = (country) => {
+    setSelectedCountry(country);
+    setShowCountryDropdown(false);
+    setSearchTerm("");
+    setCountryError("");
+    onSelect(null);
+    setInputValue("");
+  };
+
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setInputValue(val);
+    if (val === "") {
+      onSelect(null);
+      setPostcodeLocalities([]);
+      setGeocodeFallbackData(null);
+      setCountryError("");
+    }
+  };
+
+  const toggleCountryDropdown = () => {
+    setShowCountryDropdown(!showCountryDropdown);
+    setSearchTerm("");
+  };
+
+  // 🔍 Geocode postal code
+  const geocodePostalCode = () => {
+    if (!inputValue.trim()) return;
+    if (!window.google?.maps) return;
+
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode(
+      {
+        address: inputValue,
+        componentRestrictions: selectedCountryCode
+          ? { country: selectedCountryCode }
+          : {},
+      },
+      (results, status) => {
+        if (status === "OK" && results?.length) {
+          const chosenResult = results[0];
+          const locationData = extractLocationData(chosenResult);
+
+          if (!validateCountry(locationData)) {
+            onSelect(null);
+            setInputValue("");
+            return;
+          }
+
+          onSelect(locationData);
+          setInputValue(chosenResult.formatted_address || inputValue);
+          setPostcodeLocalities([]);
+          setGeocodeFallbackData(null);
+        } else {
+          console.warn("Geocode failed:", status);
+        }
+      }
+    );
+  };
+
+  const filteredCountries = searchTerm
+    ? availableCountries.filter((country) =>
+        country.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : availableCountries;
+
+  const isPostalCode = /^[A-Z0-9\s-]{3,10}$/i.test(inputValue.trim());
+
+  return (
+    <LoadScriptNext
+      googleMapsApiKey={GOOGLE_MAPS_API_KEY}
+      libraries={["places"]}
+    >
+      <div className="space-y-4">
+        {/* 🌍 Country Selection */}
+        <div className="relative" ref={countryDropdownRef}>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Country
+          </label>
+          <div
+            className="w-full border border-gray-300 rounded-md p-2 text-gray-800 bg-white focus:ring-teal-500 focus:border-teal-500 flex justify-between items-center cursor-pointer"
+            onClick={toggleCountryDropdown}
+          >
+            <span>{selectedCountry}</span>
+            <svg
+              className={`w-4 h-4 transition-transform ${
+                showCountryDropdown ? "rotate-180" : ""
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+
+          {showCountryDropdown && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+              <div className="p-2 sticky top-0 bg-white border-b">
+                <input
+                  type="text"
+                  placeholder="Search countries..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+              <ul className="py-1">
+                {filteredCountries.length > 0 ? (
+                  filteredCountries.map((c) => (
+                    <li
+                      key={c.code}
+                      className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
+                        selectedCountry === c.name
+                          ? "bg-teal-50 text-teal-700"
+                          : ""
+                      }`}
+                      onClick={() => handleCountryChange(c.name)}
+                    >
+                      {c.name}
+                    </li>
+                  ))
+                ) : (
+                  <li className="px-4 py-2 text-gray-500">No countries found</li>
+                )}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* 📍 Location / Postal Code Search */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Location / Postal Code
+          </label>
+          <Autocomplete
+            key={selectedCountryCode}
+            onLoad={(auto) => {
+              setAutocomplete(auto);
+              autocompleteRef.current = auto;
+            }}
+            onPlaceChanged={handlePlaceChanged}
+            options={{
+              types: isPostalCode ? ["geocode"] : ["(cities)"],
+              componentRestrictions: selectedCountryCode
+                ? { country: selectedCountryCode }
+                : {},
+            }}
+          >
+            <input
+              type="text"
+              placeholder={placeholder || "Enter city or postal code..."}
+              value={inputValue}
+              onChange={handleInputChange}
+              onKeyDown={(e) => {
+                if (isPostalCode && e.key === "Enter") {
+                  e.preventDefault();
+                  geocodePostalCode();
+                }
+              }}
+              onBlur={() => {
+                if (isPostalCode) geocodePostalCode();
+              }}
+              className={`w-full border ${
+                hasError || countryError
+                  ? "border-red-500"
+                  : "border-gray-300"
+              } rounded-md p-2 text-gray-800 bg-white placeholder-gray-400 focus:ring-teal-500 focus:border-teal-500`}
+            />
+          </Autocomplete>
+
+          {(hasError || countryError) && (
+            <p className="text-red-500 text-xs mt-1">
+              {countryError || "Please select a location from the suggestions"}
+            </p>
+          )}
+        </div>
+      </div>
+    </LoadScriptNext>
+  );
+};
+
+export default LocationSearch;

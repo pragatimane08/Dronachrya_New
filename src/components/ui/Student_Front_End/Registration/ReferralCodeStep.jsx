@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { XMarkIcon } from "@heroicons/react/24/outline"; 
+import { apiClient } from "../../../../api/apiclient";
+import { apiUrl } from "../../../../api/apiUtl";
 
 const ReferralStep = () => {
-  const [referralCode, setReferralCode] = useState('');
+  const [referralCode, setReferralCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // 👈 for navigation
+  const navigate = useNavigate();
 
   const handleApply = async () => {
     if (!referralCode.trim()) {
@@ -17,19 +19,17 @@ const ReferralStep = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:3000/api/referrals/apply', {
+      await apiClient.post(apiUrl.referrals.apply, {
         code: referralCode.trim(),
       });
-      toast.success('Referral code applied successfully!');
-      
-      // Delay navigation slightly to let toast show
+
+      toast.success("Referral code applied successfully!");
       setTimeout(() => {
-        navigate('/student-dashboard'); // 👈 change this to your next route
+        navigate("/location-selector");
       }, 1000);
-      
     } catch (error) {
       console.error(error);
-      toast.error(error?.response?.data?.message || 'Invalid referral code');
+      toast.error(error?.response?.data?.message || "Invalid referral code");
     } finally {
       setLoading(false);
     }
@@ -37,43 +37,77 @@ const ReferralStep = () => {
 
   const handleSkip = () => {
     toast.info("Skipped referral code.");
-    
-    // Delay navigation slightly to let toast show
     setTimeout(() => {
-      navigate('/student-dashboard'); // 👈 change this to your next route
+      navigate("/location-selector");
     }, 1000);
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md space-y-5">
-      <h2 className="text-2xl font-semibold text-center text-blue-800">Have a Referral Code?</h2>
-      <p className="text-sm text-gray-600 text-center">Enter your referral code or skip this step.</p>
-
-      <input
-        type="text"
-        placeholder="Enter Referral Code"
-        value={referralCode}
-        onChange={(e) => setReferralCode(e.target.value)}
-        className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-
-      <div className="flex items-center justify-between">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white border rounded-md p-8 w-full max-w-md shadow-md relative z-10">
+        {/* ✅ Cross Button */}
         <button
-          onClick={handleSkip}
-          className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 underline"
+          onClick={() => navigate("/")}
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
         >
-          Skip
+          <XMarkIcon className="h-5 w-5" />
         </button>
-        <button
-          onClick={handleApply}
-          disabled={loading}
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-        >
-          {loading ? 'Applying...' : 'Apply'}
-        </button>
+
+        {/* ✅ Heading */}
+        <h2 className="text-center text-2xl font-semibold text-blue-900 mb-6">
+          Have a Referral Code?
+        </h2>
+
+        {/* ✅ Input Label */}
+        <label className="block text-sm font-medium mb-1">
+          Referral Code <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          placeholder="Enter your referral code"
+          value={referralCode}
+          onChange={(e) => setReferralCode(e.target.value)}
+          className="w-full border rounded-md p-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <p className="text-xs text-gray-500 mb-6">
+          If you don’t have a code, you can skip this step.
+        </p>
+
+        {/* ✅ Button Group */}
+        <div className="flex justify-between gap-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex-1 bg-teal-500 hover:bg-teal-600 text-white py-2 rounded-md"
+          >
+            Back
+          </button>
+          <button
+            onClick={handleSkip}
+            className="flex-1 bg-teal-500 hover:bg-teal-600 text-white py-2 rounded-md"
+          >
+            Skip
+          </button>
+          <button
+            onClick={handleApply}
+            disabled={loading}
+            className="flex-1 bg-teal-500 hover:bg-teal-600 text-white py-2 rounded-md disabled:opacity-50"
+          >
+            {loading ? "Applying..." : "Next"}
+          </button>
+        </div>
+
+        {/* ✅ Toast */}
+        <ToastContainer
+          position="top-center"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
       </div>
-
-      <ToastContainer position="top-center" autoClose={2000} />
     </div>
   );
 };

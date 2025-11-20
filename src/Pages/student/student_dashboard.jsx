@@ -2,6 +2,7 @@ import React from 'react';
 import LearningNeedCard from '../../components/ui/Student/dashbaord/learning_needs';
 import OnlineClass from '../../components/ui/Student/dashbaord/online_classes';
 import Mainlayout from '../../components/layout/MainLayout';
+import SubscriptionDaysRemainingStudent from '../../components/ui/Student/dashbaord/SubscriptionDaysRemainingStudent';
 
 const Studentdashboard = () => {
   return (
@@ -13,7 +14,7 @@ const Studentdashboard = () => {
         <p className="text-gray-600 mb-6 text-left">
           Welcome back! Here's what's happening with your tutoring business.
         </p>
-
+ <SubscriptionDaysRemainingStudent />
         {/* Learning Needs Card */}
         <LearningNeedCard />
 

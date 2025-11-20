@@ -1,58 +1,51 @@
+
+
 import axios from "axios";
-import { apiUtl } from "../apiUtl";
+import { apiUrl } from "../apiUrl";
+import { setToken, clearToken } from "../session";
 
 export const authService = {
-  login: (emailOrMobile, password, role) => {
-    return axios.post(`${apiUtl.baseUrl}/auth/login`, {
+  login: async (emailOrMobile, password, role, remember = true) => {
+    const res = await axios.post(`${apiUrl.baseUrl}/auth/login`, {
       emailOrMobile,
       password,
       role,
     });
+
+    const token = res.data?.token;
+    if (token) setToken(token, remember);
+
+    return res;
   },
 
   register: (userData) => {
-    return axios.post(`${apiUtl.baseUrl}/auth/signup`, userData);
+    return axios.post(`${apiUrl.baseUrl}/auth/signup`, userData);
   },
 
   forgotPassword: (emailOrMobile) => {
-    return axios.post(`${apiUtl.baseUrl}/auth/forgot-password`, { emailOrMobile });
-  },
-
-  verifyOtp: (emailOrMobile, otp) => {
-    return axios.post(`${apiUtl.baseUrl}/auth/login/verify-otp`, {
+    return axios.post(`${apiUrl.baseUrl}/auth/forgot-password`, {
       emailOrMobile,
-      otp,
     });
   },
 
+  verifyOtp: (data) => {
+    return axios.post(`${apiUrl.baseUrl}/auth/login/verify-otp`, data);
+  },
+
   resetPassword: (emailOrMobile, newPassword, otp) => {
-    return axios.post(`${apiUtl.baseUrl}/auth/reset-password`, {
+    return axios.post(`${apiUrl.baseUrl}/auth/reset-password`, {
       emailOrMobile,
       newPassword,
       otp,
     });
   },
+
+  preRegisterStudent: (data) => {
+    return axios.post(`${apiUrl.baseUrl}/auth/student/pre-register`, data);
+  },
+
+  logout: () => {
+    clearToken();
+    window.location.href = "/login";
+  },
 };
-
-export const updateLocation = async (placeId) => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) throw new Error("Authentication required");
-
-    const response = await axios.put(
-      `${apiUtl.baseUrl}/profile/location`,
-      { place_id: placeId },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return response.data;
-  } catch (error) {
-    const message = error.response?.data?.message || error.message;
-    throw new Error(message);
-  }
-};
-

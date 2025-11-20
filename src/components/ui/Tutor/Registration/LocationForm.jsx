@@ -1,101 +1,122 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { LoadScriptNext, Autocomplete } from "@react-google-maps/api";
-import { toast, ToastContainer } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../../../api/apiclient";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyB2fZzo4kGI7K1iOW_o1QkRItwScC4Ma-I";
+// Import the reusable LocationSearch & FormLayout
+import LocationSearch from "../../../../components/common/LocationSearch";
+import FormLayout from "../../home/layout/FormLayout";
 
 const LocationForm = () => {
-  const [placeId, setPlaceId] = useState("");
-  const [locationInput, setLocationInput] = useState("");
-  const [autocomplete, setAutocomplete] = useState(null);
+  const [locationData, setLocationData] = useState(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const onLoad = (instance) => setAutocomplete(instance);
-
-  const onPlaceChanged = () => {
-    if (autocomplete) {
-      const place = autocomplete.getPlace();
-      if (place && place.place_id) {
-        setPlaceId(place.place_id);
-        setLocationInput(place.formatted_address || "");
-        setError("");
-      } else {
-        setError("Please select a valid location from the dropdown.");
-        toast.error("Invalid location selected.");
-      }
-    }
-  };
 
   const handleSubmit = async () => {
-    if (!placeId) {
+    setHasAttemptedSubmit(true);
+
+    if (!locationData?.place_id) {
       setError("Please select a location.");
-      toast.error("Location is required.");
       return;
     }
 
-    try {
-      await apiClient.put("/profile/tutor", { place_id: placeId });
+    if (!locationData.city || !locationData.country) {
+      setError(
+        "Could not determine complete location details. Please try again or select a different location."
+      );
+      return;
+    }
 
-      toast.success("Location saved successfully!");
-      setTimeout(() => {
-        navigate("/create-profile-tutor1", {
-          state: {
-            placeId,
-            address: locationInput,
-          },
-        });
-      }, 1500); // delay to allow toast to show
+    setLoading(true);
+    try {
+      const payload = {
+        place_id: locationData.place_id,
+        address: locationData.name, // formatted address
+        city: locationData.city,
+        state: locationData.state,
+        pincode: locationData.pincode,
+        country: locationData.country,
+      };
+
+      await apiClient.put("/profile/tutor", payload);
+
+      // Navigate to next step
+      navigate("/create-profile-tutor1", {
+        state: payload,
+      });
     } catch (err) {
       const errMsg =
         err.response?.data?.message || "Failed to save location. Try again.";
-      setError(errMsg);
-      toast.error(errMsg);
+
+      if (err.response?.data?.error?.includes("cannot be null")) {
+        setError(
+          "Location details are incomplete. Please select a different location or contact support."
+        );
+      } else {
+        setError(errMsg);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <LoadScriptNext googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <ToastContainer position="top-right" />
-        <div className="bg-white border rounded-md p-8 w-full max-w-md shadow-md relative z-10">
-          <h2 className="text-center text-2xl font-semibold text-blue-900 mb-6">
-            Set Your Location
-          </h2>
+    <FormLayout>
+      {/* Close button */}
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
+      >
+        <XMarkIcon className="w-5 h-5" />
+      </button>
 
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-1">
-              Location <span className="text-red-500">*</span>
-            </label>
-            <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
-              <input
-                type="text"
-                value={locationInput}
-                onChange={(e) => setLocationInput(e.target.value)}
-                placeholder="Search your location"
-                className="w-full border rounded-md p-2"
-                onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
-              />
-            </Autocomplete>
-            <p className="text-xs text-gray-500 mt-1">
-              Select a suggestion from the dropdown.
-            </p>
-          </div>
+      <h2 className="text-center text-xl font-semibold text-blue-900 mb-6">
+        Set Your Location
+      </h2>
 
-          <button
-            onClick={handleSubmit}
-            className="w-full bg-teal-500 hover:bg-teal-600 text-white py-2 rounded-md"
-          >
-            Save & Continue
-          </button>
+      {/* Reusable LocationSearch */}
+      <LocationSearch
+        value={locationData?.name || ""}
+        onSelect={(data) => {
+          setLocationData(data);
+          setError("");
+          setHasAttemptedSubmit(false);
+        }}
+        placeholder="Enter your city, area, or pincode"
+        hasError={!!error || (hasAttemptedSubmit && !locationData)}
+      />
+
+      {/* Inline error message */}
+      {hasAttemptedSubmit && !locationData ? (
+        <div className="mt-2 text-red-500 text-sm">
+          Please select a location.
         </div>
+      ) : error ? (
+        <div className="mt-2 text-red-500 text-sm">{error}</div>
+      ) : null}
+
+      {/* Buttons */}
+      <div className="flex justify-between gap-3 mt-6">
+        <button
+          onClick={() => navigate("/tutor_referral_code")}
+          className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-md text-sm"
+        >
+          Back
+        </button>
+
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="flex-1 bg-teal-500 hover:bg-teal-600 disabled:bg-teal-300 text-white py-2 rounded-md text-sm"
+        >
+          {loading ? "Saving..." : "Save & Continue"}
+        </button>
       </div>
-    </LoadScriptNext>
+    </FormLayout>
   );
 };
 
 export default LocationForm;
+

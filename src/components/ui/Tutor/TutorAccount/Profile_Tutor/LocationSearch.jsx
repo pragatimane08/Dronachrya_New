@@ -1,8 +1,8 @@
+
 // src/components/LocationSearch.jsx
 import React, { useEffect, useState } from "react";
 import { Autocomplete, LoadScriptNext } from "@react-google-maps/api";
-
-const GOOGLE_MAPS_API_KEY = "AIzaSyB2fZzo4kGI7K1iOW_o1QkRItwScC4Ma-I";
+import { GOOGLE_MAPS_API_KEY } from "../../../../../api/config/googleMapsConfig";  // <-- import key
 
 const LocationSearch = ({ onSelect, value }) => {
   const [autocomplete, setAutocomplete] = useState(null);

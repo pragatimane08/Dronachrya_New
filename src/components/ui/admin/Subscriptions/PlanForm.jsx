@@ -1,8 +1,20 @@
 import React from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import PlanForm from "./PlanForm";
+import { toast } from "react-toastify";
 
 const PlanModal = ({ title, plan, setPlan, onClose, onSave }) => {
+  const handleSave = async () => {
+    try {
+      await onSave();
+      toast.success("Plan saved successfully!");
+      onClose();
+    } catch (error) {
+      toast.error("Failed to save plan. Please try again.");
+      console.error("Save plan error:", error);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg relative overflow-hidden">
@@ -29,7 +41,7 @@ const PlanModal = ({ title, plan, setPlan, onClose, onSave }) => {
               Cancel
             </button>
             <button
-              onClick={onSave}
+              onClick={handleSave}
               className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow hover:shadow-md transition-all"
             >
               Save Plan
