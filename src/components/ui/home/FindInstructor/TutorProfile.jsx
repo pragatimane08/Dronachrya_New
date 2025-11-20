@@ -293,7 +293,7 @@ export default function TutorProfilePage() {
                 )}
 
                 {/* Contact Buttons */}
-                <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                {/* <div className="mt-6 flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={handleLoginRedirect}
                     className="flex items-center justify-center gap-2 bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 transition-colors flex-1 font-medium shadow-sm"
@@ -306,7 +306,7 @@ export default function TutorProfilePage() {
                   >
                     <FaPhone className="text-sm" /> Call
                   </button>
-                </div>
+                </div> */}
 
               </div>
             </div>

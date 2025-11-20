@@ -333,15 +333,24 @@
 // };
 
 // export default TutorSidebar;
-<<<<<<< HEAD
 
 
-=======
-// src/components/tutor/TutorSidebar.jsx
->>>>>>> cac235298da95deccf6cd953a03454e3e250d1f3
-// src/components/tutor/TutorSidebar.jsx
 import React, { useEffect, useState, useCallback } from "react";
-import { FiActivity, FiUser, FiUsers, FiCalendar, FiCheckSquare, FiSettings, FiHelpCircle, FiDollarSign, FiMail, FiMessageSquare } from "react-icons/fi";
+import {
+  FiActivity,
+  FiCalendar,
+  FiMessageSquare,
+  FiMail,
+  FiUsers,
+  FiDollarSign,
+  FiSettings,
+  FiHelpCircle,
+  FiUser,
+  FiFileText,
+  FiCreditCard,
+  FiBookmark,
+  FiUserPlus,
+} from "react-icons/fi";
 import SidebarTemplate from "../../common/SidebarTemplate";
 import { getProfile } from "../../../api/repository/profile.repository";
 
@@ -349,7 +358,7 @@ const menuItems = [
   { icon: <FiActivity />, label: "Dashboard", route: "/tutor-dashboard" },
   { icon: <FiCalendar />, label: "My Classes", route: "/my_classes_tutor" },
   { icon: <FiMessageSquare />, label: "Messages", route: "/message_tutor" },
-  { icon: <FiMail />, label: "Enquiries", route: "/view_all_enquires" },
+  // { icon: <FiMail />, label: "Enquiries", route: "/view_all_enquires" },
   { icon: <FiUsers />, label: "Students", route: "/Student_Filter" },
   { icon: <FiDollarSign />, label: "Invoices", route: "/tutor_invoice" },
   { icon: <FiSettings />, label: "Account", hasSubmenu: true },
@@ -358,22 +367,18 @@ const menuItems = [
 
 const accountSubmenu = [
   { label: "Profile", icon: <FiUser />, route: "/tutor-profile-show" },
-  { label: "Billing History", icon: <FiCheckSquare />, route: "/billing_history_tutor" },
-  { label: "Subscription Plan", icon: <FiUsers />, route: "/tutor_subscription_plan" },
-  { label: "Bookmark", icon: <FiUsers />, route: "/bookmark_tutor" },
-<<<<<<< HEAD
-  { label: "Refer Friends", icon: <FiUsers />, route: "/refer_tutor" },
-=======
-  // { label: "Refer Friends", icon: <FiUsers />, route: "/refer_tutor" },
->>>>>>> cac235298da95deccf6cd953a03454e3e250d1f3
+  { label: "Billing History", icon: <FiFileText />, route: "/billing_history_tutor" },
+  { label: "Subscription Plan", icon: <FiCreditCard />, route: "/tutor_subscription_plan" },
+  { label: "Bookmark", icon: <FiBookmark />, route: "/bookmark_tutor" },
+  { label: "Refer Friends", icon: <FiUserPlus />, route: "/refer_tutor" },
 ];
 
 const TutorSidebar = ({ isOpen, toggleSidebar }) => {
   const [tutorData, setTutorData] = useState({
-    name: "",
+    name: "Tutor",
     subjects: [],
-    location: "",
-    profileStatus: "",
+    location: "Location not set",
+    profileStatus: "pending",
     profileImage: null,
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -384,25 +389,24 @@ const TutorSidebar = ({ isOpen, toggleSidebar }) => {
     window.location.href = "/login";
   };
 
-  // ✅ Ensure subjects is always an array
+  // Ensure subjects is always returned as an array
   const ensureArray = useCallback((data) => {
     if (Array.isArray(data)) return data;
-    if (typeof data === 'string') return [data];
-    if (data === null || data === undefined) return [];
+    if (typeof data === "string") return [data];
     return [];
   }, []);
 
-  // ✅ Fetch latest profile from API
+  // Fetch latest profile from API
   const loadProfile = useCallback(async () => {
     try {
       setIsLoading(true);
-      const p = await getProfile();
+      const profile = await getProfile();
       setTutorData({
-        name: p.name || "Tutor",
-        subjects: ensureArray(p.subjects),
-        location: p.Location?.city || p.location || "Location not set",
-        profileStatus: p.profile_status || "pending",
-        profileImage: p.profile_photo || null,
+        name: profile.name || "Tutor",
+        subjects: ensureArray(profile.subjects),
+        location: profile.Location?.city || profile.location || "Location not set",
+        profileStatus: profile.profile_status || "pending",
+        profileImage: profile.profile_photo || null,
       });
     } catch (err) {
       console.error("Failed to fetch tutor profile:", err);
@@ -411,58 +415,49 @@ const TutorSidebar = ({ isOpen, toggleSidebar }) => {
     }
   }, [ensureArray]);
 
-  // ✅ Function to update tutor data from user object
-  const updateTutorDataFromUser = useCallback((user) => {
-    const name = user.profile?.name || "Tutor";
-    const subjects = ensureArray(user.profile?.subjects);
-    const loc =
-      user.profile?.Location?.city ||
-      user.profile?.Location?.address ||
-      user.profile?.location ||
-      "Location not set";
-    const profileStatus = user.profile?.profile_status || "pending";
-    const profileImage = user.profile?.profile_image || null;
-    
-    setTutorData({ 
-      name, 
-      subjects, 
-      location: loc, 
-      profileStatus, 
-      profileImage 
-    });
-    setIsLoading(false);
-  }, [ensureArray]);
+  // Update tutor data from stored user (localStorage)
+  const updateTutorDataFromUser = useCallback(
+    (user) => {
+      if (!user) return;
+      const profile = user.profile || {};
+      setTutorData({
+        name: profile.name || "Tutor",
+        subjects: ensureArray(profile.subjects),
+        location:
+          profile.Location?.city ||
+          profile.Location?.address ||
+          profile.location ||
+          "Location not set",
+        profileStatus: profile.profile_status || "pending",
+        profileImage: profile.profile_photo || null,
+      });
+      setIsLoading(false);
+    },
+    [ensureArray]
+  );
 
   useEffect(() => {
-    // Check localStorage first for immediate data
+    // Load initial user data
     const user = JSON.parse(localStorage.getItem("user"));
-    if (user?.role === "tutor") {
-      updateTutorDataFromUser(user);
-    }
+    if (user?.role === "tutor") updateTutorDataFromUser(user);
 
-    // Then fetch the latest data from API
+    // Fetch from API for latest data
     loadProfile();
 
-    // ✅ Listen for custom event when profile is updated elsewhere in the app
-    const handleProfileUpdate = () => {
-      loadProfile();
-    };
+    // Handle custom event for profile updates
+    const handleProfileUpdate = () => loadProfile();
 
-    // ✅ Listen for localStorage changes
+    // Handle localStorage user updates
     const handleStorageChange = (e) => {
       if (e.key === "user") {
-        const user = e.newValue ? JSON.parse(e.newValue) : null;
-        if (user?.role === "tutor") {
-          updateTutorDataFromUser(user);
-        }
+        const updatedUser = e.newValue ? JSON.parse(e.newValue) : null;
+        if (updatedUser?.role === "tutor") updateTutorDataFromUser(updatedUser);
       }
     };
 
-    // Add event listeners
     window.addEventListener("profileUpdated", handleProfileUpdate);
     window.addEventListener("storage", handleStorageChange);
 
-    // Cleanup
     return () => {
       window.removeEventListener("profileUpdated", handleProfileUpdate);
       window.removeEventListener("storage", handleStorageChange);
@@ -483,4 +478,5 @@ const TutorSidebar = ({ isOpen, toggleSidebar }) => {
   );
 };
 
-export default React.memo(TutorSidebar);
+export default TutorSidebar;
+

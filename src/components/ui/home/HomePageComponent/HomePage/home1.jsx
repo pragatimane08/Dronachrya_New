@@ -260,7 +260,7 @@ const Home = () => {
         <ExploreCategories />
       </section>
       <HowitWorks_student />
-      <RecentEnquiry />
+      {/* <RecentEnquiry /> */}
       <section
         id="looking-to-teach"
         ref={lookingToTeachRef}

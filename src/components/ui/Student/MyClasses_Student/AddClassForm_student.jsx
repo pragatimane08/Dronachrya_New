@@ -1,6 +1,6 @@
-// src/pages/student/classes/ScheduleClassForm_Student.jsx
+// src/pages/student/classes/MyClasses_Student/ScheduleClassForm_Student.jsx
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../../../api/apiclient";
 import { classRepository } from "../../../../api/repository/class.repository";
@@ -8,7 +8,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FiX } from "react-icons/fi";
 
-const ScheduleClassForm_Student = () => {
+const ScheduleClassForm_Student = ({ onClose }) => {
   const navigate = useNavigate();
   const [tutors, setTutors] = useState([]);
   const [loadingTutors, setLoadingTutors] = useState(true);
@@ -20,10 +20,10 @@ const ScheduleClassForm_Student = () => {
     name: "",
     meeting_link: "",
     date_time: "",
-    mode: "",
+    mode: "online", // FIXED: Set default to "online" explicitly
   });
 
-  // ✅ Fetch tutors
+  // Fetch tutors
   useEffect(() => {
     const fetchTutors = async () => {
       try {
@@ -44,7 +44,7 @@ const ScheduleClassForm_Student = () => {
     fetchTutors();
   }, []);
 
-  // ✅ Handle form change
+  // Handle form change
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "tutor_id") {
@@ -54,6 +54,13 @@ const ScheduleClassForm_Student = () => {
         tutor_id: value,
         tutor_name: selectedTutor ? selectedTutor.name : "",
       }));
+    } else if (name === "mode") {
+      // FIXED: Clear meeting link when switching to offline mode
+      setFormData((prev) => ({
+        ...prev,
+        mode: value,
+        meeting_link: value === "offline" ? "" : prev.meeting_link,
+      }));
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -62,7 +69,7 @@ const ScheduleClassForm_Student = () => {
     }
   };
 
-  // ✅ Submit
+  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -74,6 +81,12 @@ const ScheduleClassForm_Student = () => {
       !formData.mode
     ) {
       toast.warn("Please fill all required fields.");
+      return;
+    }
+
+    // FIXED: Validate meeting link only for online mode
+    if (formData.mode === "online" && !formData.meeting_link) {
+      toast.warn("Meeting link is required for online classes.");
       return;
     }
 
@@ -96,7 +109,7 @@ const ScheduleClassForm_Student = () => {
         tutor_id: formData.tutor_id,
         tutor_name: formData.tutor_name,
         name: formData.name,
-        meeting_link: formData.meeting_link,
+        meeting_link: formData.mode === "online" ? formData.meeting_link : null, // ✅ Explicitly set to null for offline
         date_time: selectedDate.toISOString(),
         type: "regular",
         mode: formData.mode,
@@ -107,7 +120,11 @@ const ScheduleClassForm_Student = () => {
 
       toast.success("Class scheduled successfully!");
       setTimeout(() => {
-        navigate("/student_classes", { state: { refresh: true } });
+        if (typeof onClose === "function") {
+          onClose();
+        } else {
+          navigate("/student_classes");
+        }
       }, 1500);
     } catch (err) {
       console.error("❌ Submit error:", err);
@@ -120,13 +137,19 @@ const ScheduleClassForm_Student = () => {
   return (
     <>
       <ToastContainer />
-      <div className="relative bg-white border rounded-lg shadow w-full max-w-md">
+      <div className="relative bg-white border rounded-lg w-full max-w-md">
         {/* Header Bar */}
         <div className="bg-teal-500 text-white flex items-center justify-between px-4 py-2 rounded-t-lg">
           <h2 className="text-lg font-semibold">Schedule Class</h2>
           <button
             type="button"
-            onClick={() => navigate("/my_classes_student")}
+            onClick={() => {
+              if (typeof onClose === "function") {
+                onClose();
+              } else {
+                navigate("/student_classes");
+              }
+            }}
             className="text-white hover:text-gray-200"
           >
             <FiX size={20} />
@@ -170,21 +193,39 @@ const ScheduleClassForm_Student = () => {
             />
           </div>
 
-          {/* Meeting Link */}
+          {/* Class Mode */}
           <div className="mb-4">
-            <label className="block font-medium mb-1">Meeting Link</label>
-            <input
-              type="url"
-              name="meeting_link"
-              value={formData.meeting_link}
+            <label className="block font-medium mb-1">Class Mode</label>
+            <select
+              name="mode"
+              value={formData.mode}
               onChange={handleChange}
-              placeholder="https://meet.google.com/class-id"
+              required
               className="w-full border rounded px-3 py-2"
-            />
+            >
+              <option value="online">Online</option>
+              <option value="offline">Offline</option>
+            </select>
           </div>
 
+          {/* Meeting Link (visible only if online) */}
+          {formData.mode === "online" && (
+            <div className="mb-4">
+              <label className="block font-medium mb-1">Meeting Link</label>
+              <input
+                type="url"
+                name="meeting_link"
+                value={formData.meeting_link}
+                onChange={handleChange}
+                placeholder="https://meet.google.com/class-id"
+                className="w-full border rounded px-3 py-2"
+                required={formData.mode === "online"}
+              />
+            </div>
+          )}
+
           {/* Date & Time */}
-          <div className="mb-4">
+          <div className="mb-6">
             <label className="block font-medium mb-1">Class Date & Time</label>
             <input
               type="datetime-local"
@@ -195,22 +236,6 @@ const ScheduleClassForm_Student = () => {
               required
               className="w-full border rounded px-3 py-2"
             />
-          </div>
-
-          {/* Mode */}
-          <div className="mb-6">
-            <label className="block font-medium mb-1">Class Mode</label>
-            <select
-              name="mode"
-              value={formData.mode}
-              onChange={handleChange}
-              required
-              className="w-full border rounded px-3 py-2"
-            >
-              <option value="">-- Select Mode --</option>
-              <option value="online">Online</option>
-              <option value="offline">Offline</option>
-            </select>
           </div>
 
           {/* Submit */}

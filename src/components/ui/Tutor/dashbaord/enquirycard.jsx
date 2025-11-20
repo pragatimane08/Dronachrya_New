@@ -123,31 +123,25 @@ const EnquiryList = () => {
       const role = localStorage.getItem("role")?.toLowerCase();
       // console.log("Current role:", role);
 
-      // Filter enquiries based on role
+      // Show only student enquiries for tutors
       const filtered = enquiriesData.enquiries
         ? enquiriesData.enquiries.filter((enquiry) => {
-            if (role === "tutor") {
-              return enquiry.receiver?.role === "tutor";
-            } else {
-              return enquiry.sender?.role === "student";
-            }
+            // Only show enquiries where receiver is tutor (student enquiries for tutors)
+            return enquiry.receiver?.role === "tutor";
           })
         : [];
 
-      // console.log("Filtered enquiries:", filtered);
+      // console.log("Filtered enquiries (student enquiries for tutors):", filtered);
 
-      // Process the enquiries data
+      // Process the enquiries data - only for tutors viewing student enquiries
       const processed = filtered.map((enquiry) => {
-        const isTutor = role === "tutor";
-        const user = isTutor ? enquiry.sender : enquiry.receiver;
-
         return {
           id: enquiry.id,
-          name: user?.name || "Unknown",
+          name: enquiry.sender?.name || "Unknown Student",
           subject: enquiry.subject || "N/A",
           className: enquiry.class || "N/A",
           time: enquiry.created_at,
-          location: user?.location || null,
+          location: enquiry.sender?.location || null,
           learningMode: enquiry.learning_mode || "offline",
           status: enquiry.status || "pending",
           sender_id: enquiry.sender?.id,
@@ -170,6 +164,7 @@ const EnquiryList = () => {
 
   const handleRespond = async (enquiry) => {
     try {
+      // Only tutors can respond to student enquiries
       if (localStorage.getItem("role")?.toLowerCase() === "tutor") {
         await enquiryRepository.updateStatus(enquiry.id, {
           status: "accepted",
@@ -193,9 +188,7 @@ const EnquiryList = () => {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-semibold text-gray-800">
-              {localStorage.getItem("role")?.toLowerCase() === "tutor"
-                ? "Student Enquiries"
-                : "Your Tutor Enquiries"}
+              Student Enquiries
             </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -231,9 +224,7 @@ const EnquiryList = () => {
         {/* Header with View All button */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <h2 className="text-2xl font-semibold text-gray-800">
-            {localStorage.getItem("role")?.toLowerCase() === "tutor"
-              ? "Student Enquiries"
-              : "Your Tutor Enquiries"}
+            Student Enquiries
           </h2>
           {enquiries.length > 0 && (
             <button
@@ -262,12 +253,10 @@ const EnquiryList = () => {
               <FiMessageSquare size={48} className="mx-auto" />
             </div>
             <h3 className="text-lg font-medium text-gray-700 mb-2">
-              No enquiries found
+              No student enquiries found
             </h3>
             <p className="text-gray-500">
-              {localStorage.getItem("role")?.toLowerCase() === "tutor"
-                ? "You don't have any student enquiries yet."
-                : "You haven't sent any enquiries to tutors yet."}
+              You don't have any student enquiries yet.
             </p>
           </div>
         )}

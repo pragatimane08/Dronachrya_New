@@ -979,7 +979,7 @@ const FilterSidebar = ({ onApply, isOpen, onClose, isMobile }) => {
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
           {/* Name Search */}
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Student Name
             </label>
@@ -990,7 +990,7 @@ const FilterSidebar = ({ onApply, isOpen, onClose, isMobile }) => {
               placeholder="Search by student name"
               className="w-full border border-gray-300 px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
-          </div>
+          </div> */}
 
           {/* Subjects */}
           <div>
@@ -1214,7 +1214,7 @@ const FilterSidebar = ({ onApply, isOpen, onClose, isMobile }) => {
           </div>
 
           {/* School Name */}
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               School Name
             </label>
@@ -1227,7 +1227,7 @@ const FilterSidebar = ({ onApply, isOpen, onClose, isMobile }) => {
               placeholder="Search by school name"
               className="w-full border border-gray-300 px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
-          </div>
+          </div> */}
 
           {/* Location */}
           <div>

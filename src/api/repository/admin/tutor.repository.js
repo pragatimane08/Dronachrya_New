@@ -12,6 +12,8 @@ export const tutorRepository = {
   // ✅ Admin - Delete tutor (from users table)
   deleteTutor: (user_id) =>
     apiClient.delete(`/admin/users/${user_id}`),
+  // Add to tutor.repository.js
+createTutor: (tutorData) => apiClient.post('/admin/tutors', tutorData),
 
   // ✅ Admin - Get tutor's uploaded documents
   getTutorDocuments: (tutorId) =>

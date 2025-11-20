@@ -80,6 +80,42 @@ const SendNotification = () => {
     }
   };
 
+  // Function to get display text for message preview
+  const getMessagePreview = (item) => {
+    // If content exists and has a message property
+    if (item.content?.message) {
+      const message = item.content.message;
+      return message.length > 30 ? `${message.substring(0, 30)}...` : message;
+    }
+    
+    // If content is a string
+    if (typeof item.content === 'string') {
+      return item.content.length > 30 ? `${item.content.substring(0, 30)}...` : item.content;
+    }
+    
+    // If content exists but no message property
+    if (item.content) {
+      return 'Object content';
+    }
+    
+    // If no content at all
+    return 'No content';
+  };
+
+  // Function to get full message for modal
+  const getFullMessage = (item) => {
+    if (item.content?.message) {
+      return item.content.message;
+    }
+    if (typeof item.content === 'string') {
+      return item.content;
+    }
+    if (item.content) {
+      return JSON.stringify(item.content, null, 2);
+    }
+    return 'No content available';
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header Section */}
@@ -266,15 +302,11 @@ const SendNotification = () => {
                     </td>
                     <td className="px-6 py-4 max-w-xs">
                       <button
-                        onClick={() => handleOpenMessage(item.content)}
+                        onClick={() => handleOpenMessage(getFullMessage(item))}
                         className="text-sm text-gray-900 text-left hover:text-teal-600 transition-colors w-full"
                       >
                         <div className="truncate max-w-[150px]">
-                          {item.content?.message
-                            ? `${item.content.message.substring(0, 30)}${
-                                item.content.message.length > 30 ? "..." : ""
-                              }`
-                            : "No message content"}
+                          {getMessagePreview(item)}
                         </div>
                       </button>
                     </td>
@@ -400,7 +432,7 @@ const SendNotification = () => {
                     {JSON.stringify(selectedMessage, null, 2)}
                   </pre>
                 ) : (
-                  <p className="text-sm text-gray-800">{selectedMessage}</p>
+                  <p className="text-sm text-gray-800 whitespace-pre-wrap">{selectedMessage}</p>
                 )}
               </div>
             </div>

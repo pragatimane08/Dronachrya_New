@@ -1,39 +1,56 @@
 // src/components/ui/Student/EnquiryForm_Student.jsx
 
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { apiClient } from "../../../../api/apiclient";
 
 // ---------- Reusable Input Components ----------
 const FormInput = ({ label, name, value, onChange, placeholder, error }) => (
   <div>
-    <label className="block text-[#0E2D63] mb-1 text-sm font-medium">{label}</label>
+    <label className="block text-[#0E2D63] mb-1 text-sm font-medium">
+      {label}
+    </label>
     <input
       type="text"
       name={name}
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className={`w-full px-4 py-2 border ${error ? 'border-red-500' : 'border-[#35BAA3]'} rounded-md focus:outline-none focus:ring-2 ${error ? 'focus:ring-red-500' : 'focus:ring-[#35BAA3]'}`}
+      className={`w-full px-4 py-2 border ${
+        error ? "border-red-500" : "border-[#35BAA3]"
+      } rounded-md focus:outline-none focus:ring-2 ${
+        error ? "focus:ring-red-500" : "focus:ring-[#35BAA3]"
+      }`}
     />
     {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
   </div>
 );
 
-const FormTextarea = ({ label, name, value, onChange, placeholder, error }) => (
+const FormSelect = ({ label, name, value, onChange, options, error }) => (
   <div>
-    <label className="block text-[#0E2D63] mb-1 text-sm font-medium">{label}</label>
-    <textarea
+    <label className="block text-[#0E2D63] mb-1 text-sm font-medium">
+      {label}
+    </label>
+    <select
       name={name}
       value={value}
       onChange={onChange}
-      placeholder={placeholder}
-      rows={4}
-      className={`w-full px-4 py-2 border ${error ? 'border-red-500' : 'border-[#35BAA3]'} rounded-md focus:outline-none focus:ring-2 ${error ? 'focus:ring-red-500' : 'focus:ring-[#35BAA3]'}`}
-    />
+      className={`w-full px-4 py-2 border ${
+        error ? "border-red-500" : "border-[#35BAA3]"
+      } rounded-md focus:outline-none focus:ring-2 ${
+        error ? "focus:ring-red-500" : "focus:ring-[#35BAA3]"
+      }`}
+    >
+      <option value="">Select Mode</option>
+      {options.map((opt) => (
+        <option key={opt} value={opt}>
+          {opt}
+        </option>
+      ))}
+    </select>
     {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
   </div>
 );
@@ -44,30 +61,33 @@ const EnquiryForm_Student = () => {
   const location = useLocation();
   const receiverId = location.state?.receiver_id;
 
-  console.log("Receiver ID passed:", receiverId); // ✅ Log the received tutor ID
+  console.log("Receiver ID passed:", receiverId);
 
   const [formData, setFormData] = useState({
-    subject: '',
-    class: '',
-    description: '',
+    class: "",
+    subject: "",
+    mode: "",
   });
 
   const [errors, setErrors] = useState({});
 
+  // ---------- Handle Input Changes ----------
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: '' }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  // ---------- Validation ----------
   const validate = () => {
     const newErrors = {};
-    if (!formData.subject.trim()) newErrors.subject = 'Subject is required';
-    if (!formData.class.trim()) newErrors.class = 'Class is required';
-    if (!formData.description.trim()) newErrors.description = 'Description is required';
+    if (!formData.class.trim()) newErrors.class = "Class is required";
+    if (!formData.subject.trim()) newErrors.subject = "Subject is required";
+    if (!formData.mode.trim()) newErrors.mode = "Mode is required";
     return newErrors;
   };
 
+  // ---------- Submit Enquiry ----------
   const handleSubmit = async () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -83,30 +103,35 @@ const EnquiryForm_Student = () => {
 
     const payload = {
       receiver_id: receiverId,
-      ...formData,
+      class: formData.class,
+      subject: formData.subject,
+      mode: formData.mode,
     };
 
     try {
       await apiClient.post("/enquiries", payload);
-      toast.success("Enquiry submitted successfully");
+      toast.success("Enquiry submitted successfully!");
       setTimeout(() => {
         navigate("/student-dashboard");
       }, 2000);
     } catch (error) {
+      console.error("Enquiry submit error:", error);
       toast.error(
-        error?.response?.data?.message || "Something went wrong while submitting the enquiry"
+        error?.response?.data?.message ||
+          "Something went wrong while submitting the enquiry"
       );
     }
   };
 
+  // ---------- Cancel / Close ----------
   const handleCancel = () => {
     navigate("/student-dashboard");
   };
 
+  // ---------- Render ----------
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 relative">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md border border-[#35BAA3] relative">
-        
         {/* ❌ Close Button */}
         <button
           onClick={handleCancel}
@@ -120,15 +145,7 @@ const EnquiryForm_Student = () => {
         </h2>
 
         <div className="space-y-4">
-          <FormInput
-            label="Subject"
-            name="subject"
-            value={formData.subject}
-            onChange={handleChange}
-            placeholder="e.g., Physics"
-            error={errors.subject}
-          />
-
+          {/* ✅ Class First */}
           <FormInput
             label="Class"
             name="class"
@@ -138,16 +155,28 @@ const EnquiryForm_Student = () => {
             error={errors.class}
           />
 
-          <FormTextarea
-            label="Description"
-            name="description"
-            value={formData.description}
+          {/* ✅ Then Subject */}
+          <FormInput
+            label="Subject"
+            name="subject"
+            value={formData.subject}
             onChange={handleChange}
-            placeholder="e.g., Need help with English."
-            error={errors.description}
+            placeholder="e.g., Physics"
+            error={errors.subject}
+          />
+
+          {/* ✅ Finally Mode */}
+          <FormSelect
+            label="Mode"
+            name="mode"
+            value={formData.mode}
+            onChange={handleChange}
+            options={["Online", "Offline", "Both"]}
+            error={errors.mode}
           />
         </div>
 
+        {/* ✅ Buttons */}
         <div className="flex justify-between mt-6">
           <button
             type="button"
@@ -171,3 +200,4 @@ const EnquiryForm_Student = () => {
 };
 
 export default EnquiryForm_Student;
+

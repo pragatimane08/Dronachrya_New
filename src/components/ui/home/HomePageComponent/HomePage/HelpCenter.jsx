@@ -14,8 +14,8 @@ const HelpCenter = () => {
   const faqData = [
     {
       id: 1,
-      question: "How do I register as a student?",
-      answer: "To register as a student: 1) Click on 'Sign Up' button, 2) Select 'Student' role, 3) Fill in your personal details including name, email, and password, 4) Verify your email address, 5) Complete your profile with academic information."
+      question: "How do I get a tutor match?",
+      answer: "Getting a tutor match: 1) Go to the Book a Demo section, 2) Fill out the enquiry form with your subjects and preferences, 3) Submit the form to get matched with the best tutor for you."
     },
     {
       id: 2,
@@ -25,7 +25,7 @@ const HelpCenter = () => {
     {
       id: 3,
       question: "How do I become a tutor on the platform?",
-      answer: "To become a tutor: 1) Apply through 'Become a Tutor' section, 2) Submit your qualifications and certifications, 3) Complete the verification process, 4) Set your hourly rates and availability, 5) Create an engaging profile with your expertise areas."
+      answer: "To become a tutor: 1) Apply through 'SignUp as Tutor' section, 2) Submit your qualifications and certifications, 3) Complete the verification process, 4) Set your hourly rates and availability, 5) Create an engaging profile with your expertise areas."
     },
     {
       id: 4,
@@ -99,7 +99,7 @@ const HelpCenter = () => {
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">Frequently Asked Questions</h2>
             <p className="text-gray-600">Click on any question below to view the answer</p>
           </div>
-          
+
           <div className="divide-y divide-gray-100">
             {faqData.map((faq) => (
               <div key={faq.id} className="transition-all duration-200">
@@ -116,7 +116,7 @@ const HelpCenter = () => {
                     <ChevronDown className="w-5 h-5 text-gray-400 group-hover:text-blue-600 flex-shrink-0" />
                   )}
                 </button>
-                
+
                 {expandedFaq === faq.id && (
                   <div className="px-6 pb-4 animate-in slide-in-from-top-2 duration-200">
                     <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
@@ -135,7 +135,7 @@ const HelpCenter = () => {
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">Can't find what you're looking for?</h2>
             <p className="text-gray-600">Submit your own question and we'll get back to you as soon as possible</p>
           </div>
-          
+
           <div className="p-6">
             {!showCustomForm ? (
               <button
@@ -176,7 +176,7 @@ const HelpCenter = () => {
                           />
                         </div>
                       </div>
-                      
+
                       <div>
                         <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
                           Your Role *
@@ -198,7 +198,7 @@ const HelpCenter = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div>
                       <label htmlFor="question" className="block text-sm font-medium text-gray-700 mb-2">
                         Your Question *
@@ -214,7 +214,7 @@ const HelpCenter = () => {
                         placeholder="Please describe your question or issue in detail..."
                       />
                     </div>
-                    
+
                     <div className="flex gap-4">
                       <button
                         type="submit"
@@ -255,3 +255,4 @@ const HelpCenter = () => {
 };
 
 export default HelpCenter;
+

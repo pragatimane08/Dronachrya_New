@@ -8,7 +8,6 @@
 //     params: { user_id: userId }
 //   }),
 // };
-
 // src/api/repository/class.repository.js
 import { apiClient } from "../apiclient";
 

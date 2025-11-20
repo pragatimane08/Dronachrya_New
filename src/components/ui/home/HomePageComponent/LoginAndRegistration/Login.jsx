@@ -311,6 +311,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { X, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import FormLayout from "../../layout/FormLayout";
+import { setToken, setUser } from "../../../../../api/apiclient";
 
 export default function Login() {
   const [role, setRole] = useState("student");
@@ -434,6 +435,84 @@ export default function Login() {
     }
   };
 
+  // Handle successful login
+  const handleLoginSuccess = (response, loginType) => {
+    console.log(`${loginType} login response:`, response);
+    
+    // Handle different response structures
+    let token, user;
+    
+    if (loginType === 'student') {
+      // Student OTP verification response
+      token = response.data?.token || response.data?.access_token;
+      user = response.data?.user || { role: 'student' };
+    } else {
+      // Tutor login response  
+      token = response.data?.token || response.data?.access_token;
+      user = response.data?.user || response.data?.data || { role: 'tutor' };
+    }
+
+    if (!token) {
+      setInlineMessage({
+        type: "error",
+        text: "Login failed. No token received from server.",
+      });
+      setLoading(false);
+      return false;
+    }
+
+    // Store token and user data using enhanced session handling
+    setToken(token, rememberMe);
+    setUser(user, rememberMe);
+    
+    // Dispatch auth change event for navbar and other components
+    window.dispatchEvent(new Event('authChange'));
+    
+    setInlineMessage({ type: "success", text: "Login successful!" });
+
+    // Redirect based on role
+    const dashboardRoutes = {
+      admin: '/admin-dashboard',
+      tutor: '/tutor-dashboard', 
+      student: '/student-dashboard'
+    };
+    
+    setTimeout(() => {
+      navigate(dashboardRoutes[user.role] || '/');
+    }, 1000);
+    
+    return true;
+  };
+
+  // Enhanced error handler
+  const handleLoginError = (err, loginType) => {
+    console.error(`${loginType} login error:`, err);
+    
+    let errorMessage = "Login failed. Check your credentials.";
+    
+    if (err.response?.data) {
+      const responseData = err.response.data;
+      
+      // Handle different error response formats
+      if (responseData.message) {
+        errorMessage = responseData.message;
+      } else if (responseData.error) {
+        errorMessage = responseData.error;
+      } else if (typeof responseData === 'string') {
+        errorMessage = responseData;
+      }
+      
+      // Specific error cases
+      if (responseData.detail) {
+        errorMessage = responseData.detail;
+      }
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    
+    setInlineMessage({ type: "error", text: errorMessage });
+  };
+
   // Login
   const handleLogin = async () => {
     if (!validate()) return;
@@ -447,42 +526,22 @@ export default function Login() {
           user_id: userId,
           otp: otp.trim(),
         });
+        handleLoginSuccess(res, 'student');
       } else {
-        res = await authRepository.login({
+        // Enhanced tutor login with better error handling
+        const loginData = {
           emailOrMobile: input.trim(),
           password: password.trim(),
           role: "tutor",
-        });
+        };
+        
+        console.log("Tutor login attempt with:", loginData);
+        
+        res = await authRepository.login(loginData);
+        handleLoginSuccess(res, 'tutor');
       }
-
-      const { token, user } = res.data;
-
-      if (!token) {
-        setInlineMessage({
-          type: "error",
-          text: "Login failed. Invalid response from server.",
-        });
-        setLoading(false);
-        return;
-      }
-
-      if (rememberMe) localStorage.setItem("authToken", token);
-      else sessionStorage.setItem("authToken", token);
-
-      localStorage.setItem("user", JSON.stringify(user || { role }));
-      localStorage.setItem("role", role);
-
-      setInlineMessage({ type: "success", text: "Login successful!" });
-
-      setTimeout(() => {
-        navigate(role === "tutor" ? "/tutor-dashboard" : "/student-dashboard");
-      }, 1000);
     } catch (err) {
-      const msg =
-        err.response?.data?.message ||
-        "Login failed. Check your credentials.";
-      setInlineMessage({ type: "error", text: msg });
-    } finally {
+      handleLoginError(err, role);
       setLoading(false);
     }
   };
@@ -575,6 +634,9 @@ export default function Login() {
               )
             }
           />
+          {errors.input && (
+            <p className="text-red-500 text-xs mt-1">{errors.input}</p>
+          )}
         </div>
 
         {/* Tutor Password */}
@@ -599,6 +661,9 @@ export default function Login() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+            {errors.password && (
+              <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+            )}
           </div>
         )}
 
@@ -633,12 +698,16 @@ export default function Login() {
               <input
                 type="text"
                 placeholder="Enter OTP"
+                maxLength={6}
                 className={`w-full border px-3 py-2 rounded outline-none focus:ring ${
                   errors.otp ? "border-red-500" : "focus:ring-[#35BAA3]"
                 }`}
                 value={otp}
-                onChange={(e) => setOtp(e.target.value)}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
               />
+              {errors.otp && (
+                <p className="text-red-500 text-xs mt-1">{errors.otp}</p>
+              )}
             </div>
             <div className="text-right text-sm">
               <button

@@ -13,6 +13,8 @@ import {
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 const Subscriptions = () => {
   const [plans, setPlans] = useState([]);
@@ -101,12 +103,21 @@ const Subscriptions = () => {
         features: newPlan.features.filter((f) => f.trim() !== ""),
       };
       await subscriptionRepository.createPlan(payload);
-      alert("Plan created successfully");
+      toast.success("Plan created successfully!");
       setIsCreateModalOpen(false);
+      setNewPlan({
+        plan_name: "",
+        price: "",
+        duration_days: "",
+        contact_limit: "",
+        plan_type: "monthly",
+        user_type: "student",
+        features: [""],
+      });
       fetchPlans();
     } catch (error) {
       console.error("Error creating plan:", error);
-      alert("Failed to create plan");
+      toast.error("Failed to create plan");
     }
   };
 
@@ -121,26 +132,57 @@ const Subscriptions = () => {
         features: editPlan.features.filter((f) => f.trim() !== ""),
       };
       await subscriptionRepository.updatePlan(editPlan.id, payload);
-      alert("Plan updated successfully");
+      toast.success("Plan updated successfully!");
       setIsUpdateModalOpen(false);
       fetchPlans();
     } catch (error) {
       console.error("Error updating plan:", error);
-      alert("Failed to update plan");
+      toast.error("Failed to update plan");
     }
   };
 
-  // Delete a plan
+  // Delete a plan with toast confirmation
   const handleDeletePlan = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this plan?")) return;
-    try {
-      await subscriptionRepository.deletePlan(id);
-      alert("Plan deleted successfully");
-      fetchPlans();
-    } catch (error) {
-      console.error("Error deleting plan:", error);
-      alert("Failed to delete plan");
-    }
+    const planToDelete = plans.find(plan => plan.id === id);
+    const planName = planToDelete?.plan_name || 'Plan';
+    
+    // Show custom toast confirmation
+    toast.info(
+      <div className="flex flex-col p-2">
+        <div className="font-semibold text-gray-800 mb-2">Are you sure you want to delete '{planName}'?</div>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={async () => {
+              toast.dismiss();
+              try {
+                await subscriptionRepository.deletePlan(id);
+                toast.success("Plan deleted successfully!");
+                fetchPlans();
+              } catch (error) {
+                console.error("Error deleting plan:", error);
+                toast.error("Failed to delete plan");
+              }
+            }}
+            className="px-4 py-2 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition-colors"
+          >
+            OK
+          </button>
+          <button
+            onClick={() => toast.dismiss()}
+            className="px-4 py-2 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>,
+      {
+        position: "top-center",
+        autoClose: false,
+        closeButton: false,
+        draggable: false,
+        closeOnClick: false,
+      }
+    );
   };
 
   useEffect(() => {
@@ -157,79 +199,97 @@ const Subscriptions = () => {
 
   // Export Plans as PDF
   const exportAsPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Subscription Plans Report", 14, 16);
-    doc.autoTable({
-      head: [
-        [
-          "Plan Name",
-          "Price",
-          "Duration (Days)",
-          "Contact Limit",
-          "Plan Type",
-          "User Type",
-          "Features",
+    try {
+      const doc = new jsPDF();
+      doc.text("Subscription Plans Report", 14, 16);
+      doc.autoTable({
+        head: [
+          [
+            "Plan Name",
+            "Price",
+            "Duration (Days)",
+            "Contact Limit",
+            "Plan Type",
+            "User Type",
+            "Features",
+          ],
         ],
-      ],
-      body: filteredPlans.map((plan) => [
-        plan?.plan_name || "-",
-        plan?.price || "-",
-        plan?.duration_days || "-",
-        plan?.contact_limit || "-",
-        plan?.plan_type || "-",
-        plan?.user_type || "-",
-        Array.isArray(plan?.features)
-          ? plan.features.join(", ")
-          : plan?.features || "-",
-      ]),
-    });
-    doc.save("subscription_plans.pdf");
+        body: filteredPlans.map((plan) => [
+          plan?.plan_name || "-",
+          plan?.price || "-",
+          plan?.duration_days || "-",
+          plan?.contact_limit || "-",
+          plan?.plan_type || "-",
+          plan?.user_type || "-",
+          Array.isArray(plan?.features)
+            ? plan.features.join(", ")
+            : plan?.features || "-",
+        ]),
+      });
+      doc.save("subscription_plans.pdf");
+      toast.success("PDF exported successfully!");
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+      toast.error("Failed to export PDF");
+    }
   };
 
   // Export as Excel
   const exportAsExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(
-      filteredPlans.map((plan) => ({
-        "Plan Name": plan?.plan_name || "-",
-        Price: plan?.price || "-",
-        "Duration (Days)": plan?.duration_days || "-",
-        "Contact Limit": plan?.contact_limit || "-",
-        "Plan Type": plan?.plan_type || "-",
-        "User Type": plan?.user_type || "-",
-        Features: Array.isArray(plan?.features)
-          ? plan.features.join(", ")
-          : plan?.features || "-",
-      }))
-    );
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Plans");
-    XLSX.writeFile(workbook, "subscription_plans.xlsx");
+    try {
+      const worksheet = XLSX.utils.json_to_sheet(
+        filteredPlans.map((plan) => ({
+          "Plan Name": plan?.plan_name || "-",
+          Price: plan?.price || "-",
+          "Duration (Days)": plan?.duration_days || "-",
+          "Contact Limit": plan?.contact_limit || "-",
+          "Plan Type": plan?.plan_type || "-",
+          "User Type": plan?.user_type || "-",
+          Features: Array.isArray(plan?.features)
+            ? plan.features.join(", ")
+            : plan?.features || "-",
+        }))
+      );
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Plans");
+      XLSX.writeFile(workbook, "subscription_plans.xlsx");
+      toast.success("Excel file exported successfully!");
+    } catch (error) {
+      console.error("Error exporting Excel:", error);
+      toast.error("Failed to export Excel file");
+    }
   };
 
   // Export as CSV
   const exportAsCSV = () => {
-    const worksheet = XLSX.utils.json_to_sheet(
-      filteredPlans.map((plan) => ({
-        "Plan Name": plan?.plan_name || "-",
-        Price: plan?.price || "-",
-        "Duration (Days)": plan?.duration_days || "-",
-        "Contact Limit": plan?.contact_limit || "-",
-        "Plan Type": plan?.plan_type || "-",
-        "User Type": plan?.user_type || "-",
-        Features: Array.isArray(plan?.features)
-          ? plan.features.join(", ")
-          : plan?.features || "-",
-      }))
-    );
-    const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
-    const blob = new Blob([csvOutput], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", "subscription_plans.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const worksheet = XLSX.utils.json_to_sheet(
+        filteredPlans.map((plan) => ({
+          "Plan Name": plan?.plan_name || "-",
+          Price: plan?.price || "-",
+          "Duration (Days)": plan?.duration_days || "-",
+          "Contact Limit": plan?.contact_limit || "-",
+          "Plan Type": plan?.plan_type || "-",
+          "User Type": plan?.user_type || "-",
+          Features: Array.isArray(plan?.features)
+            ? plan.features.join(", ")
+            : plan?.features || "-",
+        }))
+      );
+      const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
+      const blob = new Blob([csvOutput], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "subscription_plans.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("CSV file exported successfully!");
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      toast.error("Failed to export CSV file");
+    }
   };
 
   // Reset filters
@@ -239,6 +299,7 @@ const Subscriptions = () => {
       user_type: "",
     });
     setSearchTerm("");
+    toast.info("Filters reset successfully");
   };
 
   // Feature display component
@@ -274,18 +335,6 @@ const Subscriptions = () => {
   return (
     <div className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
       <div className="bg-white rounded-xl shadow-md p-6">
-        {/* Header */}
-        {/* <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">
-              Subscription Plans
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Manage all subscription plans for students and tutors
-            </p>
-          </div>
-        </div> */}
-
         {/* Combined Controls in One Line */}
         <div className="flex flex-col md:flex-row gap-3 mb-6">
           {/* Search Input */}

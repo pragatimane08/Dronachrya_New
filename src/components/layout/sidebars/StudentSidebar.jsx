@@ -1,15 +1,29 @@
 import React, { useEffect, useState } from "react";
-import { FiActivity, FiCalendar, FiMessageCircle, FiUser, FiHelpCircle, FiBookmark, FiDollarSign, FiShare2 } from "react-icons/fi";
+import {
+  FiActivity,
+  FiCalendar,
+  FiMessageCircle,
+  FiUser,
+  FiHelpCircle,
+  FiBookmark,
+  FiDollarSign,
+  FiShare2,
+  FiCreditCard,
+  FiSearch,
+  FiMail // ✅ Added for Find Instructor
+} from "react-icons/fi";
 import SidebarTemplate from "../../common/SidebarTemplate";
 import { getProfile } from "../../../api/repository/profile.repository";
 
 const menuItems = [
   { icon: <FiActivity />, label: "Dashboard", route: "/student-dashboard" },
+   { icon: <FiMail />, label: " Enquiries", route: "/student_enquires" },
   { icon: <FiCalendar />, label: "My Classes", route: "/student_classes" },
   { icon: <FiMessageCircle />, label: "Messages", route: "/student_message_dashboard" },
+  { icon: <FiSearch />, label: "Find Instructor", route: "/student_find_tutor" }, // ✅ Updated with search icon
   { icon: <FiUser />, label: "Account", hasSubmenu: true },
   { icon: <FiDollarSign />, label: "Invoices", route: "/student_invoice" },
-  { icon: <FiShare2 />, label: "Referrals", route: "/student_referal" },
+  // { icon: <FiShare2 />, label: "Referrals", route: "/student_referal" },
   { icon: <FiHelpCircle />, label: "Help Center", route: "/help-center" },
 ];
 
@@ -17,7 +31,7 @@ const accountSubmenu = [
   { label: "Profile", icon: <FiUser />, route: "/student_profile_show" },
   { label: "Billing History", icon: <FiDollarSign />, route: "/student_billing_history" },
   { label: "Bookmarks", icon: <FiBookmark />, route: "/student_bookmark" },
-  { label: "Subscription Plan", icon: <FiBookmark />, route: "/student_subscription_plan" },
+  { label: "Subscription Plan", icon: <FiCreditCard />, route: "/student_subscription_plan" },
 ];
 
 const StudentSidebar = ({ isOpen, toggleSidebar }) => {
@@ -88,3 +102,4 @@ const StudentSidebar = ({ isOpen, toggleSidebar }) => {
 };
 
 export default StudentSidebar;
+

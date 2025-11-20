@@ -1,5 +1,4 @@
 // src/pages/tutor/classes/AddClassForm_Tutor.jsx
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../../../api/apiclient";
@@ -15,7 +14,6 @@ const AddClassForm_Tutor = () => {
 
   const [formData, setFormData] = useState({
     student_id: "",
-    student_name: "",
     name: "",
     meeting_link: "",
     date_time: "",
@@ -33,7 +31,6 @@ const AddClassForm_Tutor = () => {
             name: student.name || student.email || student.mobile_number,
           })) || [];
         setStudents(studentList);
-        console.log("✅ Students fetched:", studentList);
       } catch (err) {
         console.error("❌ Failed to fetch students:", err);
         toast.error("Unable to fetch students");
@@ -47,21 +44,10 @@ const AddClassForm_Tutor = () => {
   // ✅ Handle form change
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // if selecting student, also save student_name
-    if (name === "student_id") {
-      const selectedStudent = students.find((s) => s.id === value);
-      setFormData((prev) => ({
-        ...prev,
-        student_id: value,
-        student_name: selectedStudent ? selectedStudent.name : "",
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   // ✅ Form submit with validation
@@ -70,12 +56,16 @@ const AddClassForm_Tutor = () => {
 
     if (
       !formData.student_id ||
-      !formData.student_name ||
       !formData.name ||
       !formData.date_time ||
       !formData.mode
     ) {
       toast.warn("Please fill all required fields.");
+      return;
+    }
+
+    if (formData.mode === "online" && !formData.meeting_link) {
+      toast.warn("Please enter meeting link for online class.");
       return;
     }
 
@@ -95,20 +85,21 @@ const AddClassForm_Tutor = () => {
     try {
       setSubmitting(true);
 
+      // ✅ Clean payload without tutor name
       const payload = {
         student_id: formData.student_id,
-        student_name: formData.student_name,
-        name: formData.name,
-        meeting_link: formData.meeting_link,
+        name: formData.name, // Class name only
+        meeting_link: formData.mode === "online" ? formData.meeting_link : null,
         date_time: selectedDate.toISOString(),
         type: "regular",
         mode: formData.mode,
+        // ✅ No tutor_name field included
       };
 
-      console.log("📡 Sending request with payload:", payload);
+      // ✅ Debug log to verify payload
+      console.log("📤 Sending payload:", payload);
 
       const res = await classRepository.createClass(payload);
-      console.log("✅ API Response:", res);
 
       toast.success("Class assigned successfully!");
       setTimeout(() => {
@@ -116,6 +107,7 @@ const AddClassForm_Tutor = () => {
       }, 1500);
     } catch (err) {
       console.error("❌ Submit error:", err);
+      console.error("❌ Error response:", err.response?.data);
       toast.error(err?.response?.data?.message || "Failed to assign class");
     } finally {
       setSubmitting(false);
@@ -157,24 +149,11 @@ const AddClassForm_Tutor = () => {
             </option>
             {students.map((student) => (
               <option key={student.id} value={student.id}>
-                {student.name} {/* ✅ Only show name, not ID */}
+                {student.name}
               </option>
             ))}
           </select>
         </div>
-
-        {/* Student Name (auto-filled) */}
-        {formData.student_name && (
-          <div className="mb-4">
-            <label className="block font-medium mb-1">Student Name</label>
-            <input
-              type="text"
-              value={formData.student_name}
-              disabled
-              className="w-full border rounded px-3 py-2 bg-gray-100"
-            />
-          </div>
-        )}
 
         {/* Class Name */}
         <div className="mb-4">
@@ -186,19 +165,6 @@ const AddClassForm_Tutor = () => {
             onChange={handleChange}
             placeholder="e.g., Algebra - Linear Equations"
             required
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
-
-        {/* Meeting Link */}
-        <div className="mb-4">
-          <label className="block font-medium mb-1">Meeting Link</label>
-          <input
-            type="url"
-            name="meeting_link"
-            value={formData.meeting_link}
-            onChange={handleChange}
-            placeholder="https://meet.google.com/class-id"
             className="w-full border rounded px-3 py-2"
           />
         </div>
@@ -218,7 +184,7 @@ const AddClassForm_Tutor = () => {
         </div>
 
         {/* Mode */}
-        <div className="mb-6">
+        <div className="mb-4">
           <label className="block font-medium mb-1">Class Mode</label>
           <select
             name="mode"
@@ -233,12 +199,27 @@ const AddClassForm_Tutor = () => {
           </select>
         </div>
 
+        {/* ✅ Conditionally Show Meeting Link (only if online) */}
+        {formData.mode === "online" && (
+          <div className="mb-6">
+            <label className="block font-medium mb-1">Meeting Link</label>
+            <input
+              type="url"
+              name="meeting_link"
+              value={formData.meeting_link}
+              onChange={handleChange}
+              placeholder="https://meet.google.com/class-id"
+              className="w-full border rounded px-3 py-2"
+            />
+          </div>
+        )}
+
         {/* Buttons */}
         <div className="flex justify-center gap-4">
           <button
             type="button"
             onClick={() => navigate("/my_classes_tutor")}
-            className="px-4 py-2 bg-gray-300 rounded"
+            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
           >
             Cancel
           </button>

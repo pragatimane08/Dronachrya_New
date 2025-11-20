@@ -1,11 +1,10 @@
 import React from "react";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 
 const Footer = () => {
   const navigate = useNavigate();
 
   const handlePlanClick = () => {
-    // Navigate to homepage with a query param to open Plans dropdown
     navigate("/?openPlans=true");
   };
 
@@ -18,13 +17,34 @@ const Footer = () => {
             <span className="text-[#35BAA3]">Drona</span>charya
           </h3>
           <p className="mt-2 text-sm">
-            Connecting students with the best tutors across India. Find the perfect match for your learning needs.
+            Connecting students with the best tutors across India. Find the
+            perfect match for your learning needs.
           </p>
           <div className="flex space-x-4 mt-4 text-white text-lg">
-            <a href="#"><i className="fab fa-facebook-f hover:text-[#35BAA3]" /></a>
-            <a href="#"><i className="fab fa-twitter hover:text-[#35BAA3]" /></a>
-            <a href="#"><i className="fab fa-instagram hover:text-[#35BAA3]" /></a>
-            <a href="#"><i className="fab fa-github hover:text-[#35BAA3]" /></a>
+            <a
+              href="https://www.facebook.com/DronacharyaTutorialsindia"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+            >
+              <i className="fab fa-facebook-f hover:text-[#35BAA3] transition-transform transform hover:scale-110" />
+            </a>
+            <a
+              href="https://www.instagram.com/dronacharyatutorialsindia"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+            >
+              <i className="fab fa-instagram hover:text-[#35BAA3] transition-transform transform hover:scale-110" />
+            </a>
+            <a
+              href="https://www.linkedin.com/company/dlsllp"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn"
+            >
+              <i className="fab fa-linkedin-in hover:text-[#35BAA3] transition-transform transform hover:scale-110" />
+            </a>
           </div>
         </div>
 
@@ -32,18 +52,34 @@ const Footer = () => {
         <div>
           <h4 className="text-white font-semibold mb-3">Quick Links</h4>
           <ul className="space-y-2 text-sm">
-            <li><a href="/" className="hover:text-[#35BAA3]">Home</a></li>
-            <li><a href="/aboutus" className="hover:text-[#35BAA3]">About Us</a></li>
-            <li><a href="/find-instructor" className="hover:text-[#35BAA3]">Find Instructor</a></li>
             <li>
-              <button 
-                onClick={handlePlanClick} 
+              <a href="/" className="hover:text-[#35BAA3]">
+                Home
+              </a>
+            </li>
+            <li>
+              <a href="/aboutus" className="hover:text-[#35BAA3]">
+                About Us
+              </a>
+            </li>
+            <li>
+              <a href="/find-instructor" className="hover:text-[#35BAA3]">
+                Find Instructor
+              </a>
+            </li>
+            <li>
+              <button
+                onClick={handlePlanClick}
                 className="hover:text-[#35BAA3] text-left"
               >
                 Subscription Plans
               </button>
             </li>
-            <li><a href="/contactus" className="hover:text-[#35BAA3]">Contact Us</a></li>
+            <li>
+              <a href="/contactus" className="hover:text-[#35BAA3]">
+                Contact Us
+              </a>
+            </li>
           </ul>
         </div>
 
@@ -51,10 +87,26 @@ const Footer = () => {
         <div>
           <h4 className="text-white font-semibold mb-3">For Users</h4>
           <ul className="space-y-2 text-sm">
-            <li><a href="/tutorreg" className="hover:text-[#35BAA3]">Tutor Registration</a></li>
-            <li><a href="/login" className="hover:text-[#35BAA3]">Login</a></li>
-            <li><a href="/Privacypolicy" className="hover:text-[#35BAA3]">Privacy Policy</a></li>
-            <li><a href="/TermsAndConditions" className="hover:text-[#35BAA3]">Terms & Conditions</a></li>
+            <li>
+              <a href="/tutorreg" className="hover:text-[#35BAA3]">
+                Tutor Registration
+              </a>
+            </li>
+            <li>
+              <a href="/login" className="hover:text-[#35BAA3]">
+                Login
+              </a>
+            </li>
+            <li>
+              <a href="/Privacypolicy" className="hover:text-[#35BAA3]">
+                Privacy Policy
+              </a>
+            </li>
+            <li>
+              <a href="/TermsAndConditions" className="hover:text-[#35BAA3]">
+                Terms & Conditions
+              </a>
+            </li>
           </ul>
         </div>
 
@@ -64,15 +116,34 @@ const Footer = () => {
           <ul className="space-y-4 text-sm">
             <li className="flex items-start gap-3">
               <i className="fas fa-map-marker-alt text-[#35BAA3] mt-1" />
-              <span>123 Education Street, Knowledge City, India - 400001</span>
+              <a
+                href="https://www.google.com/maps?q=109+Manas+Square+Sugamau+Road+Indira+Nagar+Lucknow+UP+226016+India"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#35BAA3]"
+              >
+                109, Manas Square, Sugamau Road, Indira Nagar, Lucknow, UP
+                226016, India
+              </a>
             </li>
             <li className="flex items-center gap-3">
               <i className="fas fa-phone-alt text-[#35BAA3]" />
-              <span>+91 98765 43210</span>
+              <a
+                href="tel:+919876543210"
+                className="hover:text-[#35BAA3]"
+              >
+                +91 98765 43210
+              </a>
             </li>
             <li className="flex items-center gap-3">
               <i className="fas fa-envelope text-[#35BAA3]" />
-              <span>info@dronacharya.com</span>
+              <a
+                href="mailto:info@dronacharya.com"
+                className="hover:text-[#35BAA3]"
+              >
+              care@dronacharyatutorials.com
+
+              </a>
             </li>
           </ul>
         </div>

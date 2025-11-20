@@ -181,7 +181,7 @@ LocalHost API:- http://192.168.1.9:3000/api */
 // };
 
 export const apiUrl = {
-  baseUrl: "http://15.206.81.98:3000/api",
+  baseUrl: "https://api.dronacharyatutorials.com/api",
 
   auth: {
     login: "/auth/login",
@@ -264,9 +264,28 @@ export const apiUrl = {
     getClasses: (id) => `/groups/${id}/classes`,
       getScheduledClasses: "/groups/my-classes/scheduled"
   },
+  // In your apiUtl.js file, add these to the apiUrl object:
+
+  // ... your existing endpoints
+classes: {
+    update: (classId) => `/classes/${classId}`,
+    deletePermanent: (classId) => `/classes/${classId}/permanent`,
+  },
+  // ... rest of your endpoints
+// Add payments endpoints
+  payments: {
+    createOrder: "/payments/create-order",
+    verifyPayment: "/payments/verify-payment",
+  },
+
+  // Add subscriptions endpoints
+  subscriptions: {
+    getPlans: (userType) => `/subscriptions/${userType}`,
+  },
+
 };
 
 // ⚠️ This looks redundant. Keep only one (apiUrl). Remove this if not needed.
 export const apiUtl = {
-  baseUrl: "http://15.206.81.98:3000/api",
+  baseUrl: "https://api.dronacharyatutorials.com/api",
 };

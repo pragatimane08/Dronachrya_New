@@ -282,10 +282,10 @@ const AdminInvoices = () => {
           <div className="flex flex-wrap justify-between items-center p-4 border-b border-gray-200">
             <div className="text-sm text-gray-600">
               Showing <span className="font-medium">{filteredInvoices.length}</span> invoices
-              <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              {/* <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
                 <EyeIcon className="h-3 w-3 inline mr-1" />
                 Click row for details
-              </span>
+              </span> */}
             </div>
             <div className="flex flex-wrap gap-3">
               <button
@@ -293,15 +293,15 @@ const AdminInvoices = () => {
                 className="flex items-center gap-2 bg-[#35BAA3] hover:bg-[#2ea893] text-white px-4 py-2 rounded-lg transition-colors duration-200"
               >
                 <ArrowDownTrayIcon className="h-4 w-4" />
-                <span>Export CSV</span>
+                <span>Export Excel</span>
               </button>
-              <button
+              {/* <button
                 onClick={exportPDF}
                 className="flex items-center gap-2 bg-[#2F4380] hover:bg-[#223366] text-white px-4 py-2 rounded-lg transition-colors duration-200"
               >
                 <ArrowDownTrayIcon className="h-4 w-4" />
                 <span>Export PDF</span>
-              </button>
+              </button> */}
             </div>
           </div>
 

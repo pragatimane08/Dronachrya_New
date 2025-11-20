@@ -6,11 +6,12 @@
   overflow: hidden;
 }
 
-.layout-content {
+.layout-content-wrapper {
   display: flex;
   flex: 1;
   position: relative;
   margin-top: 64px; /* Height of topbar */
+  height: calc(100vh - 64px);
   overflow: hidden;
 }
 
@@ -33,6 +34,7 @@
   z-index: 999;
   transition: transform 0.3s ease;
   overflow: hidden;
+  height: calc(100vh - 64px);
 }
 
 .sidebar-container.sidebar-closed {
@@ -43,30 +45,37 @@
   transform: translateX(0);
 }
 
-.main-content {
+.main-content-wrapper {
   flex: 1;
   transition: margin-left 0.3s ease;
-  min-height: calc(100vh - 64px);
-  width: 100%;
-  overflow-y: auto;
-  scroll-behavior: smooth;
-  overflow-x: hidden;
-  box-sizing: border-box;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
 }
 
-.main-content.sidebar-expanded {
+.main-content-wrapper.sidebar-expanded {
   margin-left: 240px;
 }
 
-.main-content.sidebar-collapsed {
+.main-content-wrapper.sidebar-collapsed {
   margin-left: 0;
 }
 
-.content-inner {
-  padding: 20px;
+.content-area {
   height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px;
   animation: fadeIn 0.3s ease-out;
   box-sizing: border-box;
+  
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.content-area::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 /* Smooth scrolling for the entire app */
@@ -77,6 +86,8 @@ html {
 
 body {
   overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 /* Page transition animations */
@@ -102,36 +113,6 @@ body {
   }
 }
 
-/* Custom scrollbar for webkit browsers */
-.main-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.main-content::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.main-content::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-.main-content::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.main-content::-webkit-scrollbar {
-  display: none;
-}
-
-/* Hide scrollbar for IE, Edge and Firefox */
-.main-content {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-
 /* Responsive adjustments */
 @media (min-width: 1024px) {
   .sidebar-container {
@@ -143,38 +124,65 @@ body {
     display: none;
   }
   
-  .main-content.sidebar-collapsed {
+  .main-content-wrapper.sidebar-collapsed {
     margin-left: 80px;
   }
 }
 
 @media (max-width: 1023px) {
-  .main-content.sidebar-expanded,
-  .main-content.sidebar-collapsed {
+  .main-content-wrapper.sidebar-expanded,
+  .main-content-wrapper.sidebar-collapsed {
     margin-left: 0;
   }
 }
 
 @media (max-width: 768px) {
-  .layout-content {
+  .layout-content-wrapper {
     margin-top: 56px; /* Smaller topbar on mobile */
+    height: calc(100vh - 56px);
   }
   
   .sidebar-container {
     top: 56px;
+    height: calc(100vh - 56px);
   }
   
   .sidebar-overlay {
     top: 56px;
   }
   
-  .content-inner {
+  .content-area {
     padding: 16px;
   }
 }
 
 @media (max-width: 480px) {
-  .content-inner {
+  .content-area {
     padding: 12px;
   }
+}
+
+/* Custom scrollbar styling (optional - if you want to show scrollbar) */
+.content-area.with-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+.content-area.with-scrollbar::-webkit-scrollbar {
+  display: block;
+  width: 8px;
+}
+
+.content-area.with-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.content-area.with-scrollbar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.content-area.with-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
