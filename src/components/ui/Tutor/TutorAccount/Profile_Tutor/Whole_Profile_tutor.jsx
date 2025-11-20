@@ -677,7 +677,6 @@ const Whole_Profile_tutor = () => {
 
   const handleSave = async (field) => {
     try {
-<<<<<<< HEAD
       // For email and mobile, open OTP verification modal instead of saving directly
       if (field === "email" || field === "mobile") {
         if (field === "email" && !validateEmail(tempValue)) {
@@ -700,17 +699,6 @@ const Whole_Profile_tutor = () => {
 
       // For other fields, proceed with normal save
       if (field === "location") {
-=======
-      if (field === "email" && !validateEmail(tempValue))
-        return toast.error("Invalid email");
-      if (field === "mobile" && !validateMobile(tempValue))
-        return toast.error("Invalid mobile number");
-
-      if (["email", "mobile"].includes(field)) {
-        const fieldToSend = field === "mobile" ? "mobile_number" : field;
-        await updateUserContact(fieldToSend, tempValue);
-      } else if (field === "location") {
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
         return;
       } else {
         let payload;
@@ -784,15 +772,8 @@ const Whole_Profile_tutor = () => {
 
   const handleDocumentUpload = async (e) => {
     const files = Array.from(e.target.files);
-<<<<<<< HEAD
     
     if (files.length === 0) return;
-=======
-    const formattedFiles = files.map((file, index) => ({
-      field: `document_${index}`,
-      file,
-    }));
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 
     try {
       const uploadPromises = files.map(async (file, index) => {

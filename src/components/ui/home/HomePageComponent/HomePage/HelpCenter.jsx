@@ -255,7 +255,3 @@ const HelpCenter = () => {
 };
 
 export default HelpCenter;
-<<<<<<< HEAD
-
-=======
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed

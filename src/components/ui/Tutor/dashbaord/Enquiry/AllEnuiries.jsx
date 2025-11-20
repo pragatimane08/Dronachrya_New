@@ -1186,13 +1186,13 @@ const AllEnquiries = () => {
                             {getButtonText(enquiry)}
                           </button>
 
-                          {/* Send Enquiry Button */}
+                          {/* Send Message Button */}
                           <button
                             onClick={() => handleSendEnquiry(enquiry)}
                             className="flex items-center justify-center gap-1 bg-[#0E2D63] hover:bg-[#0a1f45] text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors min-w-[120px]"
                           >
                             <Send className="w-4 h-4" />
-                            Send Enquiry
+                            Send Message
                           </button>
                         </div>
                       </div>

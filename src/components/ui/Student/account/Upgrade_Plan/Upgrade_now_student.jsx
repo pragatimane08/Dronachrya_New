@@ -414,54 +414,7 @@ const SubscriptionPlans = ({ userType = "student" }) => {
         const orderData = {
           user_id: userId,
           plan_id: planToUse.id,
-<<<<<<< HEAD
           plan_name: planToUse.plan_name
-=======
-        });
-
-        const { order_id, total_amount, currency } = res.data;
-        await loadRazorpayScript();
-        const razorpayKey = getRazorpayKey();
-
-        const options = {
-          key: razorpayKey,
-          amount: Math.round(total_amount * 100),
-          currency,
-          name: "Dronacharya Tutoring",
-          description: `${planToUse.plan_name} Subscription`,
-          order_id,
-          handler: async function (response) {
-            try {
-              await apiClient.post("/payments/verify-payment", {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                plan_id: planToUse.id,
-                user_id: userId,
-              });
-              toast.success("🎉 Payment Successful!");
-              // Redirect after success
-              setTimeout(() => {
-                if (userType === "tutor") {
-                  navigate("/tutor-dashboard");
-                } else {
-                  navigate("/student-dashboard");
-                }
-              }, 2000);
-            } catch {
-              toast.error("Payment verification failed. Contact support.");
-            }
-          },
-          modal: { ondismiss: () => setLoadingPlanId(null) },
-          theme: { color: "#35BAA3" },
-          prefill: {
-            email: authStatus.userData.email || "",
-            contact:
-              authStatus.userData.mobile_number ||
-              authStatus.userData.phone ||
-              "",
-          },
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
         };
         if (appliedCoupon) orderData.coupon_code = appliedCoupon.code;
 
@@ -519,7 +472,6 @@ const SubscriptionPlans = ({ userType = "student" }) => {
     ]
   );
 
-<<<<<<< HEAD
   // Separate function to process payment with existing order
   const processPaymentWithOrder = async (orderSummary, planToUse, userId, userData) => {
     const {
@@ -629,13 +581,6 @@ const SubscriptionPlans = ({ userType = "student" }) => {
     setShowCouponSection(false);
     setCurrentOrderId(null); // Clear order ID when modal closes
   };
-=======
-  return (
-    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center px-4 py-8">
-      <ToastContainer position="top-center" />
-      <div className="bg-white rounded-xl border border-gray-300 p-6 w-full max-w-6xl relative">
-        {/* Cross Button */}
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 
   // Reset coupon state when plan changes
   useEffect(() => {

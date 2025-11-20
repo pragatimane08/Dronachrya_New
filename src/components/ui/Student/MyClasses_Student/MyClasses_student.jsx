@@ -130,11 +130,7 @@ const MyClasses = () => {
 
       // Format individual classes for calendar
       const formattedIndividualClasses = individualClasses.map((cls, index) => {
-<<<<<<< HEAD
         const isDemo = cls.type === "demo" || cls.is_demo || cls.isDemo;
-=======
-        const isDemo = cls.type === "demo";
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 
         // Get tutor name from multiple possible sources
         let tutorName = "Tutor not assigned";
@@ -181,14 +177,11 @@ const MyClasses = () => {
           }
         }
 
-<<<<<<< HEAD
         // FIXED: Use timezone-aware date functions
         const dateOnly = getDateOnlyForCalendar(cls.date_time);
         const displayDate = formatDateForDisplay(cls.date_time);
         const displayTime = formatTimeForDisplay(cls.date_time);
 
-=======
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
         return {
           id: cls.id ? String(cls.id) : `class-${index}-${dateOnly || index}`,
           title: isDemo ? "Demo Class" : `${classMode === "offline" ? "📍 " : "💻 "}Regular Class`,
@@ -206,7 +199,6 @@ const MyClasses = () => {
             type: isDemo ? "demo" : "regular",
             classType: "individual",
             zoomLink: meetingLink,
-<<<<<<< HEAD
             meetingLinkDisplay: meetingLinkDisplay,
             mode: classMode,
             isGroupClass: false,
@@ -215,29 +207,12 @@ const MyClasses = () => {
             date: displayDate,
             rawDateTime: cls.date_time, // Keep original for reference
             location: cls.location || "Location will be provided soon", // Added location field
-=======
-            mode: cls.mode || "online",
-            time: cls.date_time
-              ? new Date(cls.date_time).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-              : "N/A",
-            date: cls.date_time
-              ? new Date(cls.date_time).toLocaleDateString()
-              : "N/A",
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
           },
         };
       });
 
       // Format group classes for calendar
       const formattedGroupClasses = groupClasses.map((cls, index) => {
-<<<<<<< HEAD
-=======
-        console.log("Processing group class:", cls);
-
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
         // Get tutor name from multiple possible sources
         let tutorName = "Tutor not assigned";
         if (cls.tutor_name) {
@@ -289,27 +264,6 @@ const MyClasses = () => {
         const displayDate = formatDateForDisplay(cls.date_time);
         const displayTime = formatTimeForDisplay(cls.date_time);
 
-<<<<<<< HEAD
-=======
-        // Handle time formatting for group classes
-        let classTime = "N/A";
-        if (cls.date_time) {
-          classTime = new Date(cls.date_time).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-        } else if (cls.scheduled_time) {
-          classTime = cls.scheduled_time;
-        }
-
-        let displayDate = "N/A";
-        if (cls.date_time) {
-          displayDate = new Date(cls.date_time).toLocaleDateString();
-        } else if (cls.scheduled_date) {
-          displayDate = new Date(cls.scheduled_date).toLocaleDateString();
-        }
-
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
         return {
           id: cls.id ? String(cls.id) : `group-class-${index}-${classDate || index}`,
           title: `${classMode === "offline" ? "📍 " : "💻 "}${groupName}`,
@@ -344,13 +298,6 @@ const MyClasses = () => {
       // Combine both individual and group classes
       const allEvents = [...formattedIndividualClasses, ...formattedGroupClasses];
 
-<<<<<<< HEAD
-=======
-      console.log("Formatted individual classes:", formattedIndividualClasses);
-      console.log("Formatted group classes:", formattedGroupClasses);
-      console.log("All events:", allEvents);
-
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
       setEvents(allEvents);
       setFilteredEvents(allEvents);
       
@@ -588,7 +535,6 @@ const MyClasses = () => {
   };
 
   return (
-<<<<<<< HEAD
     <div className="p-3 sm:p-6 bg-gray-50 min-h-screen relative">
       {/* Enhanced Inline Message Display - Fixed below the top with proper spacing */}
       {message.text && (
@@ -610,21 +556,6 @@ const MyClasses = () => {
           </div>
         </div>
       )}
-=======
-    <div className="p-3 sm:p-6 bg-gray-50 min-h-screen">
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 
       <style>{`
         .fc-button {
@@ -937,11 +868,7 @@ const MyClasses = () => {
               <AddClassForm
                 onClose={() => {
                   setShowAddClassForm(false);
-<<<<<<< HEAD
                   navigate("/student_classes");
-=======
-                  navigate("/student_classes"); // ✅ Navigate to /student_classes on close
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
                 }}
                 onSuccess={() => {
                   setShowAddClassForm(false);

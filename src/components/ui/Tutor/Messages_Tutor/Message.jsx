@@ -1,227 +1,8 @@
-<<<<<<< HEAD
-=======
-// import React, { useState, useEffect, useRef } from "react"; // ✅ Added useRef
-// import { useSearchParams, useNavigate } from "react-router-dom";
-// import ChatSidebar from "./ChatSidebar";
-// import ChatWindow from "./ChatWindow";
-// import { enquiryRepository } from "../../../../api/repository/enquiry.repository";
-// import { formatDistanceToNow } from "date-fns";
-// import { toast } from "react-toastify"; // ✅ Add this if not already
-
-// const Message = () => {
-//   const [searchParams] = useSearchParams();
-//   const navigate = useNavigate();
-//   const enquiryIdParam = searchParams.get("id");
-//   const senderParam = searchParams.get("sender");
-//   const receiverParam = searchParams.get("receiver");
-
-//   const [contacts, setContacts] = useState([]);
-//   const [selectedContact, setSelectedContact] = useState(null);
-//   const [isLoading, setIsLoading] = useState(true);
-//   const currentUserId = JSON.parse(localStorage.getItem("user"))?.id;
-
-//   const hasLoadedOnce = useRef(false); // ✅ Track initial load
-
-//   const fetchEnquiries = async () => {
-//     try {
-//       setIsLoading(true);
-//       const res = await enquiryRepository.getAll();
-//       const allEnquiries = res?.data?.enquiries || [];
-
-//       const uniqueMap = new Map();
-
-//       allEnquiries.forEach((enquiry) => {
-//         const isSender = enquiry.sender?.id === currentUserId;
-//         const otherUser = isSender ? enquiry.receiver : enquiry.sender;
-
-//         const key = [enquiry.sender?.id, enquiry.receiver?.id]
-//           .filter((id) => id !== currentUserId)
-//           .join("-");
-
-//         if (!uniqueMap.has(key) && otherUser?.id !== currentUserId) {
-//           uniqueMap.set(key, {
-//             id: enquiry.id,
-//             senderId: enquiry.sender?.id,
-//             receiverId: enquiry.receiver?.id,
-//             displayName: otherUser?.name || "Unknown",
-//             messages: [],
-//             lastMessage: "",
-//             createdAt: enquiry.created_at,
-//             isUnread: false,
-//           });
-//         }
-//       });
-
-//       setContacts([...uniqueMap.values()]);
-//     } catch (error) {
-//       console.error("❌ Failed to fetch enquiries:", error);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   const fetchMessages = async (contact) => {
-//     try {
-//       const { data } = await enquiryRepository.getMessages(contact.id);
-//       const formatted = data.map((msg) => ({
-//         id: msg.id,
-//         from: msg.sender_id === currentUserId ? "me" : "user",
-//         text: msg.content,
-//         time: formatDistanceToNow(new Date(msg.created_at), { addSuffix: true }),
-//         createdAt: msg.created_at,
-//       }));
-
-//       const lastMsg = formatted.at(-1);
-
-//       setContacts((prev) =>
-//         prev.map((c) =>
-//           c.id === contact.id
-//             ? {
-//                 ...c,
-//                 messages: formatted,
-//                 lastMessage: lastMsg?.text || "",
-//                 createdAt: lastMsg?.createdAt || c.createdAt,
-//                 isUnread: false,
-//               }
-//             : c
-//         )
-//       );
-
-//       setSelectedContact((prev) =>
-//         prev && prev.id === contact.id
-//           ? {
-//               ...prev,
-//               messages: formatted,
-//               lastMessage: lastMsg?.text || "",
-//               isUnread: false,
-//             }
-//           : prev
-//       );
-
-//       // ✅ Show success toast only once
-//       if (!hasLoadedOnce.current) {
-//         toast.success("Class loaded successfully");
-//         hasLoadedOnce.current = true;
-//       }
-//     } catch (error) {
-//       console.error("❌ Failed to fetch messages:", error);
-//     }
-//   };
-
-//   useEffect(() => {
-//     const interval = setInterval(() => {
-//       if (selectedContact) fetchMessages(selectedContact);
-//     }, 10000);
-//     return () => clearInterval(interval);
-//   }, [selectedContact]);
-
-//   useEffect(() => {
-//     fetchEnquiries();
-//   }, []);
-
-//   useEffect(() => {
-//     if (!contacts.length || selectedContact || isLoading) return;
-
-//     let matched = contacts.find((c) => c.id?.toString() === enquiryIdParam);
-
-//     if (!matched && senderParam && receiverParam) {
-//       matched = contacts.find((c) => {
-//         const matchForward =
-//           c.senderId?.toString() === senderParam &&
-//           c.receiverId?.toString() === receiverParam;
-//         const matchReverse =
-//           c.senderId?.toString() === receiverParam &&
-//           c.receiverId?.toString() === senderParam;
-//         return matchForward || matchReverse;
-//       });
-//     }
-
-//     if (!matched && contacts.length > 0) matched = contacts[0];
-
-//     if (matched) {
-//       setSelectedContact(matched);
-//       fetchMessages(matched);
-//       navigate(
-//         `?id=${matched.id}&sender=${matched.senderId}&receiver=${matched.receiverId}`,
-//         { replace: true }
-//       );
-//     }
-//   }, [contacts, enquiryIdParam, senderParam, receiverParam, selectedContact, isLoading]);
-
-//   const handleSelect = (contact) => {
-//     setSelectedContact(contact);
-//     fetchMessages(contact);
-//     navigate(`?id=${contact.id}&sender=${contact.senderId}&receiver=${contact.receiverId}`);
-//   };
-
-//   const handleSendMessage = async (messageText) => {
-//     if (!selectedContact || !messageText.trim()) return;
-
-//     const tempMessage = {
-//       id: Date.now(),
-//       from: "me",
-//       text: messageText,
-//       time: "Just now",
-//       createdAt: new Date().toISOString(),
-//     };
-
-//     setSelectedContact((prev) => ({
-//       ...prev,
-//       messages: [...prev.messages, tempMessage],
-//     }));
-
-//     try {
-//       await enquiryRepository.sendMessage(selectedContact.id, { content: messageText });
-//       fetchMessages(selectedContact);
-//     } catch (error) {
-//       console.error("❌ Failed to send message:", error);
-//       setSelectedContact((prev) => ({
-//         ...prev,
-//         messages: prev.messages.filter((m) => m.id !== tempMessage.id),
-//       }));
-//     }
-//   };
-
-//   return (
-//     <div className="flex h-[calc(100vh-80px)] bg-white border shadow-md mx-4 my-4 rounded-lg overflow-hidden">
-//       <ChatSidebar
-//         contacts={contacts}
-//         onSelect={handleSelect}
-//         selectedContact={selectedContact}
-//         isLoading={isLoading}
-//       />
-//       <div className="flex-1">
-//         {isLoading ? (
-//           <div className="flex h-full items-center justify-center">
-//             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-//           </div>
-//         ) : !selectedContact ? (
-//           <div className="flex h-full items-center justify-center text-gray-500 text-lg">
-//             {contacts.length === 0
-//               ? "No conversations found"
-//               : "Select a conversation to start chatting"}
-//           </div>
-//         ) : (
-//           <ChatWindow contact={selectedContact} onSendMessage={handleSendMessage} />
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Message;
-
-
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { enquiryRepository } from "../../../../api/repository/enquiry.repository";
-<<<<<<< HEAD
 import { formatDistanceToNow } from "date-fns";
-=======
-import { format, isToday, isYesterday, isThisWeek, formatDistanceToNow } from "date-fns";
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 import { toast } from "react-toastify";
 
 const Message = () => {
@@ -236,7 +17,6 @@ const Message = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-<<<<<<< HEAD
 
   const currentUser = JSON.parse(localStorage.getItem("user"));
   const currentUserId = currentUser?.id;
@@ -245,16 +25,6 @@ const Message = () => {
   const hasLoadedOnce = useRef(false);
   const messagesEndRef = useRef(null);
 
-=======
- 
-  const currentUser = JSON.parse(localStorage.getItem("user"));
-  const currentUserId = currentUser?.id;
-  const currentUserRole = currentUser?.role;
- 
-  const hasLoadedOnce = useRef(false);
-  const messagesEndRef = useRef(null);
-
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -285,7 +55,6 @@ const Message = () => {
             receiverId: enquiry.receiver?.id,
             senderRole: enquiry.sender?.role,
             receiverRole: enquiry.receiver?.role,
-<<<<<<< HEAD
             senderName: enquiry.sender?.name || "Unknown",
             receiverName: enquiry.receiver?.name || "Unknown",
             displayName: otherUser?.name || "Unknown",
@@ -295,11 +64,6 @@ const Message = () => {
               `https://ui-avatars.com/api/?name=${encodeURIComponent(
                 otherUser?.name || "User"
               )}&background=0D8ABC&color=fff`,
-=======
-            displayName: otherUser?.name || "Unknown",
-            userRole: otherUser?.role,
-            avatar: otherUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUser?.name || "User")}&background=0D8ABC&color=fff`,
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
             messages: [],
             lastMessage: "",
             lastMessageFrom: "",
@@ -323,11 +87,6 @@ const Message = () => {
   const fetchMessages = async (contact) => {
     try {
       const { data } = await enquiryRepository.getMessages(contact.id);
-<<<<<<< HEAD
-
-=======
-     
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
       const formatted = data.map((msg) => ({
         id: msg.id,
         from: msg.sender_id === currentUserId ? "me" : "user",
@@ -340,11 +99,6 @@ const Message = () => {
       }));
 
       const lastMessage = formatted.at(-1);
-<<<<<<< HEAD
-
-=======
-     
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
       setContacts((prev) =>
         prev.map((c) =>
           c.id === contact.id
@@ -406,7 +160,6 @@ const Message = () => {
       });
     }
 
-<<<<<<< HEAD
     // Filter contacts to show only students in sidebar
     const roleFilteredContacts = contacts.filter((contact) => {
       return contact.userRole === "student";
@@ -414,25 +167,12 @@ const Message = () => {
 
     if (!matched && roleFilteredContacts.length > 0)
       matched = roleFilteredContacts[0];
-=======
-    const roleFilteredContacts = contacts.filter(contact => {
-      if (currentUserRole === 'tutor') {
-        return contact.userRole === 'student';
-      } else if (currentUserRole === 'student') {
-        return contact.userRole === 'tutor';
-      }
-      return true;
-    });
-
-    if (!matched && roleFilteredContacts.length > 0) matched = roleFilteredContacts[0];
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 
     if (matched) {
       setSelectedContact(matched);
       fetchMessages(matched);
       navigate(`?id=${matched.id}&sender=${matched.senderId}&receiver=${matched.receiverId}`, { replace: true });
     }
-<<<<<<< HEAD
   }, [
     contacts,
     enquiryIdParam,
@@ -442,9 +182,6 @@ const Message = () => {
     isLoading,
     currentUserRole,
   ]);
-=======
-  }, [contacts, enquiryIdParam, senderParam, receiverParam, selectedContact, isLoading, currentUserRole]);
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 
   const handleSelect = (contact) => {
     setSelectedContact(contact);
@@ -455,11 +192,6 @@ const Message = () => {
 
   const handleSendMessage = async (messageText) => {
     if (!selectedContact || !messageText.trim()) return;
-<<<<<<< HEAD
-
-=======
-   
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
     try {
       await enquiryRepository.sendMessage(selectedContact.id, { content: messageText });
       fetchMessages(selectedContact);
@@ -473,50 +205,26 @@ const Message = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-<<<<<<< HEAD
   // Filter contacts to show only students in sidebar
   const filteredContacts = contacts.filter((contact) => {
     const roleFilter = contact.userRole === "student";
     const searchFilter =
       contact.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.lastMessage.toLowerCase().includes(searchTerm.toLowerCase());
-=======
-  const filteredContacts = contacts.filter(contact => {
-    const roleFilter = currentUserRole === 'tutor'
-      ? contact.userRole === 'student'
-      : currentUserRole === 'student'
-      ? contact.userRole === 'tutor'
-      : true;
-
-    const searchFilter = contact.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        contact.lastMessage.toLowerCase().includes(searchTerm.toLowerCase());
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 
     return roleFilter && searchFilter;
   });
 
   return (
     <div className="flex h-[calc(100vh-80px)] bg-white border shadow-md mx-0 sm:mx-4 my-0 sm:my-4 rounded-none sm:rounded-lg overflow-hidden relative">
-<<<<<<< HEAD
       <button
         onClick={toggleSidebar}
         className="lg:hidden absolute top-4 left-4 z-30 bg-teal-500 text-white p-2 rounded-md shadow-lg hover:bg-teal-600 transition-colors"
         style={{ margin: "10px" }}
-=======
-      {/* Mobile Sidebar Toggle Button */}
-      <button
-        onClick={toggleSidebar}
-        className="lg:hidden absolute top-4 left-4 z-30 bg-teal-500 text-white p-2 rounded-md shadow-lg hover:bg-teal-600 transition-colors"
-        style={{ margin: '10px' }}
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
       >
         {isSidebarOpen ? "✕" : "☰"}
       </button>
 
-<<<<<<< HEAD
-=======
-      {/* Overlay for mobile */}
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
       {isSidebarOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-20"
@@ -524,15 +232,9 @@ const Message = () => {
         />
       )}
 
-<<<<<<< HEAD
       <div
         className={`
         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-=======
-      {/* Sidebar */}
-      <div className={`
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
         lg:translate-x-0
         transition-transform duration-300 ease-in-out
         fixed lg:relative z-30 lg:z-auto
@@ -540,12 +242,8 @@ const Message = () => {
         bg-white border-r border-gray-200
         flex flex-col
         shadow-xl lg:shadow-none
-<<<<<<< HEAD
       `}
       >
-=======
-      `}>
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
         <ChatSidebar
           contacts={filteredContacts}
           onSelect={handleSelect}
@@ -559,10 +257,6 @@ const Message = () => {
         />
       </div>
 
-<<<<<<< HEAD
-=======
-      {/* Main Content */}
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
       <div className="flex-1 w-full min-w-0 relative">
         {isLoading ? (
           <div className="flex h-full items-center justify-center">
@@ -589,7 +283,6 @@ const Message = () => {
   );
 };
 
-<<<<<<< HEAD
 const ChatSidebar = ({
   contacts,
   onSelect,
@@ -607,20 +300,6 @@ const ChatSidebar = ({
 
   const getEmptyMessage = () => {
     return "No student messages yet";
-=======
-// Chat Sidebar Component
-const ChatSidebar = ({ contacts, onSelect, selectedContact, isLoading, searchTerm, onSearchChange, currentUserId, currentUserRole, onToggleSidebar }) => {
-  const getSidebarTitle = () => {
-    if (currentUserRole === 'tutor') return 'Student Messages';
-    if (currentUserRole === 'student') return 'Tutor Messages';
-    return 'Chats';
-  };
-
-  const getEmptyMessage = () => {
-    if (currentUserRole === 'tutor') return 'No student messages yet';
-    if (currentUserRole === 'student') return 'No tutor messages yet';
-    return 'No conversations found';
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
   };
 
   return (
@@ -632,7 +311,6 @@ const ChatSidebar = ({ contacts, onSelect, selectedContact, isLoading, searchTer
         >
           ✕
         </button>
-<<<<<<< HEAD
         <h2 className="text-xl font-semibold text-gray-800 pr-10">
           {getSidebarTitle()}
         </h2>
@@ -640,24 +318,11 @@ const ChatSidebar = ({ contacts, onSelect, selectedContact, isLoading, searchTer
           <input
             type="text"
             placeholder="Search student conversations..."
-=======
-        <h2 className="text-xl font-semibold text-gray-800 pr-10">{getSidebarTitle()}</h2>
-        <div className="mt-3 relative">
-          <input
-            type="text"
-            placeholder="Search conversations..."
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full px-4 py-2 pl-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           />
-<<<<<<< HEAD
           <div className="absolute left-3 top-2.5 text-gray-400">🔍</div>
-=======
-          <div className="absolute left-3 top-2.5 text-gray-400">
-            🔍
-          </div>
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
         </div>
       </div>
 
@@ -668,11 +333,7 @@ const ChatSidebar = ({ contacts, onSelect, selectedContact, isLoading, searchTer
           </div>
         ) : contacts.length === 0 ? (
           <div className="text-center text-gray-500 mt-8">
-<<<<<<< HEAD
             {searchTerm ? "No student conversations found" : getEmptyMessage()}
-=======
-            {searchTerm ? "No conversations found" : getEmptyMessage()}
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
           </div>
         ) : (
           contacts.map((contact) => (
@@ -691,12 +352,7 @@ const ChatSidebar = ({ contacts, onSelect, selectedContact, isLoading, searchTer
   );
 };
 
-<<<<<<< HEAD
 const ContactItem = ({ contact, isSelected, onSelect }) => {
-=======
-// Contact Item Component
-const ContactItem = ({ contact, isSelected, onSelect, currentUserId, currentUserRole }) => {
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
   const getPreviewText = () => {
     if (!contact.lastMessage) return "No messages yet";
     return contact.lastMessage;
@@ -708,13 +364,7 @@ const ContactItem = ({ contact, isSelected, onSelect, currentUserId, currentUser
     <div
       onClick={() => onSelect(contact)}
       className={`flex items-center p-3 border-b border-gray-100 cursor-pointer transition-colors ${
-<<<<<<< HEAD
         isSelected ? "bg-teal-50 border-teal-200" : "hover:bg-gray-50"
-=======
-        isSelected
-          ? 'bg-teal-50 border-teal-200'
-          : 'hover:bg-gray-50'
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
       }`}
     >
       <div className="relative">
@@ -727,10 +377,6 @@ const ContactItem = ({ contact, isSelected, onSelect, currentUserId, currentUser
           <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
         )}
       </div>
-<<<<<<< HEAD
-
-=======
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
       <div className="ml-3 flex-1 min-w-0">
         <div className="flex justify-between items-start">
           <h3 className="font-semibold text-gray-800 truncate">
@@ -740,10 +386,6 @@ const ContactItem = ({ contact, isSelected, onSelect, currentUserId, currentUser
             {formatDistanceToNow(new Date(contact.lastMessageTime))}
           </span>
         </div>
-<<<<<<< HEAD
-
-=======
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
         <div className="flex justify-between items-center mt-1">
           <p className="text-sm truncate flex-1 text-gray-600">
             {previewText}
@@ -759,7 +401,6 @@ const ContactItem = ({ contact, isSelected, onSelect, currentUserId, currentUser
   );
 };
 
-<<<<<<< HEAD
 const WelcomeScreen = ({ onToggleSidebar, currentUserRole, hasContacts }) => {
   const getWelcomeTitle = () => {
     return "Student Messages";
@@ -771,26 +412,6 @@ const WelcomeScreen = ({ onToggleSidebar, currentUserRole, hasContacts }) => {
 
   const getButtonText = () => {
     return "View Student Messages";
-=======
-// Welcome Screen Component
-const WelcomeScreen = ({ onToggleSidebar, currentUserRole, hasContacts }) => {
-  const getWelcomeTitle = () => {
-    if (currentUserRole === 'tutor') return 'Student Messages';
-    if (currentUserRole === 'student') return 'Tutor Messages';
-    return 'Messages';
-  };
-
-  const getWelcomeMessage = () => {
-    if (currentUserRole === 'tutor') return 'Select a conversation to view student messages and respond to enquiries.';
-    if (currentUserRole === 'student') return 'Select a conversation to view tutor messages.';
-    return 'Select a conversation to start chatting.';
-  };
-
-  const getButtonText = () => {
-    if (currentUserRole === 'tutor') return 'View Student Messages';
-    if (currentUserRole === 'student') return 'View Tutor Messages';
-    return 'View Conversations';
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
   };
 
   return (
@@ -800,13 +421,7 @@ const WelcomeScreen = ({ onToggleSidebar, currentUserRole, hasContacts }) => {
         <h2 className="text-2xl font-bold text-gray-800 mb-2">
           {getWelcomeTitle()}
         </h2>
-<<<<<<< HEAD
         <p className="text-gray-600 mb-6">{getWelcomeMessage()}</p>
-=======
-        <p className="text-gray-600 mb-6">
-          {getWelcomeMessage()}
-        </p>
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
         <button
           onClick={onToggleSidebar}
           className="lg:hidden bg-teal-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-teal-600 transition-colors"
@@ -818,7 +433,6 @@ const WelcomeScreen = ({ onToggleSidebar, currentUserRole, hasContacts }) => {
   );
 };
 
-<<<<<<< HEAD
 const ChatWindow = ({
   contact,
   onSendMessage,
@@ -827,10 +441,6 @@ const ChatWindow = ({
   currentUserId,
   currentUserRole,
 }) => {
-=======
-// Chat Window Component - FIXED MESSAGE ALIGNMENT
-const ChatWindow = ({ contact, onSendMessage, onToggleSidebar, messagesEndRef, currentUserId, currentUserRole }) => {
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
   const [messageText, setMessageText] = useState("");
 
   const handleSubmit = (e) => {
@@ -842,7 +452,6 @@ const ChatWindow = ({ contact, onSendMessage, onToggleSidebar, messagesEndRef, c
   };
 
   const getPlaceholderText = () => {
-<<<<<<< HEAD
     return "Type your response to student...";
   };
 
@@ -890,169 +499,10 @@ const ChatWindow = ({ contact, onSendMessage, onToggleSidebar, messagesEndRef, c
               />
             ))}
             <div ref={messagesEndRef} />
-=======
-    if (currentUserRole === 'tutor') return 'Type your response to student...';
-    if (currentUserRole === 'student') return 'Type your message to tutor...';
-    return 'Type a message...';
-  };
-
-  // Format message time like WhatsApp (HH:MM)
-  const formatMessageTime = (dateString) => {
-    const date = new Date(dateString);
-    return format(date, 'HH:mm');
-  };
-
-  // Format date separator like WhatsApp
-  const formatDateSeparator = (date) => {
-    if (isToday(date)) {
-      return 'Today';
-    } else if (isYesterday(date)) {
-      return 'Yesterday';
-    } else if (isThisWeek(date)) {
-      return format(date, 'EEEE');
-    } else {
-      return format(date, 'MMMM d, yyyy');
-    }
-  };
-
-  // Group messages by date
-  const groupMessagesByDate = () => {
-    const groups = [];
-    let currentDate = null;
-
-    contact.messages?.forEach((message, index) => {
-      const messageDate = format(new Date(message.createdAt), 'yyyy-MM-dd');
-     
-      if (messageDate !== currentDate) {
-        currentDate = messageDate;
-        groups.push({
-          type: 'date',
-          date: new Date(message.createdAt),
-          id: `date-${messageDate}`
-        });
-      }
-     
-      groups.push({
-        type: 'message',
-        ...message,
-        id: message.id || index
-      });
-    });
-
-    return groups;
-  };
-
-  const messageGroups = groupMessagesByDate();
-
-  return (
-    <div className="flex flex-col w-full h-full bg-[#e5ddd5] relative">
-      {/* Header - WhatsApp-like */}
-      <div className="flex items-center justify-between bg-[#f0f0f0] px-4 py-3 border-b border-gray-300 shadow-sm">
-        <div className="flex items-center">
-          <button
-            onClick={onToggleSidebar}
-            className="lg:hidden mr-4 text-gray-600 hover:text-gray-800"
-          >
-            ←
-          </button>
-          <div className="relative">
-            <img
-              src={contact.avatar}
-              alt={contact.displayName}
-              className="w-10 h-10 rounded-full object-cover mr-3"
-            />
-            {contact.isOnline && (
-              <div className="absolute bottom-0 right-2 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-            )}
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-gray-800">{contact.displayName}</p>
-            <p className="text-xs text-gray-500">
-              {contact.isOnline ? 'Online' : 'Last seen recently'}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-4">
-          <button className="text-gray-600 hover:text-gray-800">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-            </svg>
-          </button>
-          <button className="text-gray-600 hover:text-gray-800">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* Chat Area - FIXED MESSAGE ALIGNMENT */}
-      <div className="flex-1 overflow-y-auto px-4 py-2 bg-[#e5ddd5]">
-        {messageGroups.length > 0 ? (
-          <div className="space-y-2">
-            {messageGroups.map((item) => {
-              if (item.type === 'date') {
-                return (
-                  <div key={item.id} className="flex justify-center my-4">
-                    <div className="bg-[#e1f5fe] bg-opacity-90 text-gray-600 text-xs px-3 py-1 rounded-full shadow-sm">
-                      {formatDateSeparator(item.date)}
-                    </div>
-                  </div>
-                );
-              }
-
-              // My messages (sent) - RIGHT side
-              if (item.from === 'me') {
-                return (
-                  <div key={item.id} className="flex justify-end mb-3">
-                    <div className="max-w-[70%]">
-                      <div className="bg-[#dcf8c6] px-4 py-2 rounded-lg rounded-br-none shadow-sm">
-                        <p className="text-sm text-gray-800 break-words">{item.text}</p>
-                        <div className="flex justify-end items-center mt-1">
-                          <span className="text-xs text-[#667781] mr-1">
-                            {formatMessageTime(item.createdAt)}
-                          </span>
-                          <span className="text-xs text-[#667781]">✓✓</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-
-              // Other person's messages (received) - LEFT side
-              return (
-                <div key={item.id} className="flex justify-start mb-3">
-                  <div className="max-w-[70%]">
-                    <div className="bg-white px-4 py-2 rounded-lg rounded-bl-none shadow-sm">
-                      <p className="text-sm text-gray-800 break-words">{item.text}</p>
-                      <div className="flex justify-end mt-1">
-                        <span className="text-xs text-[#667781]">
-                          {formatMessageTime(item.createdAt)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center py-8">
-            <div className="bg-white rounded-full p-4 mb-4 shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-            </div>
-            <p className="text-gray-600 font-medium">No messages yet</p>
-            <p className="text-gray-400 text-sm mt-1">Send a message to start the conversation</p>
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
           </div>
         )}
       </div>
 
-<<<<<<< HEAD
       <div className="bg-white border-t border-gray-200 p-4">
         <form onSubmit={handleSubmit} className="flex space-x-3">
           <div className="flex-1">
@@ -1070,23 +520,6 @@ const ChatWindow = ({ contact, onSendMessage, onToggleSidebar, messagesEndRef, c
             className="bg-teal-500 text-white p-3 rounded-full hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <span className="transform rotate-45 block">➤</span>
-=======
-      {/* Input Area */}
-      <div className="bg-[#f0f0f0] border-t border-gray-300 p-3">
-        <form onSubmit={handleSubmit} className="flex">
-          <input
-            type="text"
-            value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
-            placeholder={getPlaceholderText()}
-            className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-          />
-          <button
-            type="submit"
-            className="ml-2 px-4 py-2 bg-teal-500 text-white rounded-full hover:bg-teal-600 transition-colors"
-          >
-            Send
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
           </button>
         </form>
       </div>
@@ -1094,7 +527,6 @@ const ChatWindow = ({ contact, onSendMessage, onToggleSidebar, messagesEndRef, c
   );
 };
 
-<<<<<<< HEAD
 // ✅ FIXED MessageBubble with proper error handling
 const MessageBubble = ({ message, currentUserId, contact }) => {
   // Add safety checks for undefined message
@@ -1147,6 +579,4 @@ const MessageBubble = ({ message, currentUserId, contact }) => {
   );
 };
 
-=======
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 export default Message;

@@ -795,7 +795,7 @@ const MyClass = () => {
                             className="flex items-center gap-1 bg-[#0E2D63] hover:bg-[#0a1f45] text-white px-2 py-1.5 rounded-lg text-xs font-medium transition-colors"
                           >
                             <Send className="w-3 h-3" />
-                            Send Enquiry
+                             Send Message
                           </button>
                         </div>
                       </div>

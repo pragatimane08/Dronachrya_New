@@ -2,10 +2,7 @@ import React from "react";
 import { X, MapPin, BookOpen, School, Languages, Calendar, Bookmark as BookmarkIcon } from "lucide-react";
 import { apiClient } from "../../../../api/apiclient";
 import { toast } from "react-toastify";
-<<<<<<< HEAD
 import DefaultProfile from "../../../../assets/img/user3.png";
-=======
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
 
 const StudentProfile = ({ student, onClose, onBookmark }) => {
   if (!student) return null;
@@ -32,36 +29,20 @@ const StudentProfile = ({ student, onClose, onBookmark }) => {
 
   const handleBookmark = async () => {
     try {
-<<<<<<< HEAD
-=======
-      // API call to toggle bookmark
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
       await apiClient.post("/bookmarks/toggle", {
         bookmarked_user_id: student.user_id
       });
       
-<<<<<<< HEAD
-=======
-      // Call parent callback if provided
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
       if (onBookmark) {
         await onBookmark(student.user_id, student.name);
       }
       
-<<<<<<< HEAD
-=======
-      // Show success message
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
       if (student.isBookmarked) {
         toast.info("Student removed from bookmarks");
       } else {
         toast.success("Student added to bookmarks");
       }
       
-<<<<<<< HEAD
-=======
-      // Trigger storage event to update other components
->>>>>>> 3bea3b4e806b9fecfcdd44d2621a910b6e8449ed
       window.dispatchEvent(new Event('storage'));
       
     } catch (error) {

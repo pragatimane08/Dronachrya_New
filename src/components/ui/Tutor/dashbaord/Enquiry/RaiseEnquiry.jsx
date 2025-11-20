@@ -14,7 +14,7 @@ const EnquiryModal = ({
   const [formData, setFormData] = useState({
     subject: "",
     class: "",
-    description: "",
+   mode: "online",
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,13 +26,12 @@ const EnquiryModal = ({
   };
 
   const validate = () => {
-    const newErrors = {};
-    if (!formData.subject.trim()) newErrors.subject = "Subject is required";
-    if (!formData.class.trim()) newErrors.class = "Class is required";
-    if (!formData.description.trim())
-      newErrors.description = "Description is required";
-    return newErrors;
-  };
+  const newErrors = {};
+  if (!formData.subject.trim()) newErrors.subject = "Subject is required";
+  if (!formData.class.trim()) newErrors.class = "Class is required";
+  if (!formData.mode.trim()) newErrors.mode = "Mode is required";
+  return newErrors;
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -142,29 +141,28 @@ const EnquiryModal = ({
               )}
             </div>
 
-            {/* Description */}
+            {/* Mode Selection */}
             <div>
               <label className="block text-[#0E2D63] mb-1 text-sm font-medium">
-                Description <span className="text-red-500">*</span>
+                Teaching Mode <span className="text-red-500">*</span>
               </label>
-              <textarea
-                name="description"
-                value={formData.description}
+              <select
+                name="mode"
+                value={formData.mode}
                 onChange={handleChange}
-                placeholder="e.g., I would like to discuss teaching opportunities for this student."
-                rows={4}
                 className={`w-full px-4 py-2 border ${
-                  errors.description ? "border-red-500" : "border-teal-500"
+                  errors.mode ? "border-red-500" : "border-teal-500"
                 } rounded-md focus:outline-none focus:ring-2 ${
-                  errors.description
-                    ? "focus:ring-red-500"
-                    : "focus:ring-teal-500"
+                  errors.mode ? "focus:ring-red-500" : "focus:ring-teal-500"
                 }`}
-              />
-              {errors.description && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.description}
-                </p>
+              >
+                <option value="online">Online</option>
+                <option value="offline">Offline</option>
+                <option value="both">Both</option>
+                {/* <option value="Not specified">Not Specified</option> */}
+              </select>
+              {errors.mode && (
+                <p className="text-red-500 text-xs mt-1">{errors.mode}</p>
               )}
             </div>
 
@@ -194,5 +192,6 @@ const EnquiryModal = ({
 };
 
 export default EnquiryModal;
+
 
 
