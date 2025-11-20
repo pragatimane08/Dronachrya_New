@@ -12,6 +12,9 @@ const BoostProfile = () => {
     <div className="bg-[#e9edff] p-4 md:p-6 rounded-xl mt-8">
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="text-center md:text-left">
+
+
+          
           {/* Heading with text-2xl (large heading) */}
           <strong className="block text-2xl font-semibold">
             Get More Students!
