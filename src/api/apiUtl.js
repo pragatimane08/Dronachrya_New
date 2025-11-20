@@ -1,9 +1,5 @@
 export const apiUrl = {
-<<<<<<< HEAD
-  baseUrl: "http://15.206.81.98:3000/api", // ✅ Use your backend IP and port
-=======
   baseUrl: "https://api.dronacharyatutorials.com/api",
->>>>>>> feature/pragati
 
   auth: {
     login: "/auth/login",
@@ -109,9 +105,5 @@ classes: {
 
 // ⚠️ This looks redundant. Keep only one (apiUrl). Remove this if not needed.
 export const apiUtl = {
-<<<<<<< HEAD
-  baseUrl: "http://15.206.81.98:3000/api",
-=======
   baseUrl: "https://api.dronacharyatutorials.com/api",
->>>>>>> feature/pragati
 };
