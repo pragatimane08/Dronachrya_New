@@ -20,7 +20,7 @@ const AddClassForm_Tutor = () => {
     mode: "",
   });
 
-  // ✅ Fetch students directly from API
+  // Fetch students directly from API
   useEffect(() => {
     const fetchStudents = async () => {
       try {
@@ -41,7 +41,7 @@ const AddClassForm_Tutor = () => {
     fetchStudents();
   }, []);
 
-  // ✅ Handle form change
+  // Handle form change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -50,7 +50,7 @@ const AddClassForm_Tutor = () => {
     }));
   };
 
-  // ✅ Form submit with validation
+  // Form submit with validation
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -85,7 +85,7 @@ const AddClassForm_Tutor = () => {
     try {
       setSubmitting(true);
 
-      // ✅ Clean payload without tutor name
+      // Clean payload without tutor name
       const payload = {
         student_id: formData.student_id,
         name: formData.name, // Class name only
@@ -93,10 +93,10 @@ const AddClassForm_Tutor = () => {
         date_time: selectedDate.toISOString(),
         type: "regular",
         mode: formData.mode,
-        // ✅ No tutor_name field included
+        // No tutor_name field included
       };
 
-      // ✅ Debug log to verify payload
+      // Debug log to verify payload
       console.log("📤 Sending payload:", payload);
 
       const res = await classRepository.createClass(payload);
@@ -199,7 +199,7 @@ const AddClassForm_Tutor = () => {
           </select>
         </div>
 
-        {/* ✅ Conditionally Show Meeting Link (only if online) */}
+        {/* Conditionally Show Meeting Link (only if online) */}
         {formData.mode === "online" && (
           <div className="mb-6">
             <label className="block font-medium mb-1">Meeting Link</label>

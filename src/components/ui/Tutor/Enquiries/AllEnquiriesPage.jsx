@@ -19,7 +19,7 @@ import {
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
-// ✅ Reusable EnquiryCard
+// Reusable EnquiryCard
 const EnquiryCard = ({
   id,
   name,
@@ -154,7 +154,7 @@ const EnquiryCard = ({
   );
 };
 
-// ✅ Main Page with Pagination
+// Main Page with Pagination
 const AllEnquiriesPage = () => {
   const [enquiries, setEnquiries] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -168,7 +168,7 @@ const AllEnquiriesPage = () => {
       const res = await enquiryRepository.getAll();
       const allEnquiries = res?.data?.enquiries || [];
 
-      // ✅ Always show only Student Enquiries
+      // Always show only Student Enquiries
       const studentEnquiries = allEnquiries.filter(
         (enquiry) => enquiry.sender?.role?.toLowerCase() === "student"
       );

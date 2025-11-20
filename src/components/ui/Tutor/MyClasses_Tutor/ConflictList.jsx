@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import ClassResolution from "./ClassConflictResolution"; // ✅ Import the resolution component
+import ClassResolution from "./ClassConflictResolution"; // Import the resolution component
 
 const conflicts = [
   {

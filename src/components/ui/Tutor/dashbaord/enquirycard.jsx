@@ -13,7 +13,7 @@ import {
   FiArrowRight,
 } from "react-icons/fi";
 
-// ✅ EnquiryCard component
+// EnquiryCard component
 const EnquiryCard = ({
   id,
   name,
@@ -105,7 +105,7 @@ const EnquiryCard = ({
   );
 };
 
-// ✅ EnquiryList component
+// EnquiryList component
 const EnquiryList = () => {
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);

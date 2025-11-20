@@ -23,7 +23,7 @@ export default function ScheduleGroupClass({
     const errors = {};
     if (!dateTime) errors.dateTime = "Date and time is required";
 
-    // ✅ Meeting link required only for Online
+    // Meeting link required only for Online
     if (mode === "online" && !meetingLink) {
       errors.meetingLink = "Meeting link is required for online classes";
     }
@@ -58,7 +58,7 @@ export default function ScheduleGroupClass({
       const payload = {
         group_id: String(groupId),
         name: groupName || "Group Class",
-        meeting_link: mode === "online" ? meetingLink : "", // ✅ only send if online
+        meeting_link: mode === "online" ? meetingLink : "", // only send if online
         date_time: dateTime,
         duration: parseInt(duration),
         type: classType,
